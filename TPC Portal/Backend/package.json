@@ -1,0 +1,31 @@
+{
+  "name": "nodejspractice",
+  "version": "1.0.0",
+  "description": "BackEnd for our place TCP Portal",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon app.js",
+    "debug": "node --nolazy --inspect-brk=9229 myProgram.js"
+  },
+  "author": "Vivek",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/speedgeek1/NodeJs/issues"
+  },
+  "homepage": "https://github.com/speedgeek1/NodeJs#readme",
+  "devDependencies": {
+    "nodemon": "^2.0.3"
+  },
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "debug": "^4.1.1",
+    "ejs": "^3.1.2",
+    "express": "^4.17.1",
+    "express-validator": "^6.5.0",
+    "mongodb": "^3.5.7",
+    "mongoose": "^5.9.16",
+    "mongoose-unique-validator": "^2.0.3",
+    "uuid": "^8.1.0"
+  }
+}
