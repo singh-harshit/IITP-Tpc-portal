@@ -4,9 +4,35 @@ const HttpError = require("../models/http-error");
 const Admin = require("../models/admin");
 const Company = require("../models/companies");
 const Job = require("../models/jobs");
+const Student = require("../models/students");
 
 const adminLogin = (req, res, next) => {};
 
+const getStudents= (req, res, next) =>{
+  var studprojection = {
+        gender: false,
+        personalEmail: false,
+        department: false,
+        currentSemester: false,
+        spi: false,
+        tenthMarks: false,
+        twelthMarks: false,
+        bachelorsMarks: false,
+        mastersMarks: false,
+        password: false,
+    };
+    Student.find({ program: req.query.program,course: req.query.course,cpi: {$gte: req.query.cpi},placement:{placementStatus: req.query.placementStatus,placedCategory: req.query.placedCategory} },studprojection, function (err, docs) {
+        if(err)
+        {
+            console.log(err);
+            const error = new HttpError("Something went wrong ! try again later", 500);
+            return next(error);
+        }
+        res.send(docs)
+    })
+}
+  
+  
 const getAllCompanies = async (req, res, next) => {
   let companyList;
   try {
