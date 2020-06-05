@@ -31,7 +31,32 @@ const getStudents= (req, res, next) =>{
         res.send(docs)
     })
 }
-  
+
+const exportStudents= (req, res, next) =>{
+  var studprojection = {
+        gender: false,
+        personalEmail: false,
+        department: false,
+        currentSemester: false,
+        spi: false,
+        tenthMarks: false,
+        twelthMarks: false,
+        bachelorsMarks: false,
+        mastersMarks: false,
+        password: false,
+    };
+    Student.find({ program: req.query.program,course: req.query.course,cpi: {$gte: req.query.cpi},placement:{placementStatus: req.query.placementStatus,placedCategory: req.query.placedCategory} },studprojection, function (err, docs) {
+        if(err)
+        {
+            console.log(err);
+            const error = new HttpError("Something went wrong ! try again later", 500);
+            return next(error);
+        }
+        var info = JSON.stringify(docs);
+        var info1 = JSON.parse(info);
+        res.xls('data.xlsx',info1);
+    });
+}  
   
 const getAllCompanies = async (req, res, next) => {
   let companyList;
