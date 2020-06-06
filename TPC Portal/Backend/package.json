@@ -11,14 +11,15 @@
   "author": "Vivek",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/speedgeek1/NodeJs/issues"
+    "url": "https://github.com/speedgeek1/IITP-Tpc-portal/issues"
   },
-  "homepage": "https://github.com/speedgeek1/NodeJs#readme",
+  "homepage": "https://github.com/speedgeek1/IITP-Tpc-portal",
   "devDependencies": {
     "nodemon": "^2.0.3"
   },
   "dependencies": {
     "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
     "debug": "^4.1.1",
     "ejs": "^3.1.2",
     "express": "^4.17.1",
@@ -26,6 +27,7 @@
     "mongodb": "^3.5.7",
     "mongoose": "^5.9.16",
     "mongoose-unique-validator": "^2.0.3",
+    "multer": "^1.4.2",
     "uuid": "^8.1.0"
   }
 }

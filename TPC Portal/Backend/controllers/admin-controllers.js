@@ -4,60 +4,87 @@ const HttpError = require("../models/http-error");
 const Admin = require("../models/admin");
 const Company = require("../models/companies");
 const Job = require("../models/jobs");
-const Student = require("../models/students");
 
 const adminLogin = (req, res, next) => {};
 
-const getStudents= (req, res, next) =>{
+const getStudents = (req, res, next) => {
   var studprojection = {
-        gender: false,
-        personalEmail: false,
-        department: false,
-        currentSemester: false,
-        spi: false,
-        tenthMarks: false,
-        twelthMarks: false,
-        bachelorsMarks: false,
-        mastersMarks: false,
-        password: false,
-    };
-    Student.find({ program: req.query.program,course: req.query.course,cpi: {$gte: req.query.cpi},placement:{placementStatus: req.query.placementStatus,placedCategory: req.query.placedCategory} },studprojection, function (err, docs) {
-        if(err)
-        {
-            console.log(err);
-            const error = new HttpError("Something went wrong ! try again later", 500);
-            return next(error);
-        }
-        res.send(docs)
-    })
-}
+    gender: false,
+    personalEmail: false,
+    department: false,
+    currentSemester: false,
+    spi: false,
+    tenthMarks: false,
+    twelthMarks: false,
+    bachelorsMarks: false,
+    mastersMarks: false,
+    password: false,
+  };
+  Student.find(
+    {
+      program: req.query.program,
+      course: req.query.course,
+      cpi: { $gte: req.query.cpi },
+      placement: {
+        placementStatus: req.query.placementStatus,
+        placedCategory: req.query.placedCategory,
+      },
+    },
+    studprojection,
+    function (err, docs) {
+      if (err) {
+        console.log(err);
+        const error = new HttpError(
+          "Something went wrong ! try again later",
+          500
+        );
+        return next(error);
+      }
+      res.send(docs);
+    }
+  );
+};
 
-const exportStudents= (req, res, next) =>{
+const exportStudents = (req, res, next) => {
   var studprojection = {
-        gender: false,
-        personalEmail: false,
-        department: false,
-        currentSemester: false,
-        spi: false,
-        tenthMarks: false,
-        twelthMarks: false,
-        bachelorsMarks: false,
-        mastersMarks: false,
-        password: false,
-    };
-    Student.find({ program: req.query.program,course: req.query.course,cpi: {$gte: req.query.cpi},placement:{placementStatus: req.query.placementStatus,placedCategory: req.query.placedCategory} },studprojection, function (err, docs) {
-        if(err)
-        {
-            console.log(err);
-            const error = new HttpError("Something went wrong ! try again later", 500);
-            return next(error);
-        }
-        var info = JSON.stringify(docs);
-        var info1 = JSON.parse(info);
-        res.xls('data.xlsx',info1);
-    });
-}  
-  
+    gender: false,
+    personalEmail: false,
+    department: false,
+    currentSemester: false,
+    spi: false,
+    tenthMarks: false,
+    twelthMarks: false,
+    bachelorsMarks: false,
+    mastersMarks: false,
+    password: false,
+  };
+  Student.find(
+    {
+      program: req.query.program,
+      course: req.query.course,
+      cpi: { $gte: req.query.cpi },
+      placement: {
+        placementStatus: req.query.placementStatus,
+        placedCategory: req.query.placedCategory,
+      },
+    },
+    studprojection,
+    function (err, docs) {
+      if (err) {
+        console.log(err);
+        const error = new HttpError(
+          "Something went wrong ! try again later",
+          500
+        );
+        return next(error);
+      }
+      var info = JSON.stringify(docs);
+      var info1 = JSON.parse(info);
+      res.xls("data.xlsx", info1);
+    }
+  );
+};
+
 const getAllCompanies = async (req, res, next) => {
   let companyList;
   try {
@@ -118,6 +145,8 @@ const addCompany = async (req, res, next) => {
   }
   res.json({ newCompany: newCompany.toObject({ getters: true }) });
 };
+
+const addBulkCompany = async (req, res, next) => {};
 
 const deactivateCompany = async (req, res, next) => {
   const { idList } = req.body;
@@ -266,6 +295,7 @@ const updateCompanyById = async (req, res, next) => {
   }
   res.json({ companyToUpdate: companyToUpdate.toObject({ getters: true }) });
 };
+
 const companyPasswordReset = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -295,8 +325,11 @@ const companyPasswordReset = async (req, res, next) => {
 };
 
 exports.adminLogin = adminLogin;
+exports.getStudents = getStudents;
+exports.exportStudents = exportStudents;
 exports.getAllCompanies = getAllCompanies;
 exports.addCompany = addCompany;
+exports.addBulkCompany = addBulkCompany;
 exports.deactivateCompany = deactivateCompany;
 exports.deleteCompany = deleteCompany;
 exports.getCompanyById = getCompanyById;

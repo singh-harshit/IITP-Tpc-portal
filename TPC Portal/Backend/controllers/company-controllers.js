@@ -1,6 +1,7 @@
 const { validationResult } = require("express-validator");
 const HttpError = require("../models/http-error");
 const Company = require("../models/companies");
+const Admin = require("../models/admin");
 
 const companyLogin = (req, res, next) => {};
 
@@ -34,7 +35,14 @@ const companyRegistration = async (req, res, next) => {
   });
   // Saving to Database
   try {
-    await newCompany.save();
+    const sess = await mongoose.startSession();
+    sess.startTransaction();
+    await newCompany.save({ session: sess });
+    await Admin.updateOne(
+      {},
+      { $addToSet: { companyApproval: newCompany._id } }
+    );
+    await sess.commitTransaction();
   } catch (err) {
     console.log(err);
     const error = new HttpError("Something went wrong ! try again later", 500);
@@ -79,7 +87,18 @@ const companyNewRequest = async (req, res, next) => {
   };
   companyInfo.requests.push(newRequest);
   try {
-    await companyInfo.save();
+    const sess = await mongoose.startSession();
+    sess.startTransaction();
+    await companyInfo.save({ session: sess });
+    await Admin.updateOne(
+      {},
+      {
+        $addToSet: {
+          companyRequests: { requestId: studId, requestStatus: "unread" },
+        },
+      }
+    ).session(sess);
+    await sess.commitTransaction();
   } catch (err) {
     console.log(err);
     const error = new HttpError("Something went wrong! Try again later", 500);
