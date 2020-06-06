@@ -2,16 +2,18 @@ const mongoose = require("mongoose");
 const uniqueValidator = require("mongoose-unique-validator");
 const Schema = mongoose.Schema;
 
-const jobShema = new Schema({
+const jobSchema = new Schema({
   companyName: { type: String, required: true },
   companyId: { type: mongoose.Types.ObjectId, required: true, ref: "Company" },
   jobTitle: { type: String, required: true },
   jobType: { type: String, required: true, enum: ["FTE", "INTERNSHIP"] },
-  jobCategory: { type: String, required: true, unique: true },
+  jobCategory: {
+    type: Schema.Types.Mixed,
+    required: true,
+  },
   jobStatus: {
     type: String,
-    required: true,
-    enum: ["OPEN", "CLOSE", "ACTIVE"],
+    enum: ["PENDING APPROVAL", "OPEN", "CLOSE", "ACTIVE", "DROPPED"],
   },
   // details: {
   //   jobDescription: String,
@@ -23,36 +25,37 @@ const jobShema = new Schema({
   //   numberOfOffers: Number
   // },
   // otherRequirements:String,
-  ctc: String,
+  ctc: Schema.Types.Mixed,
   stipend: String,
-  selectionProcess: {
+  modeOfInterview: {
     type: String,
     required: true,
     enum: ["onCampus", "offCampus"],
   },
-  modeOfInterView: [String],
+  selectionProcess: [String],
   schedule: {
-    registration: Date,
-    ppt: Date,
-    Test: Date,
+    registration: String,
+    ppt: String,
+    Test: String,
   },
-  jafFile: String,
+  jafFiles: [String],
   eligibilityCriteria: {
     program: [String],
     department: [String],
     course: [String],
-    cpiCuttOff: Number,
+    cpiCutOff: Number,
     tenthMarks: Number,
     twelthMarks: Number,
   },
   publicRemarks: [String],
   privateRemarks: [String],
 
-  registeredStudents: [String],
-  shortListedStudents: [String],
-  selectedStudents: [String],
+  registeredStudents: [{ type: mongoose.Types.ObjectId, ref: "Student" }],
+  shortListedStudents: [{ type: mongoose.Types.ObjectId, ref: "Student" }],
+  activeStudents: [{ type: mongoose.Types.ObjectId, ref: "Student" }],
+  selectedStudents: [{ type: mongoose.Types.ObjectId, ref: "Student" }],
 });
 
-jobShema.plugin(uniqueValidator);
+jobSchema.plugin(uniqueValidator);
 
-module.exports = mongoose.model("Job", jobShema);
+module.exports = mongoose.model("Job", jobSchema);

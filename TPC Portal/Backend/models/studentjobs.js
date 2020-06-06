@@ -6,7 +6,7 @@ const studentJobSchema = new Schema({
   studId: { type: String, require: true, unique: true },
   appliedJobs: [
     {
-      jobId: String,
+      jobId: { type: mongoose.Types.ObjectId, ref: "Job" },
       jobStatus: {
         type: String,
         required: true,
@@ -14,9 +14,9 @@ const studentJobSchema = new Schema({
       },
     },
   ],
-  eligibleJobs: [String],
+  eligibleJobs: [{ type: mongoose.Types.ObjectId, ref: "Job" }],
 });
 
-studentJobShema.plugin(uniqueValidator);
+studentJobSchema.plugin(uniqueValidator);
 
 module.exports = mongoose.model("StudentJob", studentJobSchema);
