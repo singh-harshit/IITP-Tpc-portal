@@ -185,7 +185,12 @@ const newRequest = async (req, res, next) => {
       {},
       {
         $addToSet: {
-          studentRequests: { requestId: studId, requestStatus: "unread" },
+          studentRequests: {
+            studId: studentInfo._id,
+            subject: subject,
+            content: message,
+            requestStatus: "unread",
+          },
         },
       }
     ).session(sess);

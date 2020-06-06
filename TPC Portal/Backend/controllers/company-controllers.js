@@ -94,7 +94,12 @@ const companyNewRequest = async (req, res, next) => {
       {},
       {
         $addToSet: {
-          companyRequests: { requestId: studId, requestStatus: "unread" },
+          companyRequests: {
+            companyId: studId,
+            requestStatus: "unread",
+            subject: subject,
+            content: message,
+          },
         },
       }
     ).session(sess);
