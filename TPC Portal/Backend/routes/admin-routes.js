@@ -2,8 +2,11 @@ const express = require("express");
 const { check } = require("express-validator");
 const router = express.Router();
 const adminController = require("../controllers/admin-controllers");
+const fileUpload = require("../middleware/file-upload");
 
 router.post("/login", adminController.adminLogin);
+
+//Admin Companies Routes
 
 router.get("/companies", adminController.getAllCompanies);
 
@@ -13,7 +16,7 @@ router.patch("/companies/deactivateCompany", adminController.deactivateCompany);
 // Expecting "array of Companies Id or may be One id but in inside array"  for the deletion
 router.delete("/companies/deleteCompany", adminController.deleteCompany);
 
-//Expecting Company Details
+//Expecting Company Details ... adding one company
 router.post(
   "/companies/addCompany",
   [
@@ -23,6 +26,13 @@ router.post(
     check("contact1.mailId").normalizeEmail().isEmail(),
   ],
   adminController.addCompany
+);
+
+// Adding many companies from csv files
+router.post(
+  "/companies/addBulkCompany",
+  fileUpload.single("companyDetails"),
+  adminController.addBulkCompany
 );
 
 //ROUTE for individual company display ... Expecting companyId in URL (/admin/companies/:cid)
