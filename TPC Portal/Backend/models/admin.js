@@ -6,6 +6,21 @@ const adminSchema = new Schema({
   name: { type: String, required: true },
   email: { type: String, required: true },
   password: { type: String, required: true, minLength: 6 },
+  studentApproval: [{ type: mongoose.Types.ObjectId, ref: "Student" }],
+  companyApproval: [{ type: mongoose.Types.ObjectId, ref: "Company" }],
+  jobApproval: [{ type: mongoose.Types.ObjectId, ref: "Job" }],
+  studentRequests: [
+    {
+      requestId: { type: mongoose.Types.ObjectId, ref: "Student" },
+      requestStatus: String,
+    },
+  ],
+  companyRequests: [
+    {
+      requestId: { type: mongoose.Types.ObjectId, ref: "Company" },
+      requestStatus: String,
+    },
+  ],
 });
 
 adminSchema.plugin(uniqueValidator);
