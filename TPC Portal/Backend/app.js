@@ -10,6 +10,8 @@ const companyRoutes = require("./routes/company-routes");
 const adminRoutes = require("./routes/admin-routes");
 const adminJobRoutes = require("./routes/admin-jobs-routes");
 const adminRequestRoute = require("./routes/admin-requests-routes");
+// Exporting Files
+const json2xls = require("json2xls");
 
 // Importing Our Error Model
 const HttpError = require("./models/http-error");
@@ -17,6 +19,8 @@ const HttpError = require("./models/http-error");
 const app = express();
 const url =
   "mongodb+srv://Vivek:tpcportal@tpc-portal-server-oxadw.mongodb.net/Places?retryWrites=true&w=majority";
+
+app.use(json2xls.middleware);
 
 // Parsing the Incoming requests
 app.use(bodyParser.urlencoded({ extended: false }));
