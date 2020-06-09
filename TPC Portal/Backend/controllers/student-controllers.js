@@ -153,13 +153,8 @@ const requests = async (req, res, next) => {
 };
 
 const newRequest = async (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    console.log(errors);
-    return next(new HttpError("You have entered invalid data , recheck", 422));
-  }
   const studId = req.params.sid;
-  const { subject, message } = req.body;
+
   let studentInfo;
   try {
     studentInfo = await Student.findById(studId);
@@ -171,12 +166,16 @@ const newRequest = async (req, res, next) => {
   if (!studentInfo) {
     return next(new HttpError("User not found", 404));
   }
-  const newRequest = {
-    rid: studentInfo.requests.length + 1,
-    subject,
-    message,
-  };
-  studentInfo.requests.push(newRequest);
+  Student.findByIdAndUpdate(req.params.sid, req.body
+    , (error, data) => {
+        if (error) {
+            return next(error);
+            console.log(error)
+        } else {
+            res.json(data)
+            console.log('User updated successfully !')
+        }
+    })
   try {
     const sess = await mongoose.startSession();
     sess.startTransaction();
