@@ -18,7 +18,7 @@ const studentShema = new Schema({
   },
   program: { type: String, required: true },
   department: { type: String, required: true },
-  course: { type: String, required: true },
+  course: { type: String },
   currentSemester: { type: Number, required: true, max: 7 },
   spi: {
     sem1: { type: Number, max: 10 },
@@ -44,10 +44,18 @@ const studentShema = new Schema({
   resumeLink: String,
   resumeFile: String,
   placement: {
-    placementStatus: { type: String, enum: ["placed", "unplaced"] },
-    placedCategory: { type: String, enum: ["A1", "B1", "B2", "PSU", ""] },
+    status: { type: String, enum: ["placed", "unplaced"] },
+    category: { type: String, enum: ["A1", "B1", "B2", "PSU", ""] },
+    placedJobId: { type: mongoose.Types.ObjectId, ref: "Job" }, // type : Objectid : Jobid
+    applicationCount: {
+      A1count: Number,
+      A2count: Number,
+      PSUcount: Number,
+      B1count: Number,
+      B2count: Number,
+    },
   },
-  approvalStatus: Boolean,
+  approvalStatus: String,
 });
 
 studentShema.plugin(uniqueValidator);

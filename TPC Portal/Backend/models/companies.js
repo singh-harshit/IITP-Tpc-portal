@@ -34,7 +34,7 @@ const companySchema = new Schema({
     },
   ],
   remarks: [String],
-  approvalStatus: Boolean,
+  approvalStatus: String,
   companyStatus: String,
   jobs: [{ type: mongoose.Types.ObjectId, ref: "Job" }],
 });
