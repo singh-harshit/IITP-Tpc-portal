@@ -1,0 +1,164 @@
+body {
+  height: 100%;
+}
+
+/* Header Start */
+.nav {
+  display: block;
+  /* background-color: rgb(192, 242, 255); */
+  width: 99%;
+  height: 110px;
+  border-style: solid;
+  border-radius: 10px;
+  border-color: rgb(131, 167, 245);
+  margin: 5px;
+}
+
+.nav h2 {
+  color: rgb(15, 52, 131);
+  margin: 0;
+  margin-left: 80px;
+}
+.nav h1 {
+  color: rgb(15, 52, 131);
+  display: inline-block;
+  padding-top: 10px;
+  margin: 0;
+}
+.nav img {
+  float: left;
+  border-radius: 100%;
+  width: 80px;
+  height: 80px;
+  margin: 5px 0 5px 0;
+}
+/* Header End */
+
+/* Left Component Start */
+.main-content {
+  position: fixed;
+  display: inline-block;
+  background-color: lightblue;
+  margin-left: 10px;
+  width: 60%;
+  min-height: 81vh;
+  max-height: max-content;
+  border-style: solid;
+  border-color: lightblue;
+  border-radius: 10px;
+}
+
+.content {
+  position: relative;
+  width: 100%;
+  height: max-content;
+}
+
+.content h2 {
+  background-color: rgb(228, 228, 228);
+  border-radius: 20px;
+  text-align: center;
+  color: rgb(112, 110, 110);
+}
+/* Left Component End */
+
+
+/* Login form Start */
+.login {
+  float: right;
+  width: 39%;
+  min-height: 81vh;
+  max-height: max-content;
+  text-align: center;
+}
+
+.form-style-5 {
+  max-width: 500px;
+  padding: 10px 20px;
+  background: #f4f7f8;
+  margin: 10px auto;
+  padding: 20px;
+  background: #f4f7f8;
+  border-radius: 8px;
+  font-family: Georgia, "Times New Roman", Times, serif;
+}
+.form-style-5 fieldset {
+  border: none;
+}
+.form-style-5 legend {
+  font-size: 1.4em;
+  margin-bottom: 10px;
+}
+.form-style-5 input[type="text"],
+.form-style-5 input[type="email"],
+.form-style-5 textarea,
+.form-style-5 select {
+  font-family: Georgia, "Times New Roman", Times, serif;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 4px;
+  font-size: 15px;
+  margin: 0;
+  outline: 0;
+  padding: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  background-color: #e8eeef;
+  color: #8a97a0;
+  -webkit-box-shadow: 0 1px 0 rgba(0, 0, 0, 0.03) inset;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.03) inset;
+  margin-bottom: 30px;
+}
+.form-style-5 input[type="text"]:focus,
+.form-style-5 input[type="email"]:focus,
+.form-style-5 textarea:focus,
+.form-style-5 select:focus {
+  background: #d2d9dd;
+}
+.form-style-5 .number {
+  background: rgb(0, 164, 185);
+  color: #fff;
+  height: 30px;
+  width: 30px;
+  display: inline-block;
+  font-size: 0.8em;
+  margin-right: 4px;
+  line-height: 30px;
+  text-align: center;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
+  border-radius: 15px 15px 15px 0px;
+}
+
+.form-style-5 input[type="submit"],
+.form-style-5 input[type="button"] {
+  position: relative;
+  display: block;
+  padding: 19px 39px 18px 39px;
+  color: #fff;
+  margin: 0 auto;
+  background: #00839b;
+  font-size: 18px;
+  text-align: center;
+  font-style: normal;
+  width: 100%;
+  border: 1px solid rgb(16, 115, 196);
+  border-width: 1px 1px 3px;
+  margin-bottom: 10px;
+}
+.form-style-5 input[type="submit"]:hover,
+.form-style-5 input[type="button"]:hover {
+  background: rgb(0, 164, 185);
+}
+
+.left-checkbox {
+    float: left;
+    text-align: left;
+}
+
+.right-checkbox {
+    float: right;
+    text-align: left;
+}
+/* Login form End */
