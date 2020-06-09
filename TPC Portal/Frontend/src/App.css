@@ -1,6 +1,9 @@
 .header {
+  top:0;
+  position: sticky;
   height: 15vh;
   text-align: center;
+  z-index: 2;
 }
 .header h2 {
   margin: 0;
@@ -25,6 +28,13 @@
   }
 }
 
+.nav-flex
+{
+  top: 15vh;
+  position: sticky;
+  z-index: 2;
+}
+
 
 @media only screen and (min-width: 768px) {
 .nav-flex
@@ -33,4 +43,17 @@
   width: 20vw;
   height: 85vh;
 }
+}
+
+.new-request
+{
+  top:15vh;
+	position: sticky;
+    z-index:2
+}
+
+.old-request
+{
+  position: relative;
+  left: 15vh;
 }

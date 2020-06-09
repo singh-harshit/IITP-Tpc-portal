@@ -1,16 +1,17 @@
 import React from 'react';
 import './App.css';
-import {Register} from "./components/student/index.jsx";
-import {Stud_nav} from "./components/student/index.jsx";
 import {Header} from "./components/header.jsx";
+import {Stud_nav} from "./components/student/index.jsx";
+import {Register} from "./components/student/index.jsx";
+import {Requests} from "./components/student/index.jsx";
+
 function App() {
   return (
-    <div className="App">
+    <div className="App bg-light">
       <Header />
       <Stud_nav />
-      <Register />
+      <Requests />
     </div>
   );
 }
-
 export default App;
