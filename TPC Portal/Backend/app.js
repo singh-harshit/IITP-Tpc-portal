@@ -1,8 +1,8 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const morgan = require('morgan');
-const path = require('path');
-const cors = require('cors');
+const express = require("express");
+const mongoose = require("mongoose");
+const morgan = require("morgan");
+const path = require("path");
+const cors = require("cors");
 const bodyParser = require("body-parser");
 // Importing Routes
 const studentRoutes = require("./routes/student-routes");
@@ -17,14 +17,14 @@ const json2xls = require("json2xls");
 const HttpError = require("./models/http-error");
 
 const app = express();
-const PORT = process.env.PORT||5000;
+const PORT = process.env.PORT || 5000;
 app.use(json2xls.middleware);
-const MONGODB_URI = "mongodb+srv://Vivek:tpcportal@tpc-portal-server-oxadw.mongodb.net/Places?retryWrites=true&w=majority";
-
+const MONGODB_URI =
+  "mongodb+srv://Vivek:tpcportal@tpc-portal-server-oxadw.mongodb.net/Places?retryWrites=true&w=majority";
 
 // Data parsing
 app.use(express.json());
-app.use(express.urlencoded({extended:false}));
+app.use(express.urlencoded({ extended: false }));
 
 //Serving Static files
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
@@ -44,7 +44,7 @@ app.use((req, res, next) => {
 });
 
 //http logger request
-app.use(morgan('tiny'));
+app.use(morgan("tiny"));
 
 // Set the Routes
 app.use("/student", studentRoutes);

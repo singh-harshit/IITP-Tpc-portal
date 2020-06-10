@@ -31,7 +31,7 @@ router.get("/requests/:sid", studentControllers.requests);
 
 router.post(
   "/new-request/:sid",
-  [check("subject").not().isEmpty(), check("message").not().isEmpty()],
+  //[check("subject").not().isEmpty(), check("message").not().isEmpty()],
   studentControllers.newRequest
 );
 

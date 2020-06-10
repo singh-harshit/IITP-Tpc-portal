@@ -249,39 +249,56 @@ const newRequest = async (req, res, next) => {
   if (!studentInfo) {
     return next(new HttpError("User not found", 404));
   }
-  Student.findByIdAndUpdate(req.params.sid, req.body, (error, data) => {
-    if (error) {
-      return next(error);
-      console.log(error);
-    } else {
-      res.json(data);
-      console.log("User updated successfully !");
-    }
-  });
+  const { subject, message } = req.body;
+  // Student.findByIdAndUpdate(studId, req.body, (error, data) => {
+  //   if (error) {
+  //     return next(error);
+  //     console.log(error);
+  //   } else {
+  //     res.json(data);
+  //     console.log("User updated successfully !");
+  //   }
+  // });
+  console.log(req.body);
+  const newRequest = {
+    rid: studentInfo.requests.length + 1,
+    subject: subject,
+    message: message,
+  };
+  studentInfo.requests.push(newRequest);
   try {
-    const sess = await mongoose.startSession();
-    sess.startTransaction();
-    await studentInfo.save({ session: sess });
-    await Admin.updateOne(
-      {},
-      {
-        $addToSet: {
-          studentRequests: {
-            studId: studentInfo._id,
-            subject: subject,
-            content: message,
-            requestStatus: "unread",
-          },
-        },
-      }
-    ).session(sess);
-    await sess.commitTransaction();
+    await studentInfo.save();
   } catch (err) {
     console.log(err);
     const error = new HttpError("Something went wrong! Try again later", 500);
     return next(error);
   }
-  res.json({ studentInfo: studentInfo.toObject() });
+  res.json({ oldRequests: studentInfo.requests });
+
+  // try {
+  //   const sess = await mongoose.startSession();
+  //   sess.startTransaction();
+
+  //   await Admin.updateOne(
+  //     {},
+  //     {
+  //       $addToSet: {
+  //         studentRequests: {
+  //           studId: studentInfo._id,
+  //           subject: subject,
+  //           content: message,
+  //           requestStatus: "unread",
+  //         },
+  //       },
+  //     }
+  //   ).session(sess);
+  //   await sess.commitTransaction();
+  // } catch (err) {
+  //   console.log(err);
+  //   const error = new HttpError("Something went wrong! Try again later", 500);
+  //   return next(error);
+  // }
+  // res.json({ studentInfo: studentInfo.toObject() });
 };
 
 const resumeUpload = async (req, res, next) => {
