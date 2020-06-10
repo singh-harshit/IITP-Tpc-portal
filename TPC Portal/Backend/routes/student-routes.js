@@ -21,6 +21,8 @@ router.post(
 
 router.get("/profile/:sid", studentControllers.profile);
 
+router.post("/apply/:sid", studentControllers.applyForJob);
+
 router.get("/applied/jobs/:sid", studentControllers.appliedJobs);
 
 router.get("/eligible/jobs/:sid", studentControllers.eligibleJobs);

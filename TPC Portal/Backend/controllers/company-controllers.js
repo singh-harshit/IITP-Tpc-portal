@@ -31,7 +31,7 @@ const companyRegistration = async (req, res, next) => {
     contact3,
     companyLink,
     companyStatus: "Registered",
-    approvalStatus: false,
+    approvalStatus: "PENDING APPROVAL",
   });
   // Saving to Database
   try {

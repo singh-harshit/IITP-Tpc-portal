@@ -9,4 +9,14 @@ router.patch("/approve/request/:id", adminRequestsController.approveRequest);
 
 router.delete("/delete/request/:id", adminRequestsController.deleteRequest);
 
+router.post(
+  "/student/sort/request",
+  adminRequestsController.sortStudentRequests
+);
+
+router.patch(
+  "/student/bulkApprove/request",
+  adminRequestsController.approveStudetnRequestsInBulk
+);
+
 module.exports = router;

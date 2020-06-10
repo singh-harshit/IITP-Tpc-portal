@@ -4,6 +4,8 @@ const { validationResult } = require("express-validator");
 const HttpError = require("../models/http-error");
 const Student = require("../models/students");
 const Admin = require("../models/admin");
+const StudentJob = require("../models/studentjobs");
+const Job = require("../models/jobs");
 
 const login = async (req, res, next) => {};
 
@@ -69,11 +71,12 @@ const registration = async (req, res, next) => {
     mastersMarks,
     password,
     placement: {
-      placementStatus: "unplaced",
-      placedCategory: "",
+      status: "unplaced",
+      category: "",
     },
-    approvalStatus: false,
+    approvalStatus: "PENDING APPROVAL",
   });
+  //Logic of Image Upload
   newStudent.image = req.file
     ? "http://localhost:5000/" + req.file.path
     : "Still Not Uploaded";
@@ -131,10 +134,90 @@ const profile = async (req, res, next) => {
   }
   res.json({ studentInfo: studentInfo });
 };
+const eligibleJobs = async (req, res, next) => {
+  const studId = req.params.sid;
+  console.log(studId);
+  let eligibleJobs;
+  try {
+    eligibleJobs = await StudentJob.findOne({ studId: studId }).populate({
+      path: "eligibleJobs",
+      select: "companyName companyId jobTitle jobCategory jafFiles schedule",
+    });
+  } catch (err) {
+    console.log(err);
+    const error = new HttpError("Something went wrong! Try again later", 500);
+    return next(error);
+  }
+  console.log(eligibleJobs);
+  res.json({ studentJobs: eligibleJobs });
+};
 
-const appliedJobs = async (req, res, next) => {};
+const applyForJob = async (req, res, next) => {
+  const studId = req.params.sid;
+  let newRegistration;
+  const { jobId } = req.body;
+  try {
+    const sess = await mongoose.startSession();
+    sess.startTransaction();
+    let job = await Job.aggregate([
+      {
+        $project: {
+          idString: { $toString: "$_id" },
+          _id: 1,
+        },
+      },
+      { $match: { idString: jobId } },
+    ]);
+    //console.log(job);
+    if (!job) {
+      return next(new HttpError("Job doesn't exist anymore", 404));
+    }
+    newRegistration = await Job.findById(job[0]._id).session(sess);
+    newRegistration.registeredStudents.push(studId);
+    await newRegistration.save({ session: sess });
+    await StudentJob.updateOne(
+      { studId: studId },
+      {
+        $pull: { eligibleJobs: { $in: [jobId] } },
+        $addToSet: { appliedJobs: { jobId: jobId, jobStatus: "applied" } },
+      }
+    ).session(sess);
+    const student = await Student.findById(studId).session(sess);
+    if (student.placement.status === "placed") {
+      let count = job.jobCategory;
+      count += "count";
+      student.placement.applicationCount[count] += 1;
+    }
+    await student.save({ session: sess });
+    await sess.commitTransaction();
+  } catch (err) {
+    console.log(err);
+    const error = new HttpError("Something went wrong! Try again later", 500);
+    return next(error);
+  }
+  res.json({
+    job: newRegistration,
+  });
+};
 
-const eligibleJobs = async (req, res, next) => {};
+const appliedJobs = async (req, res, next) => {
+  const studId = req.params.sid;
+  let appliedJobs;
+  try {
+    appliedJobs = await StudentJob.findOne(
+      { studId: studId },
+      { studId: 1, _id: 0, "appliedJobs.jobStatus": 1 }
+    ).populate({
+      path: "appliedJobs.jobId",
+      select: "companyName jobTitle jobCategory schedule",
+    });
+  } catch (err) {
+    console.log(err);
+    const error = new HttpError("Something went wrong! Try again later", 500);
+    return next(error);
+  }
+  res.json({ studentWithAppliedJobs: appliedJobs });
+};
 
 const requests = async (req, res, next) => {
   const studId = req.params.sid;
@@ -282,6 +365,7 @@ const resetPassword = async (req, res, next) => {
 exports.login = login;
 exports.registration = registration;
 exports.profile = profile;
+exports.applyForJob = applyForJob;
 exports.appliedJobs = appliedJobs;
 exports.eligibleJobs = eligibleJobs;
 exports.requests = requests;

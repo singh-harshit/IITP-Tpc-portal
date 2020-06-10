@@ -370,24 +370,3 @@ exports.approvedCompanies = approvedCompanies;
 exports.getJobById = getJobById;
 exports.updateJobById = updateJobById;
 exports.activeApplicantsByJobId = activeApplicantsByJobId;
-
-// const program = eligiblityCreteria.program;
-// const department = eligiblityCreteria.department;
-// const course = eligiblityCreteria.course || "None";
-// const cpiCutOff = eligiblityCreteria.cpiCutOff || 0.0;
-// const tenthMarks = eligiblityCreteria.tenthMarks || 0.0;
-// const twelthMarks = eligiblityCreteria.twelthMarks || 0.0;
-// const students = await Student.find(
-//   {
-//     $and: [
-//       { jobType: jobType },
-//       { program: program },
-//       { department: department },
-//       { cpiCutOff: { $gte: cpiCutOff } },
-//       { tenthMarks: { $gte: tenthMarks } },
-//       { twelthMarks: { $gte: twelthMarks } },
-//       { $or: [{ course: { $exists: false } }, { course: course }] },
-//     ],
-//   },
-//   { studId: 1, placement: 1, course: 1 }
-// );

@@ -3,7 +3,12 @@ const uniqueValidator = require("mongoose-unique-validator");
 const Schema = mongoose.Schema;
 
 const studentJobSchema = new Schema({
-  studId: { type: String, require: true, unique: true },
+  studId: {
+    type: mongoose.Types.ObjectId,
+    ref: "Student",
+    require: true,
+    unique: true,
+  },
   appliedJobs: [
     {
       jobId: { type: mongoose.Types.ObjectId, ref: "Job" },
