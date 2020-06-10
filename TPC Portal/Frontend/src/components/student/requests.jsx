@@ -5,18 +5,20 @@ import axios from 'axios';
 export class Requests extends React.Component{
 
   state = {
-    title:'',
-    body:'',
+    id:'1701CS55',
+    _id:'5edd3dab78d3a45b97471400',
+    subject:'',
+    message:'',
     posts:[]
   };
 
   displayBlogPost = (posts) =>{
     if(!posts.length){ return null;}
-
+    console.log(posts);
     return posts.map((post,index) =>(
       <div key={index} className="container bg-success text-light p-3 my-3 border">
-        <h3>{post.title}</h3>
-        <p>{post.body}</p>
+        <h3>{post.subject}</h3>
+        <p>{post.message}</p>
       </div>
     ));
   };
@@ -26,9 +28,9 @@ export class Requests extends React.Component{
   };
 
   getBlogPost = () =>{
-    axios.get('/api')
+    axios.get('/student/requests/'+this.state.id)
       .then((response) => {
-        const data = response.data;
+        const data = response.data.oldRequests.requests;
         this.setState({posts: data});
         console.log('data',this.state.posts);
         this.displayBlogPost(this.state.posts);
@@ -51,14 +53,15 @@ export class Requests extends React.Component{
 
   submit = (event) =>{
       event.preventDefault();
-      const payload = {
-        title: this.state.title,
-        body: this.state.body
+      let val = this.state.posts;
+      val.push({rid:1,subject: this.state.subject,message: this.state.message});
+      let payload = {
+        requests: val
       };
 
       axios({
-        url: '/api/save',
-        method: 'POST',
+        url: '/student/new-request/'+this.state._id,
+        method: 'post',
         data: payload
       })
       .then(() =>{
@@ -73,8 +76,8 @@ export class Requests extends React.Component{
 
   resetUserInputs = () =>{
     this.setState({
-      title:'',
-      body:''
+      subject:'',
+      message:''
     });
   };
 
@@ -91,19 +94,19 @@ export class Requests extends React.Component{
             <input
               type="text"
               className="form-control"
-              name="title"
+              name="subject"
               placeholder="Enter Subject"
-              value={this.state.title}
+              value={this.state.subject}
               onChange={this.handleChange}
               />
           </div>
           <div className="form-input">
             <textarea
-              name="body"
-              class ="form-control"
+              name="message"
+              className ="form-control"
               cols="30"
               rows="5"
-              value={this.state.body}
+              value={this.state.message}
               onChange={this.handleChange}
               ></textarea>
           </div><br/>
