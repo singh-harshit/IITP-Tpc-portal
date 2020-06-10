@@ -39,6 +39,7 @@ const studentShema = new Schema({
       rid: String,
       subject: String,
       message: String,
+      status: { type: String },
     },
   ],
   resumeLink: String,

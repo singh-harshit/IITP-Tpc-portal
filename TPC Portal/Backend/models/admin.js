@@ -13,16 +13,14 @@ const adminSchema = new Schema({
     {
       studId: { type: mongoose.Types.ObjectId, ref: "Student" },
       subject: String,
-      content: String,
-      requestStatus: String,
+      message: String,
     },
   ],
   companyRequests: [
     {
       companyId: { type: mongoose.Types.ObjectId, ref: "Company" },
       subject: String,
-      content: String,
-      requestStatus: String,
+      message: String,
     },
   ],
 });

@@ -25,6 +25,7 @@ const getAllRequests = async (req, res, next) => {
       .populate({
         path: "studentApproval",
         select: "name rollNo program course department",
+        options: { sort: "name" },
       })
       .populate({ path: "studentRequests.studId", select: "name rollNo" })
       .populate({
@@ -39,17 +40,12 @@ const getAllRequests = async (req, res, next) => {
     const error = new HttpError("Something went wrong! Try again later", 500);
     return next(error);
   }
+
   let jobApprovals = allRequests.jobApproval;
   let studentApprovals = allRequests.studentApproval;
   let companyApprovals = allRequests.companyApproval;
   let studentRequests = allRequests.studentRequests;
-  studentRequests = studentRequests.filter(
-    (request) => request.requestStatus === "unread"
-  );
-  companyRequests = allRequests.companyRequests;
-  companyRequests = companyRequests.filter(
-    (request) => request.requestStatus === "unread"
-  );
+  let companyRequests = allRequests.companyRequests;
   res.json({
     studentApprovals: studentApprovals,
     jobApprovals: jobApprovals,
@@ -208,14 +204,27 @@ const approveRequest = async (req, res, next) => {
 };
 
 const deleteRequest = async (req, res, next) => {
-  const { deletionType, Id } = req.body;
+  const Id = req.params.id;
+  const { deletionType } = req.body;
   if (deletionType === "S") {
     let student;
     try {
+      student = await Student.findById(Id);
+    } catch (err) {
+      console.log(err);
+      const error = new HttpError(
+        "Something went wrong ! try again later",
+        500
+      );
+    }
+    if (!student) {
+      const error = new HttpError("Student Not Found", 404);
+      return next(error);
+    }
+    student.approvalStatus = "DROPPED";
+    try {
       const sess = await mongoose.startSession();
       sess.startTransaction();
-      student = await Student.findById(Id).session(sess);
-      student.approvalStatus = "DROPPED";
       await student.save({ session: sess });
       await Admin.updateOne(
         {},
@@ -267,14 +276,145 @@ const deleteRequest = async (req, res, next) => {
   }
 };
 
-const sortStudentRequests = async (req, res, next) => {};
+const sortStudentRequestsByCourse = async (req, res, next) => {
+  let sortedByCourse;
+  try {
+    sortedByCourse = await Admin.findOne({}).populate({
+      path: "studentApproval",
+      select: "name rollNo program course department",
+      options: { sort: "course" },
+    });
+  } catch (err) {
+    console.log(err);
+    const error = new HttpError("Something went wrong ! try again later", 500);
+    return next(error);
+  }
+  res.json({ studentApprovals: sortedByCourse });
+};
+
+const sortStudentRequestsByProgram = async (req, res, next) => {
+  let sortedByProgram;
+  try {
+    sortedByProgram = await Admin.findOne({}).populate({
+      path: "studentApproval",
+      select: "name rollNo program course department",
+      options: { sort: "program" },
+    });
+  } catch (err) {
+    console.log(err);
+    const error = new HttpError("Something went wrong ! try again later", 500);
+    return next(error);
+  }
+  res.json({ studentApprovals: sortedByProgram });
+};
+
 const approveStudetnRequestsInBulk = async (req, res, next) => {
   //studIds :- list of student ids which we want to approve altogether (can be selected from checkboxes)
   const { studIds } = req.body;
+  if (studIds.length === 0) {
+    return next(new HttpError("At least select one student for approval", 404));
+  }
+  try {
+    const sess = await mongoose.startSession();
+    sess.startTransaction();
+    for (eachId of studIds) {
+      let student;
+      student = await Student.findById(eachId).session(sess);
+      if (student) {
+        student.approvalStatus = "ACTIVE";
+        await student.save({ session: sess });
+        const newStudentJob = new StudentJob({
+          studId: eachId,
+        });
+        await newStudentJob.save({ session: sess });
+      }
+      await Admin.updateOne(
+        {},
+        { $pull: { studentApproval: { $in: [eachId] } } }
+      ).session(sess);
+    }
+    await sess.commitTransaction();
+  } catch (err) {
+    console.log(err);
+    const error = new HttpError("Something went wrong ! try again later", 500);
+    return next(error);
+  }
+  res.json({ message: "All possible approval done" });
 };
 
+const markReadStudentRequests = async (req, res, next) => {
+  const requestId = req.params.rid;
+  const { studId } = req.body;
+  let student;
+  try {
+    const sess = await mongoose.startSession();
+    sess.startTransaction();
+    student = await Student.aggregate([
+      {
+        $project: {
+          idString: { $toString: "$_id" },
+          _id: 1,
+        },
+      },
+      { $match: { idString: studId } },
+    ]);
+    //console.log(student);
+    let Id = student[0]._id;
+    await Student.updateOne(
+      { _id: Id, "requests._id": requestId },
+      { $set: { "requests.$.status": "read" } }
+    ).session(sess);
+    await Admin.updateOne(
+      {},
+      { $pull: { studentRequests: { _id: requestId } } }
+    ).session(sess);
+    await sess.commitTransaction();
+  } catch (err) {
+    console.log(err);
+    const error = new HttpError("Something went wrong ! try again later", 500);
+    return next(error);
+  }
+  res.json({ message: "Marked Read" });
+};
+
+const markReadCompanyRequests = async (req, res, next) => {
+  const requestId = req.params.rid;
+  const { companyId } = req.body;
+  let company;
+  try {
+    const sess = await mongoose.startSession();
+    sess.startTransaction();
+    company = await Company.aggregate([
+      {
+        $project: {
+          idString: { $toString: "$_id" },
+          _id: 1,
+        },
+      },
+      { $match: { idString: companyId } },
+    ]);
+    let Id = company[0]._id;
+    await Company.updateOne(
+      { _id: Id, "requests._id": requestId },
+      { $set: { "requests.$.status": "read" } }
+    ).session(sess);
+    await Admin.updateOne(
+      {},
+      { $pull: { companyRequests: { _id: requestId } } }
+    ).session(sess);
+    await sess.commitTransaction();
+  } catch (err) {
+    console.log(err);
+    const error = new HttpError("Something went wrong ! try again later", 500);
+    return next(error);
+  }
+  res.json({ message: "Marked Read" });
+};
 exports.getAllRequests = getAllRequests;
 exports.approveRequest = approveRequest;
 exports.deleteRequest = deleteRequest;
-exports.sortStudentRequests = sortStudentRequests;
+exports.sortStudentRequestsByCourse = sortStudentRequestsByCourse;
+exports.sortStudentRequestsByProgram = sortStudentRequestsByProgram;
 exports.approveStudetnRequestsInBulk = approveStudetnRequestsInBulk;
+exports.markReadStudentRequests = markReadStudentRequests;
+exports.markReadCompanyRequests = markReadCompanyRequests;

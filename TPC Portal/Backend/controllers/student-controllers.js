@@ -264,41 +264,32 @@ const newRequest = async (req, res, next) => {
     rid: studentInfo.requests.length + 1,
     subject: subject,
     message: message,
+    status: "unread",
   };
   studentInfo.requests.push(newRequest);
   try {
-    await studentInfo.save();
+    const sess = await mongoose.startSession();
+    sess.startTransaction();
+    await studentInfo.save({ session: sess });
+    await Admin.updateOne(
+      {},
+      {
+        $addToSet: {
+          studentRequests: {
+            studId: studentInfo._id,
+            subject: subject,
+            message: message,
+          },
+        },
+      }
+    ).session(sess);
+    await sess.commitTransaction();
   } catch (err) {
     console.log(err);
     const error = new HttpError("Something went wrong! Try again later", 500);
     return next(error);
   }
   res.json({ oldRequests: studentInfo.requests });
-
-  // try {
-  //   const sess = await mongoose.startSession();
-  //   sess.startTransaction();
-
-  //   await Admin.updateOne(
-  //     {},
-  //     {
-  //       $addToSet: {
-  //         studentRequests: {
-  //           studId: studentInfo._id,
-  //           subject: subject,
-  //           content: message,
-  //           requestStatus: "unread",
-  //         },
-  //       },
-  //     }
-  //   ).session(sess);
-  //   await sess.commitTransaction();
-  // } catch (err) {
-  //   console.log(err);
-  //   const error = new HttpError("Something went wrong! Try again later", 500);
-  //   return next(error);
-  // }
-  // res.json({ studentInfo: studentInfo.toObject() });
 };
 
 const resumeUpload = async (req, res, next) => {

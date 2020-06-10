@@ -31,6 +31,7 @@ const companySchema = new Schema({
       rid: String,
       subject: String,
       message: String,
+      status: { type: String, enum: ["read", "unread"] },
     },
   ],
   remarks: [String],
