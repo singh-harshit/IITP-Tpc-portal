@@ -208,7 +208,64 @@ const approveRequest = async (req, res, next) => {
 };
 
 const deleteRequest = async (req, res, next) => {
+  // const { deletionType, Id } = req.body;
   const { approvalType, Id } = req.body;
+  if (deletionType === "S") {
+    let student;
+    try {
+      const sess = await mongoose.startSession();
+      sess.startTransaction();
+      student = await Student.findById(Id).session(sess);
+      student.approvalStatus = "DROPPED";
+      await student.save({ session: sess });
+      await Admin.updateOne(
+        {},
+        { $pull: { studentApproval: { $in: [Id] } } }
+      ).session(sess);
+      await sess.commitTransaction();
+    } catch (err) {
+      console.log(err);
+      const error = new HttpError(
+        "Something went wrong ! try again later",
+        500
+      );
+      return next(error);
+    }
+    res.json({ message: "Request Deleted" });
+  } else if (deletionType === "C") {
+    let company;
+    const sess = await mongoose.startSession();
+    sess.startTransaction();
+    company = await Company.findById(Id).session(sess);
+    company.approvalStatus = "DROPPED";
+    await company.save({ session: sess });
+    await Admin.updateOne(
+      {},
+      { $pull: { companyApproval: { $in: [Id] } } }
+    ).session(sess);
+    await sess.commitTransaction();
+    res.json({ message: "Request Deleted" });
+  } else if (deletionType === "J") {
+    let job;
+    const sess = await mongoose.startSession();
+    sess.startTransaction();
+    job = await job.findById(Id).session(sess);
+    job.jobStatus = "DROPPED";
+    await job.save({ session: sess });
+    await Admin.updateOne(
+      {},
+      { $pull: { jobApproval: { $in: [Id] } } }
+    ).session(sess);
+    await sess.commitTransaction();
+    res.json({ message: "Request Deleted" });
+  } else {
+    return next(
+      new HttpError(
+        "Enter a valid deletion Type[S - Student,C - Company, J - Job]",
+        500
+      )
+    );
+  }
 };
 
 const sortStudentRequests = async (req, res, next) => {};

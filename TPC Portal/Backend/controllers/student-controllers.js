@@ -224,6 +224,8 @@ const requests = async (req, res, next) => {
   let oldRequests;
   try {
     oldRequests = await Student.findOne(
+      //{ _id: studId },
+      //{ studId: 1, requests: 1 }
       { studId: studId },
       { _id: 0, studId: 1, requests: 1 }
     );
