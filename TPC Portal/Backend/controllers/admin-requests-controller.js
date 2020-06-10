@@ -208,8 +208,7 @@ const approveRequest = async (req, res, next) => {
 };
 
 const deleteRequest = async (req, res, next) => {
-  // const { deletionType, Id } = req.body;
-  const { approvalType, Id } = req.body;
+  const { deletionType, Id } = req.body;
   if (deletionType === "S") {
     let student;
     try {

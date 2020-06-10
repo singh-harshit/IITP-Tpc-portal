@@ -224,10 +224,8 @@ const requests = async (req, res, next) => {
   let oldRequests;
   try {
     oldRequests = await Student.findOne(
-      //{ _id: studId },
-      //{ studId: 1, requests: 1 }
-      { studId: studId },
-      { _id: 0, studId: 1, requests: 1 }
+      { _id: studId },
+      { studId: 1, requests: 1 }
     );
   } catch (err) {
     console.log(err);
@@ -251,16 +249,15 @@ const newRequest = async (req, res, next) => {
   if (!studentInfo) {
     return next(new HttpError("User not found", 404));
   }
-  Student.findByIdAndUpdate(req.params.sid, req.body
-    , (error, data) => {
-        if (error) {
-            return next(error);
-            console.log(error)
-        } else {
-            res.json(data)
-            console.log('User updated successfully !')
-        }
-    })
+  Student.findByIdAndUpdate(req.params.sid, req.body, (error, data) => {
+    if (error) {
+      return next(error);
+      console.log(error);
+    } else {
+      res.json(data);
+      console.log("User updated successfully !");
+    }
+  });
   try {
     const sess = await mongoose.startSession();
     sess.startTransaction();
