@@ -9,7 +9,8 @@ const studentRoutes = require("./routes/student-routes");
 const companyRoutes = require("./routes/company-routes");
 const adminRoutes = require("./routes/admin-routes");
 const adminJobRoutes = require("./routes/admin-jobs-routes");
-const adminRequestRoute = require("./routes/admin-requests-routes");
+const adminRequestRoutes = require("./routes/admin-requests-routes");
+const adminStudentRoutes = require("./routes/admin-students-routes");
 // Exporting Files
 const json2xls = require("json2xls");
 
@@ -55,7 +56,9 @@ app.use("/admin", adminRoutes);
 
 app.use("/admin", adminJobRoutes);
 
-app.use("/admin", adminRequestRoute);
+app.use("/admin", adminRequestRoutes);
+
+app.use("/admin", adminStudentRoutes);
 
 // Unknown Route Error
 app.use((req, res, next) => {

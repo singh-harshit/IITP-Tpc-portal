@@ -123,7 +123,6 @@ const approveRequest = async (req, res, next) => {
         return next(new HttpError("Job doesn't exist", 404));
       }
       job.jobStatus = "OPEN";
-      await job.save({ session: sess });
       await Admin.updateOne(
         {},
         { $pull: { jobApproval: { $in: [Id] } } }
@@ -181,12 +180,14 @@ const approveRequest = async (req, res, next) => {
           }
         }
         if (eligible === true) {
+          job.eligibleStudents.push(eachStudent._id);
           await StudentJob.updateOne(
             { studId: eachStudent._id },
             { $addToSet: { eligibleJobs: Id } }
           ).session(sess);
         }
       }
+      await job.save({ session: sess });
       await sess.commitTransaction();
     } catch (err) {
       console.log(err);

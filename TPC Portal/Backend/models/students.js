@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const uniqueValidator = require("mongoose-unique-validator");
 const Schema = mongoose.Schema;
 
-const studentShema = new Schema({
+const studentSchema = new Schema({
   studId: { type: String, required: true },
   name: { type: String, required: true },
   rollNo: { type: String, required: true, unique: true },
@@ -45,9 +45,9 @@ const studentShema = new Schema({
   resumeLink: String,
   resumeFile: String,
   placement: {
-    status: { type: String, enum: ["placed", "unplaced"] },
+    status: { type: String },
     category: { type: String, enum: ["A1", "B1", "B2", "PSU", ""] },
-    placedJobId: { type: mongoose.Types.ObjectId, ref: "Job" }, // type : Objectid : Jobid
+    placedJobId: { type: mongoose.Types.ObjectId, ref: "Job" },
     applicationCount: {
       A1count: Number,
       A2count: Number,
@@ -59,6 +59,6 @@ const studentShema = new Schema({
   approvalStatus: String,
 });
 
-studentShema.plugin(uniqueValidator);
+studentSchema.plugin(uniqueValidator);
 
-module.exports = mongoose.model("Student", studentShema);
+module.exports = mongoose.model("Student", studentSchema);

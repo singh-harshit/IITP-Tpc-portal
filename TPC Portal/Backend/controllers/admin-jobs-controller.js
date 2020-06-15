@@ -5,6 +5,7 @@ const Company = require("../models/companies");
 const Job = require("../models/jobs");
 const Student = require("../models/students");
 const Admin = require("../models/admin");
+const StudentJob = require("../models/studentjobs");
 
 const getAllJobs = async (req, res, next) => {
   let allJobDetails;
@@ -166,15 +167,13 @@ const addJob = async (req, res, next) => {
 const exportFilterJobs = (req, res, next) => {};
 
 const openRegistration = async (req, res, next) => {
-  const { jobIds } = req.body;
+  const { jobId } = req.body;
   try {
     const sess = await mongoose.startSession();
     sess.startTransaction();
-    for (jobId of jobIds) {
-      const job = await Job.findById(jobId).session(sess);
-      job.jobStatus = "OPEN";
-      await job.save({ session: sess });
-    }
+    const job = await Job.findById(jobId).session(sess);
+    job.jobStatus = "OPEN";
+    await job.save({ session: sess });
     await sess.commitTransaction();
   } catch (err) {
     console.log(err);
@@ -185,53 +184,57 @@ const openRegistration = async (req, res, next) => {
 };
 
 const closeRegistration = async (req, res, next) => {
-  const { jobIds } = req.body;
+  const jobId = req.body;
   try {
     const sess = await mongoose.startSession();
     sess.startTransaction();
-    for (jobId of jobIds) {
-      const job = await Job.findById(jobId).session(sess);
-      job.jobStatus = "CLOSE";
-      await job.save({ session: sess });
-    }
+    const job = await Job.findById(jobId).session(sess);
+    job.jobStatus = "CLOSE";
+    await job.save({ session: sess });
+    // for (eachStudentId of job.eligibleStudents) {
+    //   await StudentJob.updateOne(
+    //     { studId: eachStudentId },
+    //     { $pull: { eligibleJobs: { $in: [jobId] } } }
+    //   ).session(sess);
+    // }
     await sess.commitTransaction();
   } catch (err) {
     console.log(err);
     const error = new HttpError("Something went wrong! Try again later", 500);
     return next(error);
   }
-  res.json({ message: "Status Updated" });
+  res.json({ message: "Registration Closed" });
 };
 
 const deleteJob = async (req, res, next) => {
-  const { jobIds } = req.body;
-  let deleted = [],
-    dropped = [];
+  const jobId = req.body;
+  let message;
   try {
     const sess = await mongoose.startSession();
     sess.startTransaction();
-    for (jobId of jobIds) {
-      const job = await Job.findById(jobId).session(sess);
-      console.log(job);
-      if (!job) continue;
-      console.log(job.registeredStudents.length);
-      if (job.registeredStudents.length === 0) {
-        await job.remove({ session: sess });
-        deleted.push(job);
-      } else {
-        // Drop
-        job.jobStatus = "DROPPED";
-        await job.save({ session: sess });
-        dropped.push(job);
-      }
+    const job = await Job.findById(jobId).session(sess);
+    console.log(job);
+    if (!job) {
+      return next(new HttpError("Job not found", 404));
     }
+    console.log(job.registeredStudents.length);
+    if (job.registeredStudents.length === 0) {
+      await job.remove({ session: sess });
+      message = "Deleted";
+    } else {
+      // Drop
+      job.jobStatus = "DROPPED";
+      await job.save({ session: sess });
+      message = "Dropped";
+    }
+
     await sess.commitTransaction();
   } catch (err) {
     console.log(err);
     const error = new HttpError("Something went wrong! Try again later", 500);
     return next(error);
   }
-  res.json({ deleted: deleted, dropped: dropped });
+  res.json({ message: message });
 };
 
 const approvedCompanies = async (req, res, next) => {

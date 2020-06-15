@@ -1,0 +1,160 @@
+
+### Student Requests
+### Student Login
+POST http://localhost:5000/student/login HTTP/1.1         
+
+###   Student Registration and sending for approval
+POST http://localhost:5000/student/registration HTTP/1.1                    
+
+###  Profile info for that  particular studentId
+GET http://localhost:5000/student/profile/:sid HTTP/1.1      
+
+### Editing profile before approval
+PATCH  http://localhost:5000/student/profile/:sid HTTP/1.1 
+
+### applied jobs for given StudentId
+GET http://localhost:5000/student/applied/jobs/:sid HTTP/1.1                 
+
+### eligible jobs for StudentId
+GET http://localhost:5000/student/eligible/jobs/:sid HTTP/1.1       
+
+### all the old requests
+GET http://localhost:5000/student/requests/:sid HTTP/1.1            
+
+### creating new request
+POST http://localhost:5000/student/new-request/:sid HTTP/1.1          
+
+### uploading and updating resume
+POST http://localhost:5000/student/resume/:sid HTTP/1.1          
+
+### updating password
+PATCH http://localhost:5000/student/reset-password/:sid HTTP/1.1      
+
+### Insert the Student Id in registered student for that particular Job
+### Insert the JobId in applied jobs array and remove it from eligible jobs array
+POST http://localhost:5000/student/apply/:sid HTTP/1.1               
+
+
+
+
+
+### Companies
+### Companies Registration and sending for the approval
+POST http://localhost:5000/company/registration HTTP/1.1      
+
+### Company login
+POST http://localhost:5000/company/login HTTP/1.1           
+   
+### Companies old requests   
+GET http://localhost:5000/company/requests/:cid HTTP/1.1      
+
+### Creating new request
+POST http://localhost:5000/company/new-request/:cid HTTP/1.1 
+
+### All the jobs for that particular company
+GET http://localhost:5000/company/jobs/:cid HTTP/1.1        
+
+
+
+
+
+### Admin
+### after login Display the Home Page with full statistic as per our PPT
+ POST 'http://localhost:5000/admin/login'       
+
+
+### Admin Students
+### Display only students applied for FTE (by default)
+GET http://localhost:5000/admin/students HTTP/1.1
+
+### Displaying student with filter
+POST http://localhost:5000/admin/students HTTP/1.1
+
+### Exporting into an excel file (all the checked items)
+POST http://localhost:5000/admin/students/export HTTP/1.1
+
+###   Getting students by their ids
+GET http://localhost:5000/admin/student/:sid HTTP/1.1
+
+###  Updating Student informations 
+PATCH http://localhost:5000/admin/student/:sid HTTP/1.1
+
+### Reset Password for a particular student
+PATCH http://localhost:5000/admin/student/resetPassword/:sid HTTP/1.1
+
+### For activating and deactivating student status
+PATCH http://localhost:5000/admin/student/changeStatus/:sid HTTP/1.1
+
+###  Unlocking SPI and CPI editing permission for all the student altogether
+PATCH http://localhost:5000/admin/students/unlockSpiUpdate
+
+
+
+### Admin Companies
+### Displaying all companies
+GET  '/admin/companies'                      
+
+### Adding company by Admin 
+POST  '/admin/companies/addCompany'    
+   
+### Deactivating list of companies   
+PATCH  '/admin/companies/deactivateCompany'  
+
+### Deleting list of companies based on conditions given in ppt
+DELETE  '/admin/companies/deleteCompany'      
+
+
+POST  '/admin/companies/addBulkCompany'  (Not Done)    (adding multiple companies via CSV FILE)
+
+GET  '/admin/companies/:cid'      (Done)(Getting Company details as per Id)
+  
+PATCH  '/admin/companies/:cid'      (Done)(Updating Company details as per id)
+
+PATCH  '/admin/companies/:cid/reset-password' (Done) (updating password but without security )
+
+
+
+
+Admin Jobs :-
+GET '/admin/jobs'         (Done) (will display only FTE jobs by default)
+
+POST   'admin/jobs'   (Done)        ( displaying jobs with filter)
+
+POST   'admin/jobs/export'  (Export Button :- with all the checked jobs :- Expecting to get all the Id's of the checked out Jobs)
+
+GET 'admin/companies/:cid'                   (Done) (Getting details of company with given Id)
+
+POST   'admin/jobs/addJob'    (Done) (Page for creating the new Job) // Multiple File Uploading
+   
+PATCH  'admin/jobs/openRegistration'    (Done)
+   
+PATCH  'admin/jobs/closeRegistration'   (Done)
+   
+DELETE 'admin/jobs/deleteJob'               (Done)
+   
+GET 'admin/approvedCompanies'     (Done) (Return all the approved Company list sorted by Name)
+
+GET    'admin/jobs/:jid'       (Done) (Page for the a Particular Job)
+    
+PATCH 'admin/jobs/:jid'       (Done) (Edit Details of a Particular Job)
+    
+POST 'admin/jobs/:jid/activeApplicants'     (Done) (Return the active applicants list)
+
+Admin-Requests 
+GET ‘admin/requests’      (Done)  (Displaying list of not Approved requests)
+
+PATCH ‘admin/approve/request/:id           (Done) (Approving different request :- jobs,students,companies(all in one))
+
+DELETE ‘admin/delete/request/:id   (Done) (Deleting requests)
+
+POST ‘admin/student/sortByProgram/request’  (Done)  (Sorting the student approval requests by Program )
+
+
+POST ‘admin/student/sortByCourse/request  (Done) (Sorting the student approval requests by Course)
+
+PATCH ‘admin/student/bulkApprove/request’  (Done) (Approving list of students altogether)
+
+PATCH  ‘admin/studentRequest/markRead/:rid    (Done)  (Marking a student request “read” and deleting this request from admin database
+
+PATCH ‘admin/companyRequest/markRead/:rid  (Done) (Marking a student request “read” and deleting this request from admin database
+

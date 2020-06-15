@@ -25,4 +25,6 @@ router.post(
   companyController.companyNewRequest
 );
 
+router.get("/jobs/:cid", companyController.getAllJobs);
+
 module.exports = router;
