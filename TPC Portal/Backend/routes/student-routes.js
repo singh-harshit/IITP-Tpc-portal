@@ -21,6 +21,8 @@ router.post(
 
 router.get("/profile/:sid", studentControllers.profile);
 
+router.patch("/profile/:sid", studentControllers.editProfile);
+
 router.post("/apply/:sid", studentControllers.applyForJob);
 
 router.get("/applied/jobs/:sid", studentControllers.appliedJobs);
@@ -31,7 +33,7 @@ router.get("/requests/:sid", studentControllers.requests);
 
 router.post(
   "/new-request/:sid",
-  [check("subject").not().isEmpty(), check("message").not().isEmpty()],
+  //[check("subject").not().isEmpty(), check("message").not().isEmpty()],
   studentControllers.newRequest
 );
 
@@ -47,5 +49,7 @@ router.patch(
   [check("newPassword").isLength({ min: 6 })],
   studentControllers.resetPassword
 );
+
+router.patch("/updateCpiOnly/:sid", studentControllers.updateCpiOnly);
 
 module.exports = router;

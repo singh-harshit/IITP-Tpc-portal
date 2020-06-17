@@ -51,7 +51,7 @@ const jobSchema = new Schema({
   privateRemarks: [String],
 
   registeredStudents: [{ type: mongoose.Types.ObjectId, ref: "Student" }],
-  shortListedStudents: [{ type: mongoose.Types.ObjectId, ref: "Student" }],
+  eligibleStudents: [{ type: mongoose.Types.ObjectId, ref: "Student" }],
   activeStudents: [{ type: mongoose.Types.ObjectId, ref: "Student" }],
   selectedStudents: [{ type: mongoose.Types.ObjectId, ref: "Student" }],
 });

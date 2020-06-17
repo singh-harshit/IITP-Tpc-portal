@@ -17,6 +17,7 @@ const studentJobSchema = new Schema({
         required: true,
         enum: ["applied", "shortlisted", "rejected"],
       },
+      attendance: String,
     },
   ],
   eligibleJobs: [{ type: mongoose.Types.ObjectId, ref: "Job" }],

@@ -52,10 +52,10 @@ const companyRegistration = async (req, res, next) => {
 };
 
 const companyRequests = async (req, res, next) => {
-  const comapnyId = req.params.cid;
+  const companyId = req.params.cid;
   let oldRequests;
   try {
-    oldRequests = await Company.findById(comapnyId, { requests: 1 });
+    oldRequests = await Company.findById(companyId, { requests: 1 });
   } catch (err) {
     console.log(err);
     const error = new HttpError("Something went wrong! Try again later", 500);
@@ -112,7 +112,32 @@ const companyNewRequest = async (req, res, next) => {
   res.json({ companyInfo: companyInfo.toObject({ getters: true }) });
 };
 
+const getAllJobs = async (req, res, next) => {
+  const companyId = req.params.cid;
+  let allJobs;
+  const populateObj = {
+    path: "jobs",
+    populate: {
+      path: "registeredStudents",
+      select: "name rollNo resumeLink",
+    },
+    select:
+      "jobTitle jobType jobStatus eligibilityCriteria schedule jafFiles registeredStudents selectedStudents",
+  };
+  try {
+    allJobs = await Company.findById(companyId, { companyName: 1 }).populate(
+      populateObj
+    );
+  } catch (err) {
+    console.log(err);
+    const error = new HttpError("Something went wrong! Try again later", 500);
+    return next(error);
+  }
+  res.json({ allJobs: allJobs });
+};
+
 exports.companyLogin = companyLogin;
 exports.companyRegistration = companyRegistration;
 exports.companyRequests = companyRequests;
 exports.companyNewRequest = companyNewRequest;
+exports.getAllJobs = getAllJobs;

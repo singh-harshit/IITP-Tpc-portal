@@ -75,6 +75,8 @@ const registration = async (req, res, next) => {
       category: "",
     },
     approvalStatus: "PENDING APPROVAL",
+    editProfileLock: true,
+    editSpiLock: true,
   });
   //Logic of Image Upload
   newStudent.image = req.file
@@ -134,6 +136,100 @@ const profile = async (req, res, next) => {
   }
   res.json({ studentInfo: studentInfo });
 };
+
+const editProfile = async (req, res, next) => {
+  const studId = req.params.sid;
+  let student;
+  try {
+    student = await Student.findById(studId);
+  } catch (err) {
+    console.log(err);
+    const error = new HttpError("Something went wrong! Try again later", 500);
+    return next(error);
+  }
+  if (student.approvalStatus === "PENDING APPROVAL") {
+    const {
+      name,
+      rollNo,
+      gender,
+      instituteEmail,
+      personalEmail,
+      mobileNumber,
+      registrationFor,
+      program,
+      department,
+      course,
+      currentSemester,
+      spi,
+      cpi,
+      tenthMarks,
+      twelthMarks,
+      bachelorsMarks,
+      mastersMarks,
+    } = req.body;
+    student.name = name;
+    student.rollNo = rollNo;
+    student.gender = gender;
+    student.instituteEmail = instituteEmail;
+    student.personalEmail = personalEmail;
+    student.mobileNumber = mobileNumber;
+    student.registrationFor = registrationFor;
+    student.program = program;
+    student.department = department;
+    student.course = course;
+    student.currentSemester = currentSemester;
+    student.spi = spi;
+    student.cpi = cpi;
+    student.tenthMarks = tenthMarks;
+    student.twelthMarks = twelthMarks;
+    student.bachelorsMarks = bachelorsMarks;
+    student.mastersMarks = mastersMarks;
+    try {
+      await student.save();
+    } catch (err) {
+      console.log(err);
+      const error = new HttpError("Something went wrong! Try again later", 500);
+      return next(error);
+    }
+  } else {
+    console.log(err);
+    const error = new HttpError("You can't update. Consult with Admin", 403);
+    return next(error);
+  }
+  res.json({ message: "Details Updated" });
+};
+
+const updateCpiOnly = async (req, res, next) => {
+  const studId = req.params.sid;
+  let admin, student;
+  try {
+    admin = await Admin.findOne({});
+  } catch (err) {
+    console.log(err);
+    const error = new HttpError("You can't update. Consult with Admin", 403);
+    return next(error);
+  }
+  if (admin.onlyCpiUpdate === false) {
+    return next(new HttpError("This is not allowed. Consult with admin", 403));
+  } else {
+    const { spi, cpi } = req.body;
+    try {
+      const sess = await mongoose.startSession();
+      sess.startTransaction();
+      student = await Student.findById(studId).session(sess);
+      student.spi = spi;
+      student.cpi = cpi;
+      await student.save({ session: sess });
+      await sess.commitTransaction();
+    } catch (err) {
+      console.log(err);
+      const error = new HttpError("You can't update. Consult with Admin", 403);
+      return next(error);
+    }
+  }
+  res.json({ message: "SPI and CPI Updated" });
+};
+
 const eligibleJobs = async (req, res, next) => {
   const studId = req.params.sid;
   console.log(studId);
@@ -172,6 +268,18 @@ const applyForJob = async (req, res, next) => {
     if (!job) {
       return next(new HttpError("Job doesn't exist anymore", 404));
     }
+    const student = await Student.findById(studId).session(sess);
+    if (
+      student.placement.status === "DEACTIVE" ||
+      student.placement.status === "PENDING APPROVAL"
+    ) {
+      return next(
+        new HttpError(
+          "You are not allowed for applying! Consult with admin",
+          403
+        )
+      );
+    }
     newRegistration = await Job.findById(job[0]._id).session(sess);
     newRegistration.registeredStudents.push(studId);
     await newRegistration.save({ session: sess });
@@ -182,7 +290,7 @@ const applyForJob = async (req, res, next) => {
         $addToSet: { appliedJobs: { jobId: jobId, jobStatus: "applied" } },
       }
     ).session(sess);
-    const student = await Student.findById(studId).session(sess);
+
     if (student.placement.status === "placed") {
       let count = job.jobCategory;
       count += "count";
@@ -224,8 +332,8 @@ const requests = async (req, res, next) => {
   let oldRequests;
   try {
     oldRequests = await Student.findOne(
-      { studId: studId },
-      { _id: 0, studId: 1, requests: 1 }
+      { _id: studId },
+      { studId: 1, requests: 1 }
     );
   } catch (err) {
     console.log(err);
@@ -249,16 +357,24 @@ const newRequest = async (req, res, next) => {
   if (!studentInfo) {
     return next(new HttpError("User not found", 404));
   }
-  Student.findByIdAndUpdate(req.params.sid, req.body
-    , (error, data) => {
-        if (error) {
-            return next(error);
-            console.log(error)
-        } else {
-            res.json(data)
-            console.log('User updated successfully !')
-        }
-    })
+  const { subject, message } = req.body;
+  // Student.findByIdAndUpdate(studId, req.body, (error, data) => {
+  //   if (error) {
+  //     return next(error);
+  //     console.log(error);
+  //   } else {
+  //     res.json(data);
+  //     console.log("User updated successfully !");
+  //   }
+  // });
+  console.log(req.body);
+  const newRequest = {
+    rid: studentInfo.requests.length + 1,
+    subject: subject,
+    message: message,
+    status: "unread",
+  };
+  studentInfo.requests.push(newRequest);
   try {
     const sess = await mongoose.startSession();
     sess.startTransaction();
@@ -270,8 +386,7 @@ const newRequest = async (req, res, next) => {
           studentRequests: {
             studId: studentInfo._id,
             subject: subject,
-            content: message,
-            requestStatus: "unread",
+            message: message,
           },
         },
       }
@@ -282,7 +397,7 @@ const newRequest = async (req, res, next) => {
     const error = new HttpError("Something went wrong! Try again later", 500);
     return next(error);
   }
-  res.json({ studentInfo: studentInfo.toObject() });
+  res.json({ oldRequests: studentInfo.requests });
 };
 
 const resumeUpload = async (req, res, next) => {
@@ -365,6 +480,7 @@ const resetPassword = async (req, res, next) => {
 exports.login = login;
 exports.registration = registration;
 exports.profile = profile;
+exports.editProfile = editProfile;
 exports.applyForJob = applyForJob;
 exports.appliedJobs = appliedJobs;
 exports.eligibleJobs = eligibleJobs;
@@ -372,3 +488,4 @@ exports.requests = requests;
 exports.newRequest = newRequest;
 exports.resumeUpload = resumeUpload;
 exports.resetPassword = resetPassword;
+exports.updateCpiOnly = updateCpiOnly;

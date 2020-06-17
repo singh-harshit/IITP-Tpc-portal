@@ -9,9 +9,14 @@ router.patch("/approve/request/:id", adminRequestsController.approveRequest);
 
 router.delete("/delete/request/:id", adminRequestsController.deleteRequest);
 
-router.post(
-  "/student/sort/request",
-  adminRequestsController.sortStudentRequests
+router.get(
+  "/student/sortByProgram/request",
+  adminRequestsController.sortStudentRequestsByProgram
+);
+
+router.get(
+  "/student/sortByCourse/request",
+  adminRequestsController.sortStudentRequestsByCourse
 );
 
 router.patch(
@@ -19,4 +24,13 @@ router.patch(
   adminRequestsController.approveStudetnRequestsInBulk
 );
 
+router.patch(
+  "/studentRequest/markRead/:rid",
+  adminRequestsController.markReadStudentRequests
+);
+
+router.patch(
+  "/companyRequest/markRead/:rid",
+  adminRequestsController.markReadCompanyRequests
+);
 module.exports = router;
