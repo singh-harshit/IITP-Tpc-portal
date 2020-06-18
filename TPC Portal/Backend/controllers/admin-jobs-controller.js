@@ -353,7 +353,8 @@ const markProgress = async (req, res, next) => {
       .populate({
         path: "progressSteps.absentStudents",
         select: "name rollNo course program department",
-      });
+      })
+      .execPopulate();
     await sess.commitTransaction();
   } catch (err) {
     console.log(err);
@@ -383,8 +384,9 @@ const addNewStep = async (req, res, next) => {
     return next(new HttpError("Job not Found", 404));
   }
   Size = job.progressSteps.length;
-  newJob.qualifiedStudents = job[size - 1].qualifiedStudents;
+  newStep.qualifiedStudents = job.progressSteps[Size - 1].qualifiedStudents;
   job.progressSteps.push(newStep);
+  //console.log(job.progressSteps);
   try {
     await job.save();
   } catch (err) {
@@ -401,7 +403,7 @@ const markStepCompleted = async (req, res, next) => {
   try {
     await Job.updateOne(
       { _id: jobId, "progressSteps.name": stepName },
-      { $set: { "progressSteps.status": "Completed" } }
+      { $set: { "progressSteps.$.status": "Completed" } }
     );
   } catch (err) {
     console.log(err);
@@ -415,34 +417,40 @@ const saveJobProgress = async (req, res, next) => {
   const jobId = req.params.jid;
   const { stepName, jobStatus, notSelectedIds, absentIds } = req.body;
   let job;
+  let updatedStudents;
   try {
+    const sess = await mongoose.startSession();
+    sess.startTransaction();
     job = await Job.updateOne(
       { _id: jobId, "progressSteps.name": stepName },
       {
-        $pullAll: { "progressSteps.qualifiedStudents": notSelectedIds },
-        $set: { jobStatus: jobStatus, absentStudents: absentIds },
+        $pullAll: { "progressSteps.$.qualifiedStudents": notSelectedIds },
+        $set: { jobStatus: jobStatus },
+        $addToSet: { "progressSteps.$.absentStudents": { $each: absentIds } },
       }
-    );
+    ).session(sess);
+    updatedStudents = await Job.findById(jobId, { progressSteps: 1 })
+      .populate({
+        path: "progressSteps.qualifiedStudents",
+        match: { "progressSteps.name": stepName },
+        select:
+          "name studId rollNo cpi course program department instituteEmail mobileNumber resumeFile",
+      })
+      .session(sess);
+    updatedStudents = await updatedStudents
+      .populate({
+        path: "progressSteps.absentStudents",
+        select:
+          "name studId rollNo cpi course program department instituteEmail mobileNumber resumeFile",
+      })
+      .execPopulate();
+    await sess.commitTransaction();
   } catch (err) {
     console.log(err);
     const error = new HttpError("Something went wrong! Try again later", 500);
     return next(error);
   }
-  let updatedStudents;
-  try {
-    updatedStudents = await job.populate({
-      path: "progressSteps.qualifiedStudents",
-      match: { "progressSteps.name": stepName },
-      select:
-        "name studId rollNo cpi course program department instituteEmail mobileNumber resumeFile",
-    });
-  } catch (err) {
-    const error = new HttpError(
-      "Error in Displaying. Updated Successfully",
-      500
-    );
-    return next(error);
-  }
+  //res.json({ message: "Progress Saved" });
   res.json({ updatedStudents: updatedStudents });
 };
 
@@ -463,12 +471,14 @@ const activeApplicantsByJobId = async (req, res, next) => {
   let Size = job.progressSteps.length;
   let stepName = job.progressSteps[Size - 1].name;
   try {
-    activeStudents = await job.populate({
-      path: "progressSteps.qualifiedStudents",
-      match: { "progressSteps.name": stepName },
-      select:
-        "name studId rollNo cpi course program department instituteEmail mobileNumber resumeFile",
-    });
+    activeStudents = await job
+      .populate({
+        path: "progressSteps.qualifiedStudents",
+        match: { "progressSteps.name": stepName },
+        select:
+          "name studId rollNo cpi course program department instituteEmail mobileNumber resumeFile",
+      })
+      .execPopulate();
   } catch (err) {
     console.log(err);
     const error = new HttpError("Something went wrong! Try again later", 500);
@@ -503,8 +513,11 @@ const addStudent = async (req, res, next) => {
       return next(new HttpError("Student Not Found", 404));
     }
     studId = student._id;
-    job.progressSteps[Size - 1].qualifiedStudents.push(studId);
-    await job.save({ session: sess });
+    let stepName = job.progressSteps[Size - 1].name;
+    await Job.updateOne(
+      { _id: jobId, "progressSteps.name": stepName },
+      { $addToSet: { "progressSteps.$.qualifiedStudents": studId } }
+    ).session(sess);
     await sess.commitTransaction();
   } catch (err) {
     console.log(err);
@@ -545,8 +558,8 @@ const removeStudent = async (req, res, next) => {
     studId = student._id;
     await Job.updateOne(
       { _id: jobId, "progressSteps.name": stepName },
-      { $pull: { "progressSteps.qualifiedStudents": { $in: [studId] } } }
-    );
+      { $pull: { "progressSteps.$.qualifiedStudents": { $in: [studId] } } }
+    ).session(sess);
     await sess.commitTransaction();
   } catch (err) {
     console.log(err);

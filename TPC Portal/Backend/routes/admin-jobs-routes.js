@@ -45,7 +45,7 @@ router.patch("/jobs/saveProgress/:jid", adminJobsController.saveJobProgress);
 
 router.patch("/jobs/addStudent/:jid", adminJobsController.addStudent);
 
-router.patch("/jobs/removeStudents/:jid", adminJobsController.removeStudent);
+router.patch("/jobs/removeStudent/:jid", adminJobsController.removeStudent);
 
 router.post(
   "/jobs/:jid/activeApplicants",

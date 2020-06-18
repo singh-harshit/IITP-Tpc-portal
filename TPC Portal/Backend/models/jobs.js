@@ -11,10 +11,7 @@ const jobSchema = new Schema({
     type: Schema.Types.Mixed,
     required: true,
   },
-  jobStatus: {
-    type: String,
-    enum: ["PENDING APPROVAL", "OPEN", "CLOSE", "ACTIVE", "DROPPED"],
-  },
+  jobStatus: String,
   // details: {
   //   jobDescription: String,
   //   jobLocation: String,

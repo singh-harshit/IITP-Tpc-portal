@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const { validationResult } = require("express-validator");
 const HttpError = require("../models/http-error");
 const Company = require("../models/companies");
@@ -48,6 +49,7 @@ const companyRegistration = async (req, res, next) => {
     const error = new HttpError("Something went wrong ! try again later", 500);
     return next(error);
   }
+  console.log("Registration Complete and sent for approval");
   res.json({ newCompany: newCompany.toObject({ getters: true }) });
 };
 
