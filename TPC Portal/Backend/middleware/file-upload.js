@@ -19,7 +19,9 @@ const fileUpload = multer({
     },
     filename: (req, file, cb) => {
       const ext = MIME_TYPE_MAP[file.mimetype];
-      cb(null, file.fieldname + "-" + Date.now() + "." + ext);
+      let name = file.originalname;
+      name = name.split("." + ext)[0];
+      cb(null, name + "-" + Date.now() + "." + ext);
     },
   }),
   fileFilter: (req, file, cb) => {

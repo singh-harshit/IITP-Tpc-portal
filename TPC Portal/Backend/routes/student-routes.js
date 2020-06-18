@@ -10,12 +10,12 @@ router.post("/login", studentControllers.login);
 router.post(
   "/registration",
   fileUpload.single("image"),
-  [
-    check("name").not().isEmpty(),
-    check("instituteEmail").normalizeEmail().isEmail(),
-    check("personalEmail").normalizeEmail().isEmail(),
-    check("password").isLength({ min: 6 }),
-  ],
+  // [
+  //   check("name").not().isEmpty(),
+  //   check("instituteEmail").normalizeEmail().isEmail(),
+  //   check("personalEmail").normalizeEmail().isEmail(),
+  //   check("password").isLength({ min: 6 }),
+  // ],
   studentControllers.registration
 );
 

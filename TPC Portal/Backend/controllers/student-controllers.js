@@ -281,7 +281,7 @@ const applyForJob = async (req, res, next) => {
       );
     }
     newRegistration = await Job.findById(job[0]._id).session(sess);
-    newRegistration.registeredStudents.push(studId);
+    newRegistration.progressSteps[0].qualifiedStudents.push(studId);
     await newRegistration.save({ session: sess });
     await StudentJob.updateOne(
       { studId: studId },
@@ -409,6 +409,7 @@ const resumeUpload = async (req, res, next) => {
   const studentId = req.params.sid;
   console.log(studentId);
   const { resumeLink } = req.body;
+  console.log(req.file.path);
   const resumeFile = "http://localhost:5000/" + req.file.path;
   let studentInfo;
   try {

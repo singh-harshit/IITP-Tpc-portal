@@ -35,6 +35,18 @@ router.get("/jobs/:jid", adminJobsController.getJobById);
 
 router.patch("/jobs/:jid", adminJobsController.updateJobById);
 
+router.get("/jobs/markProgress/:jid", adminJobsController.markProgress);
+
+router.patch("/jobs/addStep/:jid", adminJobsController.addNewStep);
+
+router.patch("/jobs/markCompleted/:jid", adminJobsController.markStepCompleted);
+
+router.patch("/jobs/saveProgress/:jid", adminJobsController.saveJobProgress);
+
+router.patch("/jobs/addStudent/:jid", adminJobsController.addStudent);
+
+router.patch("/jobs/removeStudents/:jid", adminJobsController.removeStudent);
+
 router.post(
   "/jobs/:jid/activeApplicants",
   adminJobsController.activeApplicantsByJobId

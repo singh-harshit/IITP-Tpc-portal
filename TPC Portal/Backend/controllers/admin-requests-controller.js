@@ -155,7 +155,7 @@ const approveRequest = async (req, res, next) => {
       // Internal Filtering
       for (eachStudent of students) {
         let eligible = false;
-        if (eachStudent.placement.status === "unplaced") {
+        if (eachStudent.placement.status === "ACTIVE") {
           eligible = true;
         } else {
           const A1count = eachStudent.placement.applicationCount.A1count;
@@ -187,6 +187,12 @@ const approveRequest = async (req, res, next) => {
           ).session(sess);
         }
       }
+      // Adding our first step in progress steps of this job
+      const newStep = {
+        name: "Registration",
+        status: "OPEN",
+      };
+      job.progressSteps.push(newStep);
       await job.save({ session: sess });
       await sess.commitTransaction();
     } catch (err) {
