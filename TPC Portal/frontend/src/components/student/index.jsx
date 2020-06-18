@@ -1,3 +1,3 @@
-export { Register } from "./register";
-export {Stud_nav} from "./nav";
-export {Requests} from "./requests"
+export { StudentRegister } from "./register";
+export {StudentNavbar} from "./nav";
+export {Requests} from "./requests";

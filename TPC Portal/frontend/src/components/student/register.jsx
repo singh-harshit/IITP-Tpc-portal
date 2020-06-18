@@ -1,7 +1,7 @@
 import React from "react";
 import axios from 'axios';
 
-export class Register extends React.Component
+export class StudentRegister extends React.Component
 {
 
     state = {
@@ -60,8 +60,8 @@ export class Register extends React.Component
           sem6:this.state.sem6,
           sem7:this.state.sem7
         };
-        let file = new FormData();
-        file.append('image',this.state.file, this.state.rollNo+'.jpeg')
+        const image = new FormData();
+        image.append('image',this.state.file, this.state.file.name)
         let payload =
         {
           name:this.state.name,
@@ -82,7 +82,7 @@ export class Register extends React.Component
           twelthMarks:this.state.twelthMarks,
           bachelorsMarks:this.state.bachelorsMarks,
           mastersMarks:this.state.mastersMarks,
-          image: file
+          image: image
         }
         console.log(payload);
         axios({
