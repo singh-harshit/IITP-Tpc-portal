@@ -1,6 +1,6 @@
 import React from "react";
 
-export class StudentNavbar extends React.Component
+export class Stud_nav extends React.Component
 {
   constructor(props)
   {
@@ -20,19 +20,25 @@ export class StudentNavbar extends React.Component
           <div className="collapse navbar-collapse" id="collapsibleNavbar">
             <ul className="navbar-nav flex-column">
               <li className="nav-item">
-                <a className="nav-link" href="#">Profile</a>
+                <a className="nav-link" href="#">Home</a>
               </li>
               <li className="nav-item">
-                <a className="nav-link disabled" href="#">Jobs Applied</a>
+                <a className="nav-link" href="#">Students</a>
               </li>
               <li className="nav-item">
-                <a className="nav-link disabled" href="#">Eligible Jobs</a>
+                <a className="nav-link" href="#">Companies</a>
               </li>
               <li className="nav-item">
-                <a className="nav-link disabled" href="#">Requests</a>
+                <a className="nav-link" href="#">Jobs / Internship</a>
               </li>
               <li className="nav-item">
-                <a className="nav-link disabled" href="#">Resume</a>
+                <a className="nav-link" href="#">Requests</a>
+              </li>
+              <li className="nav-item">
+                <a className="nav-link" href="#">Settings</a>
+              </li>
+              <li className="nav-item">
+                <a className="nav-link" href="#">Backup</a>
               </li>
             </ul>
           </div>

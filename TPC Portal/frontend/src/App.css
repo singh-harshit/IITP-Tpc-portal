@@ -16,7 +16,8 @@
 }
 @media only screen and (max-width: 600px) {
   .header {
-    height: 10vh;
+    position: sticky;
+    height: 15vh;
     text-align: center;
   }
   .header h1
@@ -56,4 +57,29 @@
 {
   position: relative;
   left: 15vh;
+}
+@media only screen and (max-width: 600px) {
+  .new-request
+  {
+    top:25vh;
+  	position: sticky;
+      z-index:2;
+    height: 50vh;
+  }
+  .old-request
+  {
+    left:0;
+  }
+}
+
+
+.admin
+{
+  width: 75vw;
+}
+@media only screen and (max-width: 600px) {
+  .admin
+  {
+    width: 90vw;
+  }
 }

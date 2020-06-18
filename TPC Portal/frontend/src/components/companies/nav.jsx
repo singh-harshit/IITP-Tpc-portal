@@ -1,6 +1,6 @@
 import React from "react";
 
-export class StudentNavbar extends React.Component
+export class CompanyNavbar extends React.Component
 {
   constructor(props)
   {
@@ -23,16 +23,10 @@ export class StudentNavbar extends React.Component
                 <a className="nav-link" href="#">Profile</a>
               </li>
               <li className="nav-item">
-                <a className="nav-link disabled" href="#">Jobs Applied</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link disabled" href="#">Eligible Jobs</a>
+                <a className="nav-link disabled" href="#">Jobs</a>
               </li>
               <li className="nav-item">
                 <a className="nav-link disabled" href="#">Requests</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link disabled" href="#">Resume</a>
               </li>
             </ul>
           </div>
