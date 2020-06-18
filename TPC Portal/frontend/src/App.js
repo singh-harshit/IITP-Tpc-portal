@@ -22,7 +22,7 @@ function App() {
     <div className="App bg-light">
       <Header />
       <CompanyNavbar />
-      <CompanyRegister />
+      <Admin_companies />
     </div>
   );
 }
