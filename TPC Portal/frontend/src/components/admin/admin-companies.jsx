@@ -99,7 +99,7 @@ export class Admin_companies extends Component {
   };
   render() {
     return (
-      <div className="container border rounded p-3 m-2 border-success float-right admin">
+      <div className="container border rounded p-3 border-success float-right admin">
         <div
           className="ag-theme-balham"
           style={{
