@@ -140,6 +140,19 @@ PATCH 'admin/jobs/:jid'       (Done) (Edit Details of a Particular Job)
     
 POST 'admin/jobs/:jid/activeApplicants'     (Done) (Return the active applicants list)
 
+GET 'admin/jobs/markProgress/:jid   (Getting all the details regarding all the steps)
+
+PATCH  'admin/jobs/addStep/:jid'   
+
+PATCH  'admin/jobs/markCompleted/:jid
+
+PATCH  'admin/jobs/saveProgress/:jid
+
+PATCH  'admin/jobs/addStudent/:jid 
+
+PATCH  'admin/jobs/removeStudent/:jid
+
+
 Admin-Requests 
 GET ‘admin/requests’      (Done)  (Displaying list of not Approved requests)
 

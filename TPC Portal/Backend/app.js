@@ -1,3 +1,4 @@
+const fs = require("fs");
 const express = require("express");
 const mongoose = require("mongoose");
 const morgan = require("morgan");
@@ -28,6 +29,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 //Serving Static files
+console.log(__dirname);
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 //Resolving CORS browser restriction issue for the communication between frontend and backend

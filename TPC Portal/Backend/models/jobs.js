@@ -11,10 +11,7 @@ const jobSchema = new Schema({
     type: Schema.Types.Mixed,
     required: true,
   },
-  jobStatus: {
-    type: String,
-    enum: ["PENDING APPROVAL", "OPEN", "CLOSE", "ACTIVE", "DROPPED"],
-  },
+  jobStatus: String,
   // details: {
   //   jobDescription: String,
   //   jobLocation: String,
@@ -49,10 +46,15 @@ const jobSchema = new Schema({
   },
   publicRemarks: [String],
   privateRemarks: [String],
-
-  registeredStudents: [{ type: mongoose.Types.ObjectId, ref: "Student" }],
   eligibleStudents: [{ type: mongoose.Types.ObjectId, ref: "Student" }],
-  activeStudents: [{ type: mongoose.Types.ObjectId, ref: "Student" }],
+  progressSteps: [
+    {
+      name: String,
+      qualifiedStudents: [{ type: mongoose.Types.ObjectId, ref: "Student" }],
+      absentStudents: [{ type: mongoose.Types.ObjectId, ref: "Student" }],
+      status: String,
+    },
+  ],
   selectedStudents: [{ type: mongoose.Types.ObjectId, ref: "Student" }],
 });
 
