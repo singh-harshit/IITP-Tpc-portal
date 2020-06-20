@@ -4,7 +4,7 @@ import 'ag-grid-community/dist/styles/ag-grid.css';
 import 'ag-grid-community/dist/styles/ag-theme-balham.css';
 import 'ag-grid-enterprise';
 
-export class Admin_students extends Component {
+export class AdminStudents extends Component {
   state = {
     columnDefs: [
       {headerName: 'SNo.',field: 'sno', sortable:true, filter:true,checkboxSelection:true},

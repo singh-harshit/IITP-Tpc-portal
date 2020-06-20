@@ -1,14 +1,16 @@
 import React from "react";
 import axios from "axios";
-import "./Table.css";
 
-class EligibleJobs extends React.Component {
-  state = {
-    studId: "5edd43d275f5975f65c83f47",
+
+export class StudentEligibleJobs extends React.Component {
+  constructor(props){
+    super(props);
+  this.state = {
+    studId: props.match.params.id,
     rawData: [],
     jsonDataForTable: [],
   };
-
+}
   // Fetching Data and Making json for table
   componentDidMount() {
     this.getStudentInfo();
@@ -93,7 +95,7 @@ class EligibleJobs extends React.Component {
 
   render() {
     return (
-      <div className="eligible jobs">
+      <div className="eligible jobs admin">
         <table className="table table-bordered">
           <tbody>
             <tr>{this.getHeaders()}</tr>
@@ -104,5 +106,3 @@ class EligibleJobs extends React.Component {
     );
   }
 }
-
-export default EligibleJobs;

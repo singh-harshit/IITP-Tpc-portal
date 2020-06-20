@@ -1,6 +1,6 @@
 import React from "react";
 
-export class Stud_nav extends React.Component
+export class AdminNavbar extends React.Component
 {
   constructor(props)
   {

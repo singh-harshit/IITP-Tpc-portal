@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import CanvasJSReact from '../../assets/canvasjs.react';
 var CanvasJSChart = CanvasJSReact.CanvasJSChart;
 
-export class Home extends Component {
+export class AdminHome extends Component {
 	render() {
 		const options1 = {
       height: 250,
@@ -95,15 +95,15 @@ export class Home extends Component {
 		}
 
 		return (
-		<div className="p-3 m-3 float-right admin-home">
+		<div className="p-3 m-3 admin">
 			<div className="row border rounded border-success">
 				<div className="col-md-4">
-					<ul class="list-group list-group-flush">
-					  <li className="list-group-item d-flex justify-content-between align-items-center">Companies Registered:<span class="badge badge-primary badge-pill">12</span></li>
-					  <li className="list-group-item d-flex justify-content-between align-items-center">Jobs Registered:<span class="badge badge-primary badge-pill">12</span></li>
-					  <li className="list-group-item d-flex justify-content-between align-items-center">Jobs Open:<span class="badge badge-primary badge-pill">12</span></li>
-					  <li className="list-group-item d-flex justify-content-between align-items-center">Offers Provided:<span class="badge badge-primary badge-pill">12</span></li>
-						<li className="list-group-item d-flex justify-content-between align-items-center">Ongoing processes:<span class="badge badge-primary badge-pill">12</span></li>
+					<ul className="list-group list-group-flush">
+					  <li className="list-group-item d-flex justify-content-between align-items-center">Companies Registered:<span className="badge badge-primary badge-pill">12</span></li>
+					  <li className="list-group-item d-flex justify-content-between align-items-center">Jobs Registered:<span className="badge badge-primary badge-pill">12</span></li>
+					  <li className="list-group-item d-flex justify-content-between align-items-center">Jobs Open:<span className="badge badge-primary badge-pill">12</span></li>
+					  <li className="list-group-item d-flex justify-content-between align-items-center">Offers Provided:<span className="badge badge-primary badge-pill">12</span></li>
+						<li className="list-group-item d-flex justify-content-between align-items-center">Ongoing processes:<span className="badge badge-primary badge-pill">12</span></li>
 					</ul>
 				</div>
 				<div className="col-md-3">
@@ -115,26 +115,26 @@ export class Home extends Component {
 			<div className="row border rounded border-success mt-3">
 				<div className="col-md-6">
 					<h4>New registrations:</h4>
-					<ul class="list-group list-group-flush">
-						 <li className="list-group-item d-flex justify-content-between align-items-center">Companies:<span class="badge badge-primary badge-pill">12</span></li>
-						 <li className="list-group-item d-flex justify-content-between align-items-center">Students:<span class="badge badge-primary badge-pill">12</span></li>
+					<ul className="list-group list-group-flush">
+						 <li className="list-group-item d-flex justify-content-between align-items-center">Companies:<span className="badge badge-primary badge-pill">12</span></li>
+						 <li className="list-group-item d-flex justify-content-between align-items-center">Students:<span className="badge badge-primary badge-pill">12</span></li>
 					</ul>
 					<h4>New Requeusts:</h4>
-					<ul class="list-group list-group-flush">
-						 <li className="list-group-item d-flex justify-content-between align-items-center">Companies:<span class="badge badge-primary badge-pill">12</span></li>
-						 <li className="list-group-item d-flex justify-content-between align-items-center">Students:<span class="badge badge-primary badge-pill">12</span></li>
+					<ul className="list-group list-group-flush">
+						 <li className="list-group-item d-flex justify-content-between align-items-center">Companies:<span className="badge badge-primary badge-pill">12</span></li>
+						 <li className="list-group-item d-flex justify-content-between align-items-center">Students:<span className="badge badge-primary badge-pill">12</span></li>
 					</ul>
 				</div>
 				<div className="col-md-6">
 					<h4>Ongoing processes:</h4>
-					<ul class="list-group list-group-flush">
-						 <li className="list-group-item d-flex justify-content-between align-items-center">Open registrations:<span class="badge badge-primary badge-pill">12</span></li>
-						 <li className="list-group-item d-flex justify-content-between align-items-center">Ongoing processes:<span class="badge badge-primary badge-pill">12</span></li>
+					<ul className="list-group list-group-flush">
+						 <li className="list-group-item d-flex justify-content-between align-items-center">Open registrations:<span className="badge badge-primary badge-pill">12</span></li>
+						 <li className="list-group-item d-flex justify-content-between align-items-center">Ongoing processes:<span className="badge badge-primary badge-pill">12</span></li>
 					</ul>
 					<h4>Upcoming Schedule:</h4>
-					<ul class="list-group list-group-flush">
-						 <li className="list-group-item d-flex justify-content-between align-items-center">Companies:<span class="badge badge-primary badge-pill">12</span></li>
-						 <li className="list-group-item d-flex justify-content-between align-items-center">Students:<span class="badge badge-primary badge-pill">12</span></li>
+					<ul className="list-group list-group-flush">
+						 <li className="list-group-item d-flex justify-content-between align-items-center">Companies:<span className="badge badge-primary badge-pill">12</span></li>
+						 <li className="list-group-item d-flex justify-content-between align-items-center">Students:<span className="badge badge-primary badge-pill">12</span></li>
 					</ul>
 				</div>
 			</div>

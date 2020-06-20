@@ -1,13 +1,14 @@
 import React from "react";
 import axios from "axios";
 
-class JobsTable extends React.Component {
-  state = {
-    studId: "5edd3dab78d3a45b97471400",
+export class StudentAppliedJobs extends React.Component {
+  constructor(props){
+    super(props);
+  this.state = {
+    studId: props.match.params.id,
     rawData: [],
     jsonDataForTable: [],
-  };
-
+  }}
   componentDidMount() {
     this.getStudentInfo();
     //this.dataToJson();
@@ -55,5 +56,3 @@ class JobsTable extends React.Component {
     return null;
   }
 }
-
-export default JobsTable;

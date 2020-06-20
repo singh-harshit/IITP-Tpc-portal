@@ -1,3 +1,4 @@
-export { CompanyRegister } from "./register";
 export {CompanyNavbar} from "./nav";
-export {Requests} from "./requests";
+export { CompanyRegister } from "./register";
+export {CompanyJobs} from "./jobs";
+export {CompanyRequests} from "./requests";

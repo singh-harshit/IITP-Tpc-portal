@@ -1,3 +1,6 @@
+export { StudentNavbar } from "./nav";
 export { StudentRegister } from "./register";
-export {StudentNavbar} from "./nav";
-export {Requests} from "./requests";
+export { StudentAppliedJobs } from "./appliedJobs";
+export { StudentEligibleJobs } from "./eligibleJobs";
+export { StudentRequests } from "./requests";
+export { StudentResume } from "./resume";

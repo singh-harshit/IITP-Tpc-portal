@@ -1,114 +1,113 @@
 import React from "react";
-import axios from "axios";
+import axios from 'axios';
 
-export class CompanyRegister extends React.Component {
-  state = {
-    companyName: "",
-    userName: "",
-    password: "",
-    companyAddress: "",
-    name1: "",
-    designation1: "",
-    mailId1: "",
-    mobileNumber1: "",
-    name2: "",
-    designation2: "",
-    mailId2: "",
-    mobileNumber3: "",
-    name3: "",
-    designation3: "",
-    mailId3: "",
-    mobileNumber3: "",
-  };
+export class CompanyRegister extends React.Component
+{
 
-  handleChange = (event) => {
-    const target = event.target;
-    const name = target.name;
-    const value = target.value;
-    this.setState({
-      [name]: value,
-    });
-    console.log(this.state);
-  };
-
-  handleSubmit = (event) => {
-    event.preventDefault();
-    let contact1 = {
-      name: this.state.name1,
-      designation: this.state.designation1,
-      mailId: this.state.mailId1,
-      mobileNumber: this.state.mobileNumber1,
-    };
-    let contact2 = {
-      name: this.state.name2,
-      designation: this.state.designation2,
-      mailId: this.state.mailId2,
-      mobileNumber: this.state.mobileNumber2,
-    };
-    let contact3 = {
-      name: this.state.name3,
-      designation: this.state.designation3,
-      mailId: this.state.mailId3,
-      mobileNumber: this.state.mobileNumber3,
-    };
-    let payload = {
-      companyName: this.state.companyName,
-      userName: this.state.userName,
-      password: this.state.password,
-      companyAddress: this.state.companyAddress,
-      contact1: contact1,
-      contact2: contact2,
-      contact3: contact3,
-    };
-    console.log(payload);
-    axios({
-      url: "/company/registration",
-      method: "post",
-      data: payload,
-    })
-      .then(() => {
-        console.log("data has been sent to server");
-        this.resetUserInputs();
-      })
-      .catch(() => {
-        console.log("data error");
-      });
-  };
-
-  resetUserInputs = () => {
-    this.setState({
-      companyName: "",
+    state = {
+      companyName:"",
       userName: "",
       password: "",
       companyAddress: "",
-      name1: "",
-      designation1: "",
-      mailId1: "",
-      mobileNumber1: "",
-      name2: "",
-      designation2: "",
-      mailId2: "",
-      mobileNumber3: "",
-      name3: "",
-      designation3: "",
-      mailId3: "",
-      mobileNumber3: "",
-    });
-  };
-  render() {
-    return (
+      name1: '',
+      designation1: '',
+      mailId1: '',
+      mobileNumber1: '',
+      name2: '',
+      designation2:'',
+      mailId2: '',
+      mobileNumber3: '',
+      name3: '',
+      designation3: '',
+      mailId3: '',
+      mobileNumber3: ''
+    };
+
+    handleChange = (event) =>
+    {
+      const target = event.target;
+      const name = target.name;
+      const value = target.value;
+      this.setState({
+        [name]:value
+      })
+      console.log(this.state);
+    };
+
+    handleSubmit = (event) =>
+    {
+          event.preventDefault();
+          let contact1={
+            name: this.state.name1,
+            designation: this.state.designation1,
+            mailId: this.state.mailId1,
+            mobileNumber: this.state.mobileNumber1
+          };
+          let contact2={
+            name: this.state.name2,
+            designation: this.state.designation2,
+            mailId: this.state.mailId2,
+            mobileNumber: this.state.mobileNumber2
+          };
+          let contact3={
+            name: this.state.name3,
+            designation: this.state.designation3,
+            mailId: this.state.mailId3,
+            mobileNumber: this.state.mobileNumber3
+          };
+          let payload = {
+            companyName:this.state.companyName,
+            userName: this.state.userName,
+            password: this.state.password,
+            companyAddress: this.state.companyAddress,
+            contact1: contact1,
+            contact2: contact2,
+            contact3: contact3
+          };
+          console.log(payload);
+          axios({
+            url: '/company/registration',
+            method: 'post',
+            data: payload
+          })
+          .then(() =>{
+            console.log('data has been sent to server');
+            this.resetUserInputs();
+          })
+          .catch(()=>{
+            console.log('data error');
+          });
+      };
+
+      resetUserInputs = () =>{
+        this.setState({
+            companyName:"",
+            userName: "",
+            password: "",
+            companyAddress: "",
+            name1: '',
+            designation1: '',
+            mailId1: '',
+            mobileNumber1: '',
+            name2: '',
+            designation2:'',
+            mailId2: '',
+            mobileNumber3: '',
+            name3: '',
+            designation3: '',
+            mailId3: '',
+            mobileNumber3: ''
+        });
+      };
+  render()
+  {
+    return(
       <div className="base-container p-1">
-        <section className="container-fluid border p-1 rounded border-success float-right admin m-3">
-          <form
-            className="form"
-            onSubmit={this.handleSubmit}
-            onChange={this.handleChange}
-          >
+        <section className="container-fluid border p-1 rounded border-success admin m-3">
+          <form className="form" onSubmit = {this.handleSubmit} onChange={this.handleChange}>
             <div className="form-group row">
               <div className="col-md-3">
-                <label htmlFor="companyName">
-                  <h3>Company Name:</h3>
-                </label>
+                <label htmlFor="companyName"><h3>Company Name:</h3></label>
               </div>
               <div className="col-md-9">
                 <input
@@ -119,8 +118,10 @@ export class CompanyRegister extends React.Component {
                   maxLength="300"
                   value={this.state.companyName}
                   required
-                />
+                  />
               </div>
+
+
 
               <div className="col-md-3">
                 <div className="form-group row">
@@ -136,7 +137,7 @@ export class CompanyRegister extends React.Component {
                       maxLength="300"
                       value={this.state.userName}
                       required
-                    />
+                      />
                   </div>
                 </div>
               </div>
@@ -154,11 +155,12 @@ export class CompanyRegister extends React.Component {
                       maxLength="300"
                       value={this.state.password}
                       required
-                    />
+                      />
                   </div>
                 </div>
               </div>
               <div className="col-md-6">
+
                 <div className="form-group row">
                   <div className="col-md-3 ">
                     <label htmlFor="companyAddress">Company Address:</label>
@@ -172,16 +174,21 @@ export class CompanyRegister extends React.Component {
                       maxLength="300"
                       value={this.state.companyAddress}
                       required
-                    />
+                      />
                   </div>
                 </div>
               </div>
+
             </div>
+
+
+
 
             <div className="border border-secondary rounded mr-3 m-1">
               <h5>Contact1:</h5>
               <div className="row justify-content-around">
                 <div className="col-md-6">
+
                   <div className="form-group row">
                     <div className="col-md-3 ">
                       <label htmlFor="name1">Name:</label>
@@ -195,7 +202,7 @@ export class CompanyRegister extends React.Component {
                         maxLength="300"
                         value={this.state.name1}
                         required
-                      />
+                        />
                     </div>
                   </div>
 
@@ -204,17 +211,18 @@ export class CompanyRegister extends React.Component {
                       <label htmlFor="designation1">Designation:</label>
                     </div>
                     <div className="col-md-9">
-                      <input
-                        type="text"
-                        name="designation1"
-                        className="form-control"
-                        placeholder="Enter Designation"
-                        maxLength="10"
-                        value={this.state.designation1}
-                        required
+                    <input
+                      type="text"
+                      name="designation1"
+                      className="form-control"
+                      placeholder="Enter Designation"
+                      maxLength="10"
+                      value={this.state.designation1}
+                      required
                       />
                     </div>
                   </div>
+
                 </div>
 
                 <div className="col-md-6">
@@ -230,7 +238,7 @@ export class CompanyRegister extends React.Component {
                         value={this.state.mailId1}
                         placeholder="Enter Email Id"
                         required
-                      />
+                        />
                     </div>
                   </div>
 
@@ -246,17 +254,19 @@ export class CompanyRegister extends React.Component {
                         value={this.state.mobileNumber1}
                         placeholder="Enter Contact No"
                         required
-                      />
+                        />
                     </div>
                   </div>
                 </div>
               </div>
+
             </div>
 
             <div className="border border-secondary rounded mr-3">
               <h5>Contact2:</h5>
               <div className="row justify-content-around p-1">
                 <div className="col-md-6">
+
                   <div className="form-group row">
                     <div className="col-md-3 ">
                       <label htmlFor="name2">Name:</label>
@@ -269,7 +279,7 @@ export class CompanyRegister extends React.Component {
                         placeholder="Enter Full Name"
                         maxLength="300"
                         value={this.state.name2}
-                      />
+                        />
                     </div>
                   </div>
 
@@ -278,16 +288,17 @@ export class CompanyRegister extends React.Component {
                       <label htmlFor="designation2">Designation:</label>
                     </div>
                     <div className="col-md-9">
-                      <input
-                        type="text"
-                        name="designation2"
-                        className="form-control"
-                        placeholder="Enter Designation"
-                        maxLength="10"
-                        value={this.state.designation2}
+                    <input
+                      type="text"
+                      name="designation2"
+                      className="form-control"
+                      placeholder="Enter Designation"
+                      maxLength="10"
+                      value={this.state.designation2}
                       />
                     </div>
                   </div>
+
                 </div>
 
                 <div className="col-md-6">
@@ -302,7 +313,7 @@ export class CompanyRegister extends React.Component {
                         className="form-control"
                         value={this.state.mailId2}
                         placeholder="Enter Email Id"
-                      />
+                        />
                     </div>
                   </div>
 
@@ -317,17 +328,19 @@ export class CompanyRegister extends React.Component {
                         className="form-control"
                         value={this.state.mobileNumber2}
                         placeholder="Enter Contact No"
-                      />
+                        />
                     </div>
                   </div>
                 </div>
               </div>
+
             </div>
 
             <div className="border border-secondary rounded mr-3 m-1">
               <h5 className="ml-3">Contact3:</h5>
               <div className="row justify-content-around p-1">
                 <div className="col-md-6">
+
                   <div className="form-group row">
                     <div className="col-md-3 ">
                       <label htmlFor="name3">Name:</label>
@@ -340,7 +353,7 @@ export class CompanyRegister extends React.Component {
                         placeholder="Enter Full Name"
                         maxLength="300"
                         value={this.state.name3}
-                      />
+                        />
                     </div>
                   </div>
 
@@ -349,16 +362,17 @@ export class CompanyRegister extends React.Component {
                       <label htmlFor="designation3">Designation:</label>
                     </div>
                     <div className="col-md-9">
-                      <input
-                        type="text"
-                        name="designation3"
-                        className="form-control"
-                        placeholder="Enter Designation"
-                        maxLength="10"
-                        value={this.state.designation3}
+                    <input
+                      type="text"
+                      name="designation3"
+                      className="form-control"
+                      placeholder="Enter Designation"
+                      maxLength="10"
+                      value={this.state.designation3}
                       />
                     </div>
                   </div>
+
                 </div>
 
                 <div className="col-md-6">
@@ -373,7 +387,7 @@ export class CompanyRegister extends React.Component {
                         className="form-control"
                         value={this.state.mailId3}
                         placeholder="Enter Email Id"
-                      />
+                        />
                     </div>
                   </div>
 
@@ -388,18 +402,17 @@ export class CompanyRegister extends React.Component {
                         className="form-control"
                         value={this.state.mobileNumber3}
                         placeholder="Enter Contact No"
-                      />
+                        />
                     </div>
                   </div>
                 </div>
               </div>
+
             </div>
-            <button type="submit" className="btn btn-primary btn-block">
-              Submit Request
-            </button>
+            <button type="submit" className="btn btn-primary btn-block">Submit Request</button>
           </form>
         </section>
       </div>
-    );
+  );
   }
 }
