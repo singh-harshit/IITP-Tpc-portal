@@ -5,7 +5,7 @@ import 'ag-grid-community/dist/styles/ag-grid.css';
 import 'ag-grid-community/dist/styles/ag-theme-balham.css';
 import 'ag-grid-enterprise';
 
-export class Student extends React.Component
+export class AdminStudent extends React.Component
 {
   state = {
     name:'',

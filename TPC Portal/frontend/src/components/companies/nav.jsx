@@ -1,10 +1,13 @@
 import React from "react";
-
+import {Link} from "react-router-dom";
 export class CompanyNavbar extends React.Component
 {
   constructor(props)
   {
     super(props);
+    this.state = {
+
+    }
   }
 
   render()
@@ -19,15 +22,21 @@ export class CompanyNavbar extends React.Component
 
           <div className="collapse navbar-collapse" id="collapsibleNavbar">
             <ul className="navbar-nav flex-column">
-              <li className="nav-item">
-                <a className="nav-link" href="#">Profile</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link disabled" href="#">Jobs</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link disabled" href="#">Requests</a>
-              </li>
+              <Link to="/company/register/">
+                <li className="nav-item nav-link">
+                  Profile
+                </li>
+              </Link>
+              <Link to='/company/jobs/'>
+                <li className="nav-item nav-link">
+                  Jobs
+                </li>
+              </Link>
+              <Link to="/company/requests/">
+                <li className="nav-item nav-link">
+                   Requests
+                </li>
+              </Link>
             </ul>
           </div>
         </nav>
