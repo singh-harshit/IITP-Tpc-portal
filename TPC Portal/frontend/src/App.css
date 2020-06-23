@@ -1,5 +1,5 @@
 .header {
-  /* top: 0; */
+  top: 0;
   width: 100%;
   height: 15vh;
   display: inline-block;
@@ -21,7 +21,7 @@
     height: 15vh;
     display: inline-block;
     position: fixed;
-    
+
     text-align: center;
   }
   .header h1 {
@@ -45,10 +45,9 @@
     width: 20vw;
     /* height: 85vh; */
     height: 100%;
-
   }
 }
-.new-request{
+.new-request {
   position: fixed;
   margin-top: 12vh;
   z-index: 1;
@@ -61,7 +60,7 @@
 }
 
 @media only screen and (max-width: 600px) {
-  .new-request{
+  .new-request {
     position: fixed;
     margin-top: 19vh;
     z-index: 1;
@@ -70,20 +69,27 @@
   .old-request {
     position: absolute;
     top: 80vh !important;
-    left:0;
+    left: 0;
   }
 }
 .admin {
   margin-top: 15vh;
   width: 75vw;
   margin-left: auto !important;
-  margin-top:15vh !important;
+  margin-top: 15vh !important;
 }
 @media only screen and (max-width: 600px) {
   .admin {
-
     width: 90vw;
-    margin-top:22vh !important;
+    margin-top: 22vh !important;
     margin-left: auto !important;
   }
+}
+
+.AppliedJobs {
+  margin-top: 15vh;
+  margin-left: 20vw;
+  display: inline-block;
+  width: 80vw;
+  height: max-content;
 }
