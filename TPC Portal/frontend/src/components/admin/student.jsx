@@ -4,86 +4,150 @@ import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/dist/styles/ag-grid.css';
 import 'ag-grid-community/dist/styles/ag-theme-balham.css';
 import 'ag-grid-enterprise';
-
+import {Link} from 'react-router-dom';
+import Popup from "reactjs-popup";
 export class AdminStudent extends React.Component
 {
-  state = {
-    name:'',
-    password:'',
-    rollNo:'',
-    gender:'',
-    instituteEmail:'',
-    personalEmail:'',
-    mobileNumber:'',
-    registrationFor:'',
-    program:'',
-    department:'',
-    course:'',
-    currentSemester:'',
-    spi:{sem1:'',sem2:'',sem3:'',sem4:'',sem5:'',sem6:''},
-    sem1: '',
-    sem2: '',
-    sem3: '',
-    sem4: '',
-    sem5: '',
-    sem6: '',
-    sem7: '',
-    cpi:'',
-    tenthMarks: '',
-    twelthMarks: '',
-    bachelorsMarks: '',
-    mastersMarks: '',
-    approvalStatus: 'approved',
-    columnDefs: [
-      {headerName: 'SNo.',field: 'sno', sortable:true, filter:true,checkboxSelection:true,onlySelected:true},
-      {headerName: 'Company',field: 'company', sortable:true, filter:true,cellRenderer: function(params) {return `<a href="https://www.google.com/search?q=${params.value}" target="_blank" rel="noopener">`+ params.value+'</a>'}},
-      {headerName: 'status',field: 'status', sortable:true, filter:true},
-      {headerName: 'Job Title',field: 'job', sortable:true, filter:true},
-      {headerName: 'Classification',field: 'classification', sortable:true, filter:true},
-      {headerName: 'Job Status',field: 'jobStatus', sortable:true, filter:true},
-    ],
-    rowData: [{
-        sno:'1',
-        company:'1701me18',
-        status:'1',
-        cpi:8.26,
-        job:'Akshat',
-        classification:'BTech',
-        jobStatus:1
-      },
-      {
-          sno:'1',
-          company:'1701me18',
-          status:'1',
-          cpi:8.26,
-          job:'harshit',
-          classification:'BTech',
-          jobStatus:1
-        },
-        {
-            sno:'1',
-            company:'1701me18',
-            status:'1',
-            cpi:8.26,
-            job:'harshit',
-            classification:'BTech',
-            jobStatus:1
-          }
-    ],
-    autoGroupColumnDef:{
-      headerName: 'Program',
-      field:'program',
-      cellRenderer: 'agGroupCellRenderer',
-      cellRendererParams:{
-        checkbox:true
-      }
-    }
+  constructor(props)
+  {
+    super(props);
+    this.state =
+    {
+      id: props.match.params.sid,
+      name:'',
+      password:'',
+      rollNo:'',
+      gender:'',
+      instituteEmail:'',
+      personalEmail:'',
+      mobileNumber:'',
+      registrationFor:'',
+      program:'',
+      department:'',
+      course:'',
+      currentSemester:'',
+      sem1: '',
+      sem2: '',
+      sem3: '',
+      sem4: '',
+      sem5: '',
+      sem6: '',
+      sem7: '',
+      cpi:'',
+      tenthMarks: '',
+      twelthMarks: '',
+      bachelorsMarks: '',
+      mastersMarks: '',
+      approvalStatus: 'Nun',
+      image:'',
+      columnDefs1: [
+        {headerName: 'Company',field: 'company', sortable:true, filter:true,cellRenderer: function(params) {return `<a href="https://www.google.com/search?q=${params.value}" target="_blank" rel="noopener">`+ params.value+'</a>'}},
+        {headerName: 'Job Title',field: 'job', sortable:true, filter:true},
+        {headerName: 'Classification',field: 'classification', sortable:true, filter:true},
+        {headerName: 'Attendance',field: 'attendance', sortable:true, filter:true},
+        {headerName: 'Application Status',field: 'applicationStatus', sortable:true, filter:true},
+      ],
+      columnDefs2: [
+        {headerName: 'Company',field: 'company', sortable:true, filter:true,cellRenderer: function(params) {return `<a href="https://www.google.com/search?q=${params.value}" target="_blank" rel="noopener">`+ params.value+'</a>'}},
+        {headerName: 'Job Title',field: 'job', sortable:true, filter:true},
+        {headerName: 'Classification',field: 'classification', sortable:true, filter:true},
+        {headerName: 'Job Status',field: 'jobStatus', sortable:true, filter:true},
+      ],
+      rowData1: [],
+      rowData2: [],
+      newPassword:''
+  };
+}
+componentDidMount = () =>{
+  this.getStudent();
+};
+
+getStudent = () =>{
+    axios.get('/backend/admin/student/'+this.state.id)
+      .then((response) => {
+        const data = response.data.studentInfo;
+        console.log('data',data);
+        this.setState({
+          name:data.name,
+          rollNo:data.rollNo,
+          gender:data.gender,
+          instituteEmail:data.instituteEmail,
+          personalEmail:data.personalEmail,
+          mobileNumber:data.mobileNumber,
+          program:data.program,
+          department:data.department,
+          currentSemester:data.currentSemester,
+          sem1:data.spi.sem1,
+          cpi:data.cpi,
+          tenthMarks: data.tenthMarks,
+          twelthMarks: data.twelthMarks,
+          bachelorsMarks: data.bachelorsMarks,
+          mastersMarks: data.mastersMarks,
+          approvalStatus: data.approvalStatus,
+          image:data.image,
+          rowData1:data.studentAppliedJobs,
+          rowData2:data.studentEligibleJobs
+        });
+      })
+      .catch((e)=>{
+        console.log('Error Retrieving data',e);
+      });
   };
 
+
+  handleChange = (event) =>
+  {
+    const target = event.target;
+    const name = target.name;
+    const value = target.value;
+    this.setState({
+      [name]:value
+    })
+    console.log(this.state);
+  };
+
+  handleSubmit = (event) =>
+  {
+    event.preventDefault();
+    let payload = {
+      newPassword:this.state.newPassword
+    }
+    axios({
+      url: '/backend/admin/student/resetPassword/'+this.state.id,
+      method: 'patch',
+      data: payload
+    })
+    .then((e) =>{
+      console.log('data has been sent to server');
+      alert(e.data.message);
+    })
+    .catch(()=>{
+      console.log('data error');
+    });
+  };
+
+  handleDeactivate = () =>{
+    let payload = {
+      approvalStatus: 'Deactivated'
+    }
+    axios({
+      url: '/backend/admin//student/changeStatus/'+this.state.id,
+      method: 'patch',
+      data: payload
+    })
+    .then((e) =>{
+      console.log('data has been sent to server');
+      this.getStudents();
+      alert(e.data.message);
+    })
+    .catch(()=>{
+      console.log('data error');
+    });
+  }
   render()
   {
     return(
-      <div className="base-container float-right admin border rounded border-success m-3">
+      <div className="base-container admin border rounded border-success m-3">
         <p className="m-3 p-2">
           <div className="row">
             <div className="col-md-2">
@@ -96,7 +160,7 @@ export class AdminStudent extends React.Component
                   Name
                 </div>
                 <div className="col-md-8">
-                  :{this.state.name}
+                  : {this.state.name}
                 </div>
               </div>
               <div className="row">
@@ -104,7 +168,7 @@ export class AdminStudent extends React.Component
                   Roll No
                 </div>
                 <div className="col-md-8">
-                  :{this.state.rollNo}
+                  : {this.state.rollNo}
                 </div>
               </div>
               <div className="row">
@@ -112,7 +176,7 @@ export class AdminStudent extends React.Component
                   Gender
                 </div>
                 <div className="col-md-8">
-                  :{this.state.gender}
+                  : {this.state.gender}
                 </div>
               </div>
               <div className="row">
@@ -120,7 +184,7 @@ export class AdminStudent extends React.Component
                   Program
                 </div>
                 <div className="col-md-8">
-                  :{this.state.program}
+                  : {this.state.program}
                 </div>
               </div>
               <div className="row">
@@ -128,15 +192,7 @@ export class AdminStudent extends React.Component
                   Department
                 </div>
                 <div className="col-md-8">
-                  :{this.state.department}
-                </div>
-              </div>
-              <div className="row">
-                <div className="col-md-4">
-                  Course
-                </div>
-                <div className="col-md-8">
-                  :{this.state.course}
+                  : {this.state.department}
                 </div>
               </div>
               <div className="row">
@@ -144,7 +200,7 @@ export class AdminStudent extends React.Component
                   Semester
                 </div>
                 <div className="col-md-8">
-                  :{this.state.currentSemester}
+                  : {this.state.currentSemester}
                 </div>
               </div>
             </div>
@@ -154,7 +210,7 @@ export class AdminStudent extends React.Component
                   Institute Email
                 </div>
                 <div className="col-md-8">
-                  :{this.state.instituteEmail}
+                  : {this.state.instituteEmail}
                 </div>
               </div>
               <div className="row">
@@ -162,7 +218,7 @@ export class AdminStudent extends React.Component
                   Personal Email
                 </div>
                 <div className="col-md-8">
-                  :{this.state.personalEmail}
+                  : {this.state.personalEmail}
                 </div>
               </div>
               <div className="row">
@@ -170,7 +226,7 @@ export class AdminStudent extends React.Component
                   Mobile Number
                 </div>
                 <div className="col-md-8">
-                  :{this.state.instituteEmail}
+                  : {this.state.mobileNumber}
                 </div>
               </div>
               <div className="row">
@@ -178,7 +234,7 @@ export class AdminStudent extends React.Component
                   SPI
                 </div>
                 <div className="col-md-8">
-                  :{this.state.spi.sem}
+                  : {this.state.sem1}
                 </div>
               </div>
               <div className="row">
@@ -186,7 +242,7 @@ export class AdminStudent extends React.Component
                   CPI
                 </div>
                 <div className="col-md-8">
-                  :{this.state.spi.sem}
+                  : {this.state.cpi}
                 </div>
               </div>
             </div>
@@ -204,10 +260,10 @@ export class AdminStudent extends React.Component
 
           <AgGridReact
             columnDefs = {this.state.columnDefs}
-            rowData = {this.state.rowData}
+            rowData = {this.state.rowData1}
             rowSelection = "multiple"
             onGridReady = {params => this.gridApi = params.api}
-            autoGroupColumnDef={this.state.columnDefs}
+
           />
           </div>
           <hr className="bg-dark"/>
@@ -220,28 +276,43 @@ export class AdminStudent extends React.Component
           >
 
           <AgGridReact
-            columnDefs = {this.state.columnDefs}
-            rowData = {this.state.rowData}
+            columnDefs = {this.state.columnDefs2}
+            rowData = {this.state.rowData2}
             rowSelection = "multiple"
             onGridReady = {params => this.gridApi = params.api}
-            autoGroupColumnDef={this.state.columnDefs}
+
           />
           </div>
         </div>
         <div className="container-fluid row mt-2">
-          <div className="col-md-2">
-            <button type="button" className="btn btn-block btn-success m-1">Deactivate</button>
+          <div className="col-md-3">
+            <Popup trigger={
+            <button type="button" className="btn btn-block btn-success m-1">Reset Password</button>}position="top center"
+            >{close => (
+            <div className=" p-1">
+              <a className="close" onClick={close}>&times;</a>
+              <form className="form" onSubmit = {this.handleSubmit} onChange={this.handleChange}>
+                  <label htmlFor="newPassword">New Password:</label>
+                    <input
+                      type="password"
+                      name="newPassword"
+                      className="form-control"
+                      placeholder="Enter Password"
+                      maxLength="300"
+                      value={this.state.newPassword}
+                      required
+                      />
+                    <button type="submit" className="btn btn-block btn-primary p-1 mt-1">Confirm</button>
+              </form>
+            </div>)}
+            </Popup>
           </div>
-          <div className="col-md-2">
-            <button type="button" className="btn btn-block btn-success m-1" onClick={this.ButtonClick}>Reset Password</button>
+          <div className="col-md-3">
+            <button type="button" className="btn btn-block btn-success m-1" onClick={this.handleDeactivate}>Deactivate</button>
           </div>
-          <div className="col-md-2">
-            <button type="button" className="btn btn-block btn-success m-1" onClick={this.ButtonClick}>Reset Password</button>
-          </div>
-          <div className="col-md-2"></div>
-          <div className="col-md-2"></div>
-          <div className="col-md-2">
-            <button type="button" class="btn btn-outline-dark btn-block m-1">Back</button>
+          <div className="col-md-3"></div>
+          <div className="col-md-3">
+            <Link to="/admin/students/"><button type="button" class="btn btn-outline-dark btn-block m-1">Back</button></Link>
           </div>
         </div>
       </div>

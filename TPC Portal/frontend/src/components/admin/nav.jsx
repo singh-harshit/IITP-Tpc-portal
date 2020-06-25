@@ -1,4 +1,5 @@
 import React from "react";
+import {Link} from "react-router-dom";
 
 export class AdminNavbar extends React.Component
 {
@@ -19,27 +20,41 @@ export class AdminNavbar extends React.Component
 
           <div className="collapse navbar-collapse" id="collapsibleNavbar">
             <ul className="navbar-nav flex-column">
-              <li className="nav-item">
-                <a className="nav-link" href="#">Home</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link" href="#">Students</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link" href="#">Companies</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link" href="#">Jobs / Internship</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link" href="#">Requests</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link" href="#">Settings</a>
-              </li>
-              <li className="nav-item">
-                <a className="nav-link" href="#">Backup</a>
-              </li>
+              <Link to="/admin/">
+                <li className="nav-item nav-link">
+                  Home
+                </li>
+              </Link>
+              <Link to="/admin/students/">
+                <li className="nav-item nav-link">
+                  Students
+                </li>
+              </Link>
+              <Link to="/admin/companies/">
+                <li className="nav-item nav-link">
+                  Companies
+                </li>
+              </Link>
+              <Link to="/admin/jobs/">
+                <li className="nav-item nav-link">
+                  Jobs / Internship
+                </li>
+              </Link>
+              <Link to="/admin/requests/">
+                <li className="nav-item nav-link">
+                  Requests
+                </li>
+              </Link>
+              <Link to="/admin/settings/">
+                <li className="nav-item nav-link">
+                  Settings
+                </li>
+              </Link>
+              <Link to="/admin/backup/">
+                <li className="nav-item nav-link">
+                  Backup
+                </li>
+              </Link>
             </ul>
           </div>
         </nav>

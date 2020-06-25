@@ -83,7 +83,7 @@ export class StudentRegister extends React.Component
         formData.append('mastersMarks',this.state.mastersMarks);
         formData.append('image',this.state.file);
         console.log(formData);
-        axios.post('/student/registration/',formData,{
+        axios.post('/backend/student/registration/',formData,{
           headers: {
             'Content-Type': 'multipart/form-data'
           }

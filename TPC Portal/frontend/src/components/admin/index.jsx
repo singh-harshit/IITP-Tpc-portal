@@ -4,3 +4,6 @@ export {AdminStudents} from "./admin-students";
 export {AdminCompanies} from "./admin-companies";
 export {AdminCompany} from "./company";
 export {AdminStudent} from "./student";
+export {AdminAddCompany} from "./addCompany";
+export {AdminJob} from "./job";
+export {AdminRequests} from "./requests";
