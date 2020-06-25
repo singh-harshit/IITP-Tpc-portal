@@ -44,12 +44,15 @@ function App() {
         <Route path="/company/jobs/:id" component={CompanyJobs} />
         <Route path="/company/requests/:id" component={CompanyRequests} />
         {/* Admin Routes*/}
-        <Route path="/admin" component={AdminNavbar} />
-        <Route path="/admin" component={AdminHome} />
-        <Route path="/admin/students" component={AdminStudents} />
-        <Route path="/admin/student/:sid" exact component={AdminStudent} />
-        <Route path="/admin/companies" component={AdminCompanies} />
-        <Route path="/admin/company/:cid" exact component={AdminCompany} />
+        <Route path="/admin" component = {AdminNavbar} />
+        <Route path="/admin"exact  component = {AdminHome} />
+        <Route path="/admin/students" component = {AdminStudents} />
+        <Route path="/admin/student/:sid" exact component = {AdminStudent} />
+        <Route path="/admin/companies" component = {AdminCompanies} />
+        <Route path="/admin/company/:cid" exact component = {AdminCompany} />
+        <Route path="/admin/addCompany" component = {AdminAddCompany} />
+        <Route path="/admin/job/:jid" component = {AdminJob} />
+        <Route path="/admin/requests" component = {AdminRequests} />
       </div>
     </Router>
   );
