@@ -95,7 +95,58 @@ const getAllStudentsWithFilter = async (req, res, next) => {
   res.json({ studentsInfo: studentsInfo });
 };
 
-const exportFilteredStudents = async (req, res, next) => {};
+const exportFilteredStudents = async (req, res, next) => {
+  const { registrationFor, program, department, cpi, status } = req.body;
+  let studentsInfo;
+  try {
+    studentsInfo = await Student.aggregate([
+      {
+        $project: {
+          name: 1,
+          rollNo: 1,
+          program: 1,
+          department: 1,
+          course: 1,
+          cpi: 1,
+          registrationFor: 1,
+          instituteEmail: 1,
+          mobileNumber: 1,
+          resumeLink: 1,
+          resumeFile: 1,
+          matchedProgram: { $in: ["$program", program] },
+          matchedDepartment: { $in: ["$department", department] },
+          status: {
+            $cond: {
+              if: { $eq: ["$placement.status", "placed"] },
+              then: {
+                $concat: ["$placement.status", " in ", "$placement.category"],
+              },
+              else: "$placement.status",
+            },
+          },
+        },
+      },
+      {
+        $match: {
+          $and: [
+            { registrationFor: registrationFor },
+            { status: status },
+            { cpi: { $gte: cpi } },
+            { matchedDepartment: true },
+            { matchedProgram: true },
+          ],
+        },
+      },
+    ]);
+  } catch (err) {
+    console.log(err);
+    const error = new HttpError("Something went wrong! Try again later", 500);
+    return next(error);
+  }
+  var info = JSON.stringify(studentsInfo);
+      var info1 = JSON.parse(info);
+      res.xls("data.xlsx", info1);
+};
 
 const getStudentById = async (req, res, next) => {
   const studId = req.params.sid;
