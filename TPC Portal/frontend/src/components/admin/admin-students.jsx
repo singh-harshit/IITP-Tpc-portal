@@ -1,50 +1,24 @@
 import React, { Component } from 'react';
+import axios from 'axios';
 import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/dist/styles/ag-grid.css';
 import 'ag-grid-community/dist/styles/ag-theme-balham.css';
-import 'ag-grid-enterprise';
-
-export class Admin_students extends Component {
+import {Link,Redirect} from 'react-router-dom';
+export class AdminStudents extends Component {
   state = {
+    redirect:null,
     columnDefs: [
-      {headerName: 'SNo.',field: 'sno', sortable:true, filter:true,checkboxSelection:true},
-      {headerName: 'Rollno',field: 'roll', sortable:true, filter:true},
-      {headerName: 'Name',field: 'name', sortable:true, filter:true,cellRenderer: function(params) {return `<a href="https://www.google.com/search?q=${params.value}" target="_blank" rel="noopener">`+ params.value+'</a>'}},
+      {headerName: 'Rollno',field: 'rollNo', sortable:true, filter:true,checkboxSelection:true,cellRenderer: function(params) {return `<a href=/admin/student/${params.value}>${params.value}</a>`}},
+      {headerName: 'Name',field: 'name', sortable:true, filter:true},
       {headerName: 'CPI',field: 'cpi', sortable:true, filter:true},
-      {headerName: 'Course',field: 'course', sortable:true, filter:true},
       {headerName: 'Program',field: 'program', sortable:true, filter:true},
-      {headerName: 'Mail',field: 'mailID', sortable:true, filter:true},
+      {headerName: 'Mail',field: 'instituteEmail', sortable:true, filter:true},
       {headerName: 'Mob',field: 'mobileNumber', sortable:true, filter:true},
       {headerName: 'Status',field: 'status', sortable:true, filter:true},
-      {headerName: 'Resume',field: 'resume', sortable:true, filter:true},
+      {headerName: 'Resume',field: 'resumeFile', sortable:true, filter:true,cellRenderer: function(params) {return `<a href="${params.value}" target="_blank" rel="noopener">`+ params.value+'</a>'}},
     ],
-    rowData: [{
-      sno:'1',
-      roll:'1701me18',
-      name:'harshit',
-      cpi:8.26,
-      course:'BTech',
-      program:'mechanical',
-      mailID:'h@abc',
-      mobileNumber:'1234567',
-      status:'1',
-      resume:1},
-      {
-        sno:'1',
-        roll:'1701me18',
-        name:'Akshat',
-        cpi:8.26,
-        course:'BTech',
-        program:'mechanical',
-        mailID:'h@abc',
-        mobileNumber:'1234567',
-        status:'1',
-        resume:1}
-    ],
+    rowData: [],
     autoGroupColumnDef:{
-      headerName: 'Program',
-      field:'program',
-      cellRenderer: 'agGroupCellRenderer',
       cellRendererParams:{
         checkbox:true
       }
@@ -61,13 +35,36 @@ export class Admin_students extends Component {
   ButtonClick = () =>{
     const selectedNodes = this.gridApi.getSelectedNodes();
     const selectedData = selectedNodes.map(node => node.data);
-    const selectedDataStringPresentation = selectedData.map(node => node.name + ' ' + node.program).join(', ');
-    alert(`Selected Nodes: ${selectedDataStringPresentation}`)
+    const selectedDataStringPresentation = selectedData.map(node => '/admin/student/' + node._id).join('/');
+    this.setState({
+      redirect:selectedDataStringPresentation
+    })
+  }
+
+  componentDidMount = () =>{
+    this.getStudents();
+  };
+  getStudents = () =>{
+    axios.get('/backend/admin/students/')
+      .then((response) => {
+        const data = response.data.studentsInfo;
+        console.log('data',data);
+        this.setState({
+          rowData:data
+        })
+      })
+      .catch((e)=>{
+        console.log('Error Retrieving data',e);
+      });
   }
   render()
   {
+    if (this.state.redirect)
+    {
+      return <Redirect to={this.state.redirect} />
+    }
     return(
-      <div className="container border rounded p-4 m-3 border-success float-right admin-student">
+      <div className="container border rounded p-4 m-3 border-success admin">
       <div
         className="ag-theme-balham"
         style={{
@@ -76,11 +73,13 @@ export class Admin_students extends Component {
       >
       <button onClick={this.ButtonClick}>Get Selected Rows</button>
       <AgGridReact
+        reactNext={true}
         columnDefs = {this.state.columnDefs}
         rowData = {this.state.rowData}
         rowSelection = "multiple"
         onGridReady = {params => this.gridApi = params.api}
-        autoGroupColumnDef={this.state.columnDefs}
+        autoGroupColumnDef={this.state.autoGroupColumnDef}
+        onRowClicked={this.handleRowClick}
       />
       </div>
     </div>

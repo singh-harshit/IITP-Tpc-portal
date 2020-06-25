@@ -1,7 +1,8 @@
 import React from "react";
 import axios from 'axios';
+import {Redirect} from 'react-router-dom';
 
-export class CompanyRegister extends React.Component
+export class AdminAddCompany extends React.Component
 {
 
     state = {
@@ -20,7 +21,8 @@ export class CompanyRegister extends React.Component
       name3: '',
       designation3: '',
       mailId3: '',
-      mobileNumber3: ''
+      mobileNumber3: '',
+      redirect:''
     };
 
     handleChange = (event) =>
@@ -66,12 +68,15 @@ export class CompanyRegister extends React.Component
           };
           console.log(payload);
           axios({
-            url: '/backend/company/registration',
+            url: '/backend/admin/companies/addCompany',
             method: 'post',
             data: payload
           })
           .then(() =>{
             console.log('data has been sent to server');
+            this.setState({
+              redirect:'/admin/companies'
+            })
             this.resetUserInputs();
           })
           .catch(()=>{
@@ -92,7 +97,7 @@ export class CompanyRegister extends React.Component
             name2: '',
             designation2:'',
             mailId2: '',
-            mobileNumber2: '',
+            mobileNumber3: '',
             name3: '',
             designation3: '',
             mailId3: '',
@@ -101,6 +106,10 @@ export class CompanyRegister extends React.Component
       };
   render()
   {
+    if (this.state.redirect)
+    {
+      return <Redirect to={this.state.redirect} />
+    }
     return(
       <div className="base-container p-1">
         <section className="container-fluid border p-1 rounded border-success admin m-3">
@@ -409,7 +418,7 @@ export class CompanyRegister extends React.Component
               </div>
 
             </div>
-            <button type="submit" className="btn btn-primary btn-block">Submit Request</button>
+            <button type="submit" className="btn btn-primary btn-block">Add Company</button>
           </form>
         </section>
       </div>

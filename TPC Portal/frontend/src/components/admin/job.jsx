@@ -6,14 +6,14 @@ import 'ag-grid-community/dist/styles/ag-theme-balham.css';
 import 'ag-grid-enterprise';
 import {Link} from 'react-router-dom';
 import Popup from "reactjs-popup";
-export class AdminCompany extends React.Component
+export class AdminJob extends React.Component
 {
   constructor(props)
   {
   super(props);
   this.state =
   {
-    id: props.match.params.cid,
+    id: props.match.params.jid,
     close:'',
       companyName:"",
       userName: "",
@@ -118,6 +118,12 @@ export class AdminCompany extends React.Component
         });
       }
 
+      handleClick = (e) =>{
+        const selectedNodes = this.gridApi.getSelectedNodes();
+        const selectedData = selectedNodes.map(node => node.data);
+        const selectedDataStringPresentation = selectedData.map(node => '' + node._id).join('/');
+        console.log("hey",e.value);
+      }
   render()
   {
     return(
@@ -283,6 +289,7 @@ export class AdminCompany extends React.Component
               rowSelection = "multiple"
               onGridReady = {params => this.gridApi = params.api}
               autoGroupColumnDef={this.state.columnDefs}
+              onCellDoubleClicked={this.handleClick}
             />
           </div>
         </div>

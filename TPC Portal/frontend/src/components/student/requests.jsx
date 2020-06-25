@@ -1,16 +1,31 @@
 import React from "react";
 import axios from "axios";
 
-export class Requests extends React.Component {
-  state = {
-    id: "1701CS55",
-    _id: "5edd3dab78d3a45b97471400",
+export class StudentRequests extends React.Component {
+<<<<<<< HEAD
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      id: props.match.params.id,
+      subject: "",
+      message: "",
+      posts: [],
+    };
+  }
+=======
+  constructor(props){
+    super(props);
+
+  this.state = {
+    id : props.match.params.id,
     subject: "",
     message: "",
     posts: [],
   };
-
-  displayBlogPost = (posts) => {
+}
+>>>>>>> 9d483f1142568c2a2289054928c59b804b028976
+  displayPost = (posts) => {
     if (!posts.length) {
       return null;
     }
@@ -27,17 +42,17 @@ export class Requests extends React.Component {
   };
 
   componentDidMount = () => {
-    this.getBlogPost();
+    this.getPost();
   };
 
-  getBlogPost = () => {
+  getPost = () => {
     axios
-      .get("/student/requests/" + this.state._id)
+      .get("/backend/student/requests/" + this.state.id)
       .then((response) => {
         const data = response.data.oldRequests.requests;
         this.setState({ posts: data });
         console.log("data", this.state.posts);
-        this.displayBlogPost(this.state.posts);
+        this.displayPost(this.state.posts);
       })
       .catch(() => {
         console.log("Error Retrieving data");
@@ -68,14 +83,14 @@ export class Requests extends React.Component {
       message: message,
     };
     axios({
-      url: "/student/new-request/" + this.state._id,
+      url: "/backend/student/new-request/" + this.state.id,
       method: "post",
       data: payload,
     })
       .then(() => {
         console.log("data has been sent to server");
         this.resetUserInputs();
-        this.getBlogPost();
+        this.getPost();
       })
       .catch(() => {
         console.log("data error");
@@ -94,7 +109,7 @@ export class Requests extends React.Component {
     return (
       <div className="base-container">
         <section className="container-fluid">
-          <section className="row justify-content-around new-request bg-light">
+          <section className="row justify-content-around bg-light new-request">
             <div>
               <h2 className="text-center">New Request:</h2>
               <br />
@@ -127,10 +142,22 @@ export class Requests extends React.Component {
               <br />
               <h2>Old Request:</h2>
             </div>
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+
+>>>>>>> f55b5ccf627cf9ff3597d1f4d34734496763000e
+=======
+
+>>>>>>> 9d483f1142568c2a2289054928c59b804b028976
+=======
+
+>>>>>>> 9d483f1142568c2a2289054928c59b804b028976
           </section>
-          <div className="container white-board"></div>
+
           <div className="container p-3 border old-request">
-            {this.displayBlogPost(this.state.posts)}
+            {this.displayPost(this.state.posts)}
           </div>
         </section>
       </div>

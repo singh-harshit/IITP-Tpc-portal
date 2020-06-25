@@ -1,56 +1,62 @@
 import React from "react";
 import axios from "axios";
-import "./Table.css";
 
-class EligibleJobs extends React.Component {
-  state = {
-    studId: "5edd43d275f5975f65c83f47",
-    rawData: [],
-    jsonDataForTable: [],
-  };
-
+export class StudentEligibleJobs extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      studId: props.match.params.id,
+      rawData: [],
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+      jobsList: [],
+>>>>>>> f55b5ccf627cf9ff3597d1f4d34734496763000e
+=======
+      jobsList: [],
+>>>>>>> 9d483f1142568c2a2289054928c59b804b028976
+=======
+      jobsList: [],
+>>>>>>> 9d483f1142568c2a2289054928c59b804b028976
+      jsonDataForTable: [],
+    };
+  }
   // Fetching Data and Making json for table
   componentDidMount() {
-    this.getStudentInfo();
-  }
-
-  getStudentInfo = () => {
+    /* Fetch Data */
     axios
-      .get("/student/eligible/jobs/" + this.state.studId)
+      .get("/backend/student/eligible/jobs/" + this.state.studId)
       .then((response) => {
-        const data = response.data.studentJobs.eligibleJobs;
-        this.setState({ rawData: data });
+        const jobsList = response.data.studentJobs.eligibleJobs;
+        this.setState({ jobsList: jobsList });
         console.log("Student Data List Received!!!");
-        console.log(this.state.rawData);
-        console.log(response.data);
-        this.dataToJson(this.state.rawData);
+        console.log("JobsList: ", this.state.jobsList);
+        /* Make JSON */
+        let jsonData = [];
+        for (let i = 0; i < jobsList.length; i++) {
+          let tempJsonObject = {
+            SNo: i + 1,
+            company: jobsList[i].companyName,
+            title: jobsList[i].jobTitle,
+            classification: jobsList[i].jobCategory,
+            jaf: jobsList[i].jaf,
+            lastDate: jobsList[i].schedule.Test,
+          };
+          jsonData.push(tempJsonObject);
+        }
+
+        this.setState({
+          jsonDataForTable: jsonData,
+        });
+
+        console.log("JSON Data: ", this.state.jsonDataForTable);
       })
       .catch((error) => {
         console.log("Receiving Student Data List Failed");
         console.log(error);
       });
-  };
-
-  dataToJson = (jobsList) => {
-    let jsonData = [];
-    for (let i = 0; i < jobsList.length; i++) {
-      let tempJsonObject = {
-        SNo: i + 1,
-        company: jobsList[i].companyName,
-        title: jobsList[i].jobTitle,
-        classification: jobsList[i].jobCategory,
-        jaf: jobsList[i].jaf,
-        lastDate: jobsList[i].schedule.Test,
-      };
-      jsonData.push(tempJsonObject);
-    }
-
-    this.setState({
-      jsonDataForTable: jsonData,
-    });
-
-    console.log(this.state.jsonDataForTable);
-  };
+  }
 
   // Making Table
 
@@ -58,7 +64,7 @@ class EligibleJobs extends React.Component {
     return Object.keys(this.state.jsonDataForTable);
   };
 
-  getHeaders = () => {
+  displayHeaders = () => {
     const headers = [
       "S.No",
       "Company",
@@ -69,23 +75,17 @@ class EligibleJobs extends React.Component {
       "Apply",
     ];
 
-    return headers.map((key, index) => {
-      return <th key={key}>{key.toUpperCase()}</th>;
+    return headers.map((header, index) => {
+      return <th key={index}>{header}</th>;
     });
   };
 
-  getRowsData = () => {
-    return this.state.jsonDataForTable.map((info, index) => {
-      const { SNo, company, title, classification, jaf, lastDate } = info;
+  displayTable = () => {
+    const jsonData = this.state.jsonDataForTable;
+    return jsonData.map((row, index) => {
       return (
-        <tr key={SNo}>
-          <td>{SNo}</td>
-          <td>{company}</td>
-          <td>{title}</td>
-          <td>{classification}</td>
-          <td>{jaf}</td>
-          <td>{lastDate}</td>
-          <td>Apply</td>
+        <tr key={index}>
+          <RenderRow key={index} data={row} />
         </tr>
       );
     });
@@ -93,16 +93,22 @@ class EligibleJobs extends React.Component {
 
   render() {
     return (
-      <div className="eligible jobs">
-        <table className="table table-bordered">
-          <tbody>
-            <tr>{this.getHeaders()}</tr>
-            {this.getRowsData()}
-          </tbody>
+      <div className="AppliedJobs">
+        <table className="table">
+          <thead className="thead-light">
+            <tr>{this.displayHeaders()}</tr>
+          </thead>
+
+          <tbody>{this.displayTable()}</tbody>
         </table>
       </div>
     );
   }
 }
 
-export default EligibleJobs;
+const RenderRow = (props) => {
+  const keys = Object.keys(props.data);
+  return keys.map((key, index) => {
+    return <td key={index}>{props.data[key]}</td>;
+  });
+};
