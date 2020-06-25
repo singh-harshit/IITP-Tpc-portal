@@ -9,6 +9,7 @@ export class StudentAppliedJobs extends React.Component {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       rawData: [],
       jsonDataForTable: [],
     };
@@ -21,6 +22,11 @@ export class StudentAppliedJobs extends React.Component {
       jsonDataForTable: [],
     };
 >>>>>>> f55b5ccf627cf9ff3597d1f4d34734496763000e
+=======
+      jobsList: [],
+      jsonDataForTable: [],
+    };
+>>>>>>> 9d483f1142568c2a2289054928c59b804b028976
 =======
       jobsList: [],
       jsonDataForTable: [],

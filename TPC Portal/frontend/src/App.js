@@ -46,6 +46,7 @@ function App() {
         {/* Admin Routes*/}
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
         <Route path="/admin" component={AdminNavbar} />
         <Route path="/admin" component={AdminHome} />
         <Route path="/admin/students" component={AdminStudents} />
@@ -53,6 +54,8 @@ function App() {
         <Route path="/admin/companies" component={AdminCompanies} />
         <Route path="/admin/company/:cid" exact component={AdminCompany} />
 =======
+=======
+>>>>>>> 9d483f1142568c2a2289054928c59b804b028976
 =======
 >>>>>>> 9d483f1142568c2a2289054928c59b804b028976
         <Route path="/admin" component = {AdminNavbar} />
@@ -65,6 +68,9 @@ function App() {
         <Route path="/admin/job/:jid" component = {AdminJob} />
         <Route path="/admin/requests" component = {AdminRequests} />
 <<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> 9d483f1142568c2a2289054928c59b804b028976
+=======
 >>>>>>> 9d483f1142568c2a2289054928c59b804b028976
 =======
 >>>>>>> 9d483f1142568c2a2289054928c59b804b028976

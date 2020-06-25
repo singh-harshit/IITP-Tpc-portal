@@ -3,6 +3,7 @@ import axios from "axios";
 
 export class StudentRequests extends React.Component {
 <<<<<<< HEAD
+<<<<<<< HEAD
   constructor(props) {
     super(props);
 
@@ -14,6 +15,8 @@ export class StudentRequests extends React.Component {
     };
   }
 =======
+=======
+>>>>>>> 9d483f1142568c2a2289054928c59b804b028976
   constructor(props){
     super(props);
 
@@ -24,6 +27,9 @@ export class StudentRequests extends React.Component {
     posts: [],
   };
 }
+<<<<<<< HEAD
+>>>>>>> 9d483f1142568c2a2289054928c59b804b028976
+=======
 >>>>>>> 9d483f1142568c2a2289054928c59b804b028976
   displayPost = (posts) => {
     if (!posts.length) {
@@ -145,9 +151,13 @@ export class StudentRequests extends React.Component {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> f55b5ccf627cf9ff3597d1f4d34734496763000e
+=======
+
+>>>>>>> 9d483f1142568c2a2289054928c59b804b028976
 =======
 
 >>>>>>> 9d483f1142568c2a2289054928c59b804b028976

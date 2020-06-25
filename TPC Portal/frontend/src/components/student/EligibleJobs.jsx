@@ -10,9 +10,13 @@ export class StudentEligibleJobs extends React.Component {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       jobsList: [],
 >>>>>>> f55b5ccf627cf9ff3597d1f4d34734496763000e
+=======
+      jobsList: [],
+>>>>>>> 9d483f1142568c2a2289054928c59b804b028976
 =======
       jobsList: [],
 >>>>>>> 9d483f1142568c2a2289054928c59b804b028976
