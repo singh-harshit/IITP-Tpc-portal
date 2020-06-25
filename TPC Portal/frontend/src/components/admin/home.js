@@ -15,7 +15,7 @@ export class AdminHome extends Component {
 			data: [{
 				type: "pie",
 				startAngle: 0,
-				toolTipContent: "<b>{label}</b>: {y}%",
+				toolTipContent: "<b>{label}</b>: {y}",
 				showInLegend: "true",
 				legendText: "{label}",
 				indexLabelFontSize: 12,

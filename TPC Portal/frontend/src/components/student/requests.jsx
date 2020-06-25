@@ -34,7 +34,7 @@ export class StudentRequests extends React.Component {
 
   getPost = () => {
     axios
-      .get("/student/requests/" + this.state.id)
+      .get("/backend/student/requests/" + this.state.id)
       .then((response) => {
         const data = response.data.oldRequests.requests;
         this.setState({ posts: data });
@@ -70,7 +70,7 @@ export class StudentRequests extends React.Component {
       message: message,
     };
     axios({
-      url: "/student/new-request/" + this.state.id,
+      url: "/backend/student/new-request/" + this.state.id,
       method: "post",
       data: payload,
     })
@@ -129,7 +129,7 @@ export class StudentRequests extends React.Component {
               <br />
               <h2>Old Request:</h2>
             </div>
-            
+
           </section>
 
           <div className="container p-3 border old-request">
