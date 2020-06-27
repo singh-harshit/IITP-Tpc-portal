@@ -6,14 +6,42 @@ export class StudentAppliedJobs extends React.Component {
     super(props);
     this.state = {
       studId: props.match.params.id,
-      jobsList: [],
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+      rawData: [],
       jsonDataForTable: [],
     };
   }
   componentDidMount() {
+    this.getStudentInfo();
+    //this.dataToJson();
+=======
+      jobsList: [],
+      jsonDataForTable: [],
+    };
+>>>>>>> f55b5ccf627cf9ff3597d1f4d34734496763000e
+=======
+      jobsList: [],
+      jsonDataForTable: [],
+    };
+>>>>>>> 9d483f1142568c2a2289054928c59b804b028976
+=======
+      jobsList: [],
+      jsonDataForTable: [],
+    };
+>>>>>>> 9d483f1142568c2a2289054928c59b804b028976
+=======
+      jobsList: [],
+      jsonDataForTable: [],
+    };
+>>>>>>> 9d483f1142568c2a2289054928c59b804b028976
+  }
+  componentDidMount() {
     /* Fetch Data */
     axios
-      .get("/student/applied/jobs/" + this.state.studId)
+      .get("/backend/student/applied/jobs/" + this.state.studId)
       .then((response) => {
         const data = response.data;
         this.setState({

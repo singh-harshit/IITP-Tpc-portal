@@ -2,6 +2,21 @@ import React from "react";
 import axios from "axios";
 
 export class StudentRequests extends React.Component {
+<<<<<<< HEAD
+<<<<<<< HEAD
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      id: props.match.params.id,
+      subject: "",
+      message: "",
+      posts: [],
+    };
+  }
+=======
+=======
+>>>>>>> 9d483f1142568c2a2289054928c59b804b028976
   constructor(props){
     super(props);
 
@@ -12,6 +27,10 @@ export class StudentRequests extends React.Component {
     posts: [],
   };
 }
+<<<<<<< HEAD
+>>>>>>> 9d483f1142568c2a2289054928c59b804b028976
+=======
+>>>>>>> 9d483f1142568c2a2289054928c59b804b028976
   displayPost = (posts) => {
     if (!posts.length) {
       return null;
@@ -129,7 +148,22 @@ export class StudentRequests extends React.Component {
               <br />
               <h2>Old Request:</h2>
             </div>
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
 
+>>>>>>> f55b5ccf627cf9ff3597d1f4d34734496763000e
+=======
+
+>>>>>>> 9d483f1142568c2a2289054928c59b804b028976
+=======
+
+>>>>>>> 9d483f1142568c2a2289054928c59b804b028976
+=======
+
+>>>>>>> 9d483f1142568c2a2289054928c59b804b028976
           </section>
 
           <div className="container p-3 border old-request">

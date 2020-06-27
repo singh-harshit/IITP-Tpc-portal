@@ -7,7 +7,22 @@ export class StudentEligibleJobs extends React.Component {
     this.state = {
       studId: props.match.params.id,
       rawData: [],
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
       jobsList: [],
+>>>>>>> f55b5ccf627cf9ff3597d1f4d34734496763000e
+=======
+      jobsList: [],
+>>>>>>> 9d483f1142568c2a2289054928c59b804b028976
+=======
+      jobsList: [],
+>>>>>>> 9d483f1142568c2a2289054928c59b804b028976
+=======
+      jobsList: [],
+>>>>>>> 9d483f1142568c2a2289054928c59b804b028976
       jsonDataForTable: [],
     };
   }
@@ -15,7 +30,7 @@ export class StudentEligibleJobs extends React.Component {
   componentDidMount() {
     /* Fetch Data */
     axios
-      .get("/student/eligible/jobs/" + this.state.studId)
+      .get("/backend/student/eligible/jobs/" + this.state.studId)
       .then((response) => {
         const jobsList = response.data.studentJobs.eligibleJobs;
         this.setState({ jobsList: jobsList });

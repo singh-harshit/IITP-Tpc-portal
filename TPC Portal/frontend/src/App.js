@@ -44,6 +44,20 @@ function App() {
         <Route path="/company/jobs/:id" component={CompanyJobs} />
         <Route path="/company/requests/:id" component={CompanyRequests} />
         {/* Admin Routes*/}
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+        <Route path="/admin" component={AdminNavbar} />
+        <Route path="/admin" component={AdminHome} />
+        <Route path="/admin/students" component={AdminStudents} />
+        <Route path="/admin/student/:sid" exact component={AdminStudent} />
+        <Route path="/admin/companies" component={AdminCompanies} />
+        <Route path="/admin/company/:cid" exact component={AdminCompany} />
+=======
+=======
+>>>>>>> 9d483f1142568c2a2289054928c59b804b028976
+=======
+>>>>>>> 9d483f1142568c2a2289054928c59b804b028976
         <Route path="/admin" component = {AdminNavbar} />
         <Route path="/admin"exact  component = {AdminHome} />
         <Route path="/admin/students" component = {AdminStudents} />
@@ -53,6 +67,13 @@ function App() {
         <Route path="/admin/addCompany" component = {AdminAddCompany} />
         <Route path="/admin/job/:jid" component = {AdminJob} />
         <Route path="/admin/requests" component = {AdminRequests} />
+<<<<<<< HEAD
+<<<<<<< HEAD
+>>>>>>> 9d483f1142568c2a2289054928c59b804b028976
+=======
+>>>>>>> 9d483f1142568c2a2289054928c59b804b028976
+=======
+>>>>>>> 9d483f1142568c2a2289054928c59b804b028976
       </div>
     </Router>
   );
