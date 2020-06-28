@@ -456,10 +456,11 @@ const saveJobProgress = async (req, res, next) => {
 
 const activeApplicantsByJobId = async (req, res, next) => {
   const jobId = req.params.jid;
-  let activeStudents;
+  let activeStudents = [];
+  let student;
   let job;
   try {
-    job = await Job.findById(jobId);
+    job = await Job.findById(jobId, { progressSteps: 1 });
   } catch (err) {
     console.log(err);
     const error = new HttpError("Something went wrong! Try again later", 500);
@@ -469,23 +470,48 @@ const activeApplicantsByJobId = async (req, res, next) => {
     return next(new HttpError("Job not Found", 404));
   }
   let Size = job.progressSteps.length;
+  let activeStudentIds = job.progressSteps[Size - 1].qualifiedStudents;
   let stepName = job.progressSteps[Size - 1].name;
+  let stepStatus = job.progressSteps[Size - 1].status;
   try {
-    activeStudents = await job
-      .populate({
-        path: "progressSteps.qualifiedStudents",
-        match: { "progressSteps.name": stepName },
-        select:
-          "name studId rollNo cpi course program department instituteEmail mobileNumber resumeFile",
-      })
-      .execPopulate();
+    // activeStudents = await job
+    //   .populate({
+    //     match: { "progressSteps.name": stepName },
+    //     path: "progressSteps.qualifiedStudents",
+    //     select:
+    //       "name studId rollNo cpi course program department instituteEmail mobileNumber resumeFile",
+    //   })
+    //   .execPopulate();
+    const sess = await mongoose.startSession();
+    sess.startTransaction();
+    for (Id of activeStudentIds) {
+      student = await Student.findById(Id, {
+        name: 1,
+        rollNo: 1,
+        cpi: 1,
+        course: 1,
+        program: 1,
+        department: 1,
+        instituteEmail: 1,
+        mobileNumber: 1,
+        resumeFile: 1,
+      }).session(sess);
+      activeStudents.push(student);
+    }
+    await sess.commitTransaction();
   } catch (err) {
     console.log(err);
     const error = new HttpError("Something went wrong! Try again later", 500);
     return next(error);
   }
-  res.json({ activeStudents: activeStudents });
+  res.json({
+    activeStudents: activeStudents,
+    stepName: stepName,
+    stepStatus: stepStatus,
+  });
 };
+
+    
 
 const addStudent = async (req, res, next) => {
   const jobId = req.params.jid;
