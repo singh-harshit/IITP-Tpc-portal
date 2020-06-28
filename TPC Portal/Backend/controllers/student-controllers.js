@@ -375,15 +375,19 @@ const newRequest = async (req, res, next) => {
     status: "unread",
   };
   studentInfo.requests.push(newRequest);
+  let rid = newRequest.rid - 1;
+  let Id;
   try {
     const sess = await mongoose.startSession();
     sess.startTransaction();
     await studentInfo.save({ session: sess });
+    Id = studentInfo.requests[rid]._id;
     await Admin.updateOne(
       {},
       {
         $addToSet: {
           studentRequests: {
+            _id: Id,
             studId: studentInfo._id,
             subject: subject,
             message: message,
