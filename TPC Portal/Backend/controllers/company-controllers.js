@@ -76,7 +76,7 @@ const companyNewRequest = async (req, res, next) => {
   const { subject, message } = req.body;
   let companyInfo;
   try {
-    companyInfo = await Company.findOne({ _id: companyId });
+    companyInfo = await Company.findById(companyId);
   } catch (err) {
     console.log(err);
     const error = new HttpError("Something went wrong! Try again later", 500);
@@ -86,19 +86,25 @@ const companyNewRequest = async (req, res, next) => {
     rid: companyInfo.requests.length + 1,
     subject,
     message,
+    status: "unread",
   };
   companyInfo.requests.push(newRequest);
+  let rid = newRequest.rid - 1;
+  console.log(rid);
+  let Id;
   try {
     const sess = await mongoose.startSession();
     sess.startTransaction();
     await companyInfo.save({ session: sess });
+    Id = companyInfo.requests[rid]._id;
+    console.log(Id);
     await Admin.updateOne(
       {},
       {
         $addToSet: {
           companyRequests: {
-            companyId: studId,
-            requestStatus: "unread",
+            _id: Id,
+            companyId: companyId,
             subject: subject,
             content: message,
           },
