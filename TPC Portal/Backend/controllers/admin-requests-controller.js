@@ -59,6 +59,7 @@ const approveRequest = async (req, res, next) => {
   //approvalType :- [Student,Company,Job]
   const Id = req.params.id;
   const { approvalType } = req.body;
+  let updateResult;
   if (approvalType === "S") {
     let student;
     try {
@@ -70,7 +71,7 @@ const approveRequest = async (req, res, next) => {
       }
       student.approvalStatus = "ACTIVE";
       await student.save({ session: sess });
-      await Admin.updateOne(
+      updateResult = await Admin.updateOne(
         {},
         { $pull: { studentApproval: { $in: [Id] } } }
       ).session(sess);
@@ -78,6 +79,7 @@ const approveRequest = async (req, res, next) => {
         studId: Id,
       });
       await newStudentJob.save({ session: sess });
+      console.log(updateResult);
       await sess.commitTransaction();
     } catch (err) {
       console.log(err);
@@ -93,18 +95,17 @@ const approveRequest = async (req, res, next) => {
     try {
       const sess = await mongoose.startSession();
       sess.startTransaction();
-      company = await Company.findById(id).session(sess);
+      company = await Company.findById(Id).session(sess);
       if (!company) {
         return next(new HttpError("Company doesn't exist", 404));
       }
       company.approvalStatus = "ACTIVE";
-      await company.save();
+      await company.save({ session: sess });
       await Admin.updateOne(
         {},
         { $pull: { companyApproval: { $in: [Id] } } }
       ).session(sess);
       await sess.commitTransaction();
-      res.json({ message: "Company Approved", approvedComapanyId: Id });
     } catch (err) {
       console.log(err);
       const error = new HttpError(
@@ -113,6 +114,7 @@ const approveRequest = async (req, res, next) => {
       );
       return next(error);
     }
+    res.json({ message: "Company Approved", approvedCompanyId: Id });
   } else if (approvalType === "J") {
     let job;
     try {
@@ -249,29 +251,47 @@ const deleteRequest = async (req, res, next) => {
     res.json({ message: "Request Deleted" });
   } else if (deletionType === "C") {
     let company;
-    const sess = await mongoose.startSession();
-    sess.startTransaction();
-    company = await Company.findById(Id).session(sess);
-    company.approvalStatus = "DROPPED";
-    await company.save({ session: sess });
-    await Admin.updateOne(
-      {},
-      { $pull: { companyApproval: { $in: [Id] } } }
-    ).session(sess);
-    await sess.commitTransaction();
+    try {
+      const sess = await mongoose.startSession();
+      sess.startTransaction();
+      company = await Company.findById(Id).session(sess);
+      company.approvalStatus = "DROPPED";
+      await company.save({ session: sess });
+      await Admin.updateOne(
+        {},
+        { $pull: { companyApproval: { $in: [Id] } } }
+      ).session(sess);
+      await sess.commitTransaction();
+    } catch (err) {
+      console.log(err);
+      const error = new HttpError(
+        "Something went wrong ! try again later",
+        500
+      );
+      return next(error);
+    }
     res.json({ message: "Request Deleted" });
   } else if (deletionType === "J") {
     let job;
-    const sess = await mongoose.startSession();
-    sess.startTransaction();
-    job = await job.findById(Id).session(sess);
-    job.jobStatus = "DROPPED";
-    await job.save({ session: sess });
-    await Admin.updateOne(
-      {},
-      { $pull: { jobApproval: { $in: [Id] } } }
-    ).session(sess);
-    await sess.commitTransaction();
+    try {
+      const sess = await mongoose.startSession();
+      sess.startTransaction();
+      job = await Job.findById(Id).session(sess);
+      job.jobStatus = "DROPPED";
+      await job.save({ session: sess });
+      await Admin.updateOne(
+        {},
+        { $pull: { jobApproval: { $in: [Id] } } }
+      ).session(sess);
+      await sess.commitTransaction();
+    } catch (err) {
+      console.log(err);
+      const error = new HttpError(
+        "Something went wrong ! try again later",
+        500
+      );
+      return next(error);
+    }
     res.json({ message: "Request Deleted" });
   } else {
     return next(
@@ -315,7 +335,7 @@ const sortStudentRequestsByProgram = async (req, res, next) => {
   res.json({ studentApprovals: sortedByProgram });
 };
 
-const approveStudetnRequestsInBulk = async (req, res, next) => {
+const approveStudentRequestsInBulk = async (req, res, next) => {
   //studIds :- list of student ids which we want to approve altogether (can be selected from checkboxes)
   const { studIds } = req.body;
   if (studIds.length === 0) {
@@ -401,6 +421,15 @@ const markReadCompanyRequests = async (req, res, next) => {
       { $match: { idString: companyId } },
     ]);
     let Id = company[0]._id;
+    company = await Company.findOne({
+      _id: Id,
+      "requests._id": requestId,
+    }).session(sess);
+    if (!company) {
+      return next(new HttpError("Request Not Found", 404));
+    }
+    console.log(company);
+
     await Company.updateOne(
       { _id: Id, "requests._id": requestId },
       { $set: { "requests.$.status": "read" } }
@@ -422,6 +451,6 @@ exports.approveRequest = approveRequest;
 exports.deleteRequest = deleteRequest;
 exports.sortStudentRequestsByCourse = sortStudentRequestsByCourse;
 exports.sortStudentRequestsByProgram = sortStudentRequestsByProgram;
-exports.approveStudetnRequestsInBulk = approveStudetnRequestsInBulk;
+exports.approveStudentRequestsInBulk = approveStudentRequestsInBulk;
 exports.markReadStudentRequests = markReadStudentRequests;
 exports.markReadCompanyRequests = markReadCompanyRequests;
