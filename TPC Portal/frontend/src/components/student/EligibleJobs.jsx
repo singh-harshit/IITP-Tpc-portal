@@ -15,7 +15,7 @@ export class StudentEligibleJobs extends React.Component {
   componentDidMount() {
     /* Fetch Data */
     axios
-      .get("/student/eligible/jobs/" + this.state.studId)
+      .get("/backend/student/eligible/jobs/" + this.state.studId)
       .then((response) => {
         const jobsList = response.data.studentJobs.eligibleJobs;
         this.setState({ jobsList: jobsList });
@@ -30,7 +30,6 @@ export class StudentEligibleJobs extends React.Component {
             title: jobsList[i].jobTitle,
             classification: jobsList[i].jobCategory,
             jaf: jobsList[i].jaf,
-            lastDate: jobsList[i].schedule.Test,
           };
           jsonData.push(tempJsonObject);
         }
@@ -60,7 +59,6 @@ export class StudentEligibleJobs extends React.Component {
       "Title",
       "Classification",
       "JAF",
-      "Last Date",
       "Apply",
     ];
 

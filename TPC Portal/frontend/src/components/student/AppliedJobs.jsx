@@ -13,7 +13,7 @@ export class StudentAppliedJobs extends React.Component {
   componentDidMount() {
     /* Fetch Data */
     axios
-      .get("/student/applied/jobs/" + this.state.studId)
+      .get("/backend/student/applied/jobs/" + this.state.studId)
       .then((response) => {
         const data = response.data;
         this.setState({
