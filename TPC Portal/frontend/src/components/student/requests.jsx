@@ -6,7 +6,7 @@ export class StudentRequests extends React.Component {
     super(props);
 
   this.state = {
-    id : props.match.params.id,
+    id : localStorage.getItem('_id'),
     subject: "",
     message: "",
     posts: [],

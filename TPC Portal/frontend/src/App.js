@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 import React from "react";
 import "./App.css";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
@@ -27,10 +28,17 @@ import { AdminAddCompany } from "./components/admin/addCompany";
 import { AdminRequests } from "./components/admin/requests";
 import { AdminJob } from "./components/admin/job";
 
+=======
+import React from 'react';
+import './App.css';
+import {BrowserRouter as Router, Switch,Route} from 'react-router-dom';
+import RouterBlock from "./routes/router"
+>>>>>>> Stashed changes
 function App() {
   return (
     <Router>
       <div className="App bg-light">
+<<<<<<< Updated upstream
         <Route path="/" component={Header} />
         {/* student routes */}
         <Route path="/student" component={StudentNavbar} />
@@ -58,6 +66,9 @@ function App() {
         <Route path="/admin/addCompany" component={AdminAddCompany} />
         <Route path="/admin/job/:jid" component={AdminJob} />
         <Route path="/admin/requests" component={AdminRequests} />
+=======
+        <RouterBlock/>
+>>>>>>> Stashed changes
       </div>
     </Router>
   );

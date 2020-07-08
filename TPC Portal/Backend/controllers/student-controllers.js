@@ -1,3 +1,4 @@
+const bcrypt = require("bcrypt");
 const fs = require("fs");
 const mongoose = require("mongoose");
 const { validationResult } = require("express-validator");
@@ -6,8 +7,38 @@ const Student = require("../models/students");
 const Admin = require("../models/admin");
 const StudentJob = require("../models/studentjobs");
 const Job = require("../models/jobs");
+const Role = require("../models/Role");
 
-const login = async (req, res, next) => {};
+const login = async (req, res, next) => {
+  console.log("Hiii");
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    console.log(errors);
+    return next(new HttpError("You have entered invalid data , recheck", 422));
+  }
+
+  const { userName, password } = req.body;
+  let existingStudent;
+  try {
+    existingStudent = await Student.findOne({ rollNo: userName });
+  } catch (err) {
+    console.log(err);
+    const error = new HttpError("Something went wrong ! try again later", 500);
+    return next(error);
+  }
+  console.log(existingStudent);
+  if (!existingStudent) {
+    console.log("Username not found");
+    return next(new HttpError("Invalid Credentials", 400));
+  }
+  const validStudent = await bcrypt.compare(password, existingStudent.password);
+  if (!validStudent) {
+    console.log("Password Mismatch");
+    return next(new HttpError("Invalid Credentials", 400));
+  }
+  const token = existingStudent.generateAuthToken();
+  res.json({ loginStatus: true, token ,_id:existingStudent._id});
+};
 
 const registration = async (req, res, next) => {
   const errors = validationResult(req);
@@ -75,13 +106,17 @@ const registration = async (req, res, next) => {
       category: "",
     },
     approvalStatus: "PENDING APPROVAL",
-    editProfileLock: true,
-    editSpiLock: true,
+    role: Role.Student,
   });
   //Logic of Image Upload
   newStudent.image = req.file
     ? "http://localhost:5000/" + req.file.path
     : "Still Not Uploaded";
+
+  //Hashing the password
+  const salt = await bcrypt.genSalt(10);
+  newStudent.password = await bcrypt.hash(newStudent.password, salt);
+
   // Saving to Database
   try {
     const sess = await mongoose.startSession();
@@ -97,7 +132,10 @@ const registration = async (req, res, next) => {
     const error = new HttpError("Something went wrong ! try again later", 500);
     return next(error);
   }
-  res.json({ newStudent: newStudent.toObject({ getters: true }) });
+  const token = newStudent.generateAuthToken();
+  res
+    .header("x-auth-token", token)
+    .json({ newStudent: newStudent.toObject({ getters: true }) });
 };
 
 const profile = async (req, res, next) => {
@@ -287,7 +325,7 @@ const applyForJob = async (req, res, next) => {
       { studId: studId },
       {
         $pull: { eligibleJobs: { $in: [jobId] } },
-        $addToSet: { appliedJobs: { jobId: jobId, jobStatus: "applied" } },
+        $addToSet: { appliedJobs: { jobId: jobId, studentStatus: "applied" } },
       }
     ).session(sess);
 
@@ -457,9 +495,10 @@ const resetPassword = async (req, res, next) => {
     return next(new HttpError("You have entered invalid data , recheck", 422));
   }
   const studentId = req.params.sid;
-  const { oldPassword, newPassword, rollNo } = req.body;
+  let existingStudent;
+  const { oldPassword, newPassword } = req.body;
   try {
-    existingStudent = await Student.findOne({ rollNo: rollNo });
+    existingStudent = await Student.findById(studentId);
   } catch (err) {
     console.log(err);
     const error = new HttpError("Something went wrong! Try again later", 500);
@@ -467,11 +506,21 @@ const resetPassword = async (req, res, next) => {
   }
   if (!existingStudent) {
     console.log(err);
-    const error = new HttpError("User not found", 404);
+    const error = new HttpError("You are not allowed", 404);
     return next(error);
   }
-  if (oldPassword === existingStudent.password)
-    existingStudent.password = newPassword;
+  const validOldPassword = await bcrypt.compare(
+    oldPassword,
+    existingStudent.password
+  );
+  if (validOldPassword) {
+    const salt = await bcrypt.genSalt(10);
+    existingStudent.password = await bcrypt.hash(newPassword, salt);
+  } else {
+    console.log(err);
+    const error = new HttpError("You are not allowed", 404);
+    return next(error);
+  }
   try {
     await existingStudent.save();
   } catch (err) {

@@ -387,6 +387,14 @@ const markReadStudentRequests = async (req, res, next) => {
     ]);
     //console.log(student);
     let Id = student[0]._id;
+    student = await Student.findOne({
+      _id: Id,
+      "requests._id": requestId,
+    }).session(sess);
+    if (!student) {
+      return next(new HttpError("Request Not Found", 404));
+    }
+    console.log(student);
     await Student.updateOne(
       { _id: Id, "requests._id": requestId },
       { $set: { "requests.$.status": "read" } }

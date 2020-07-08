@@ -3,6 +3,7 @@ const { check } = require("express-validator");
 const router = express.Router();
 const adminJobsController = require("../controllers/admin-jobs-controllers");
 const fileUpload = require("../middleware/file-upload");
+const auth = require("../middleware/auth");
 
 router.get("/jobs", adminJobsController.getAllJobs);
 
@@ -39,7 +40,14 @@ router.get("/jobs/markProgress/:jid", adminJobsController.markProgress);
 
 router.patch("/jobs/addStep/:jid", adminJobsController.addNewStep);
 
+router.get(
+  "/jobs/stepsWithStatus/:jid",
+  adminJobsController.getAllStepsWithStatus
+);
+
 router.patch("/jobs/markCompleted/:jid", adminJobsController.markStepCompleted);
+
+router.patch("/jobs/saveJobStatus/:jid", adminJobsController.saveJobStatus);
 
 router.patch("/jobs/saveProgress/:jid", adminJobsController.saveJobProgress);
 
@@ -47,7 +55,7 @@ router.patch("/jobs/addStudent/:jid", adminJobsController.addStudent);
 
 router.patch("/jobs/removeStudent/:jid", adminJobsController.removeStudent);
 
-router.post(
+router.get(
   "/jobs/:jid/activeApplicants",
   adminJobsController.activeApplicantsByJobId
 );

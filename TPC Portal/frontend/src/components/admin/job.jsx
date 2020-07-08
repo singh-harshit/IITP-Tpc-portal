@@ -14,329 +14,139 @@ export class AdminJob extends React.Component
   this.state =
   {
     id: props.match.params.jid,
-    close:'',
-      companyName:"",
-      userName: "",
-      password: "",
-      companyAddress: "",
-      contact1:{
-        name:'',
-        designation: '',
-        mailId: '',
-        mobileNumber: ''
-      },
-      contact2:{
-        name:'',
-        designation: '',
-        mailId: '',
-        mobileNumber: ''
-      },
-      contact3:{
-        name:'',
-        designation: '',
-        mailId: '',
-        mobileNumber: ''
-      },
-
       columnDefs: [
-        {headerName: 'Job Title',field: 'jobTitle', sortable:true, filter:true,checkboxSelection:true,onlySelected:true},
-        {headerName: 'Job Category',field: 'jobCategory', sortable:true, filter:true},
-        {headerName: 'Job Type',field: 'jobType', sortable:true, filter:true},
-        {headerName: 'Job Status',field: 'jobStatus', sortable:true, filter:true},
-        {headerName: 'Selected Students',field: 'selectedStudents', sortable:true, filter:true,cellRenderer: function(params) {return `<a href="https://www.google.com/search?q=${params.value}" target="_blank" rel="noopener">`+ params.value+'</a>'}},
-        {headerName: 'Job Remarks',field: 'publicRemarks', sortable:true, filter:true},
+        {headerName: 'Name',field: 'name', sortable:true, filter:true,checkboxSelection:true,onlySelected:true},
+        {headerName: 'Roll No',field: 'rollNo', sortable:true, filter:true},
+        {headerName: 'CPI',field: 'cpi', sortable:true, filter:true},
+        {headerName: 'Program',field: 'program', sortable:true, filter:true},
+        {headerName: 'Mail',field: 'instituteEmail', sortable:true, filter:true},
+        {headerName: 'Mob',field: 'mobileNumber', sortable:true, filter:true},
+        {headerName: 'Application Status',field: 'selectedStudents', sortable:true, filter:true},
+        {headerName: 'Resume',field: 'resumeFile', sortable:true, filter:true,cellRenderer: function(params) {return `<a href="${params.value}" target="_blank" rel="noopener">`+ params.value+'</a>'}},
       ],
-      jobs: [],
-      }
+      rowData: [],
     };
+  }
     componentDidMount = () =>{
-      this.getCompany();
+      this.getJob();
+      this.getApplicants();
     };
-    getCompany = () =>{
-        axios.get('/backend/admin/companies/'+this.state.id)
+    getJob = () =>{
+        axios.get('/backend/admin/jobs/'+this.state.id)
           .then((response) => {
-            const data = response.data.companyDetails;
+            const data = response.data.jobDetails;
             console.log('data',data);
-            this.setState(data)
+            this.setState(data);
+            this.setState({
+              fillSchedule:this.fillSchedule()
+            });
           })
           .catch((e)=>{
             console.log('Error Retrieving data',e);
           });
       };
-
-      handleChange = (event) =>
-      {
-        const target = event.target;
-        const name = target.name;
-        const value = target.value;
-        this.setState({
-          [name]:value
-        })
-        console.log(this.state);
-      };
-
-      handleSubmit = (event) =>
-      {
-        event.preventDefault();
-        let payload = {
-          userName:this.state.userName,
-          password:this.state.password
-        }
-        axios({
-          url: `/backend/admin/companies/${this.state.id}/reset-password/`,
-          method: 'patch',
-          data: payload
-        })
-        .then((e) =>{
-          console.log('data has been sent to server',e);
-          alert(e.data);
-        })
-        .catch((e)=>{
-          console.log('data error',e);
-        });
-      };
-
-      handleDeactivate = () =>{
-        const idList = [];
-        idList.push(this.state.id)
-        let payload = {
-          idList:idList
-        }
-
-        axios({
-          url: '/backend/admin/companies/deactivateCompany',
-          method: 'patch',
-          data: payload
-        })
-        .then((e) =>{
-          console.log('data has been sent to server');
-          console.log(e);
-          alert('Deactiveted: '+e.data.successFul+' Deactivate Failed for: '+e.data.unSuccessFul);
-        })
-        .catch(()=>{
-          console.log('data error');
-        });
+      getApplicants = () =>{
+        axios.get(`/backend/admin/jobs/${this.state.id}/activeApplicants`)
+          .then((response) => {
+            const data = response.data.activeStudents;
+            console.log('Applicants',data);
+            this.setState({
+              rowData:data
+            })
+          })
+          .catch((e)=>{
+            console.log('Error Retrieving data',e);
+          });
       }
+      fillSchedule = () =>{
+        var schedule = Object.entries(this.state.schedule);
+        const list = [];
 
-      handleClick = (e) =>{
+        schedule.forEach((item, i) => {
+          var stepDate=item[1].stepDate.split(',');
+          var date=stepDate[0];
+          var time=stepDate[1];
+          list.push(<div key={i}> {item[1].stepName} - Date : {date} Time: {time}<br/></div>);
+        });
+        console.log(list);
+        return(
+          <div>{list}</div>
+        );
+      }
+      handleDelete = (e) =>{
         const selectedNodes = this.gridApi.getSelectedNodes();
         const selectedData = selectedNodes.map(node => node.data);
-        const selectedDataStringPresentation = selectedData.map(node => '' + node._id).join('/');
-        console.log("hey",e.value);
+        console.log(selectedData);
+        selectedNodes.forEach((student, i) => {
+          let payload={
+            rollNo:student.data.rollNo
+          }
+          axios({
+            url: `/backend/admin/jobs/removeStudent/${this.state.id}`,
+            method: 'patch',
+            data: payload
+          })
+          .then(() =>{
+            console.log('data has been sent to server');
+            this.getApplicants()
+            alert(`Removed : ${student.data.rollNo}`)
+          })
+          .catch((error)=>{
+            alert('data error',error);
+          });
+        });
       }
   render()
   {
     return(
-      <div className="base-container float-right admin">
-        <div className="row">
-          <div className="col-md-6 border p-3 m-3 rounded border-success">
-            <h4 className="m-3">
-              <div className="row">
-                <div className="col-md-4 text-nowrap">
-                  Company Name
-                </div>
-                <div className="col-md-8">
-                  :{this.state.companyName}
-                </div>
-              </div>
-            </h4>
-            <p className="m-3 p-2">
-              Contact 1
-              <div className="row">
-                <div className="col-md-6">
-                  <div className="row">
-                    <div className="col-md-4">
-                      Name
-                    </div>
-                    <div className="col-md-8">
-                      :{this.state.contact1.name}
-                    </div>
-                  </div>
-                  <div className="row">
-                    <div className="col-md-4">
-                      Designation
-                    </div>
-                    <div className="col-md-8">
-                      :{this.state.contact1.designation}
-                    </div>
-                  </div>
-                </div>
-                <div className="col-md-6">
-                  <div className="row">
-                    <div className="col-md-4">
-                      MailId
-                    </div>
-                    <div className="col-md-8">
-                      :{this.state.contact1.mailId}
-                    </div>
-                  </div>
-                  <div className="row">
-                    <div className="col-md-4">
-                      Mobile
-                    </div>
-                    <div className="col-md-8">
-                      :{this.state.contact1.mobileNumber}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </p>
-            <p className="m-3 p-2">
-              Contact 2
-              <div className="row">
-                <div className="col-md-6">
-                  <div className="row">
-                    <div className="col-md-4">
-                      Name
-                    </div>
-                    <div className="col-md-8">
-                      :{this.state.contact2.name}
-                    </div>
-                  </div>
-                  <div className="row">
-                    <div className="col-md-4">
-                      Designation
-                    </div>
-                    <div className="col-md-8">
-                      :{this.state.contact2.designation}
-                    </div>
-                  </div>
-                </div>
-                <div className="col-md-6">
-                  <div className="row">
-                    <div className="col-md-4">
-                      MailId
-                    </div>
-                    <div className="col-md-8">
-                      :{this.state.contact2.mailId}
-                    </div>
-                  </div>
-                  <div className="row">
-                    <div className="col-md-4">
-                      Mobile
-                    </div>
-                    <div className="col-md-8">
-                      :{this.state.contact2.mobileNumber}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </p>
-            <p className="m-3 p-2">
-              Contact 3
-              <div className="row">
-                <div className="col-md-6">
-                  <div className="row">
-                    <div className="col-md-4">
-                      Name
-                    </div>
-                    <div className="col-md-8">
-                      :{this.state.contact3.name}
-                    </div>
-                  </div>
-                  <div className="row">
-                    <div className="col-md-4">
-                      Designation
-                    </div>
-                    <div className="col-md-8">
-                      :{this.state.contact3.designation}
-                    </div>
-                  </div>
-                </div>
-                <div className="col-md-6">
-                  <div className="row">
-                    <div className="col-md-4">
-                      MailId
-                    </div>
-                    <div className="col-md-8">
-                      :{this.state.contact3.mailId}
-                    </div>
-                  </div>
-                  <div className="row">
-                    <div className="col-md-4">
-                      Mobile
-                    </div>
-                    <div className="col-md-8">
-                      :{this.state.contact3.mobileNumber}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </p>
-            <p className="m-3 p-2">
-              <div className="row">
-                <div className="col-md-4">
-                  Company Address
-                </div>
-                <div className="col-md-8">
-                  :{this.state.companyAddress}
-                </div>
-              </div>
-            </p>
-          </div>
-          <div className="col-md-5 border p-3 m-3 rounded border-success">
-            <h4 className="m-2">Jobs</h4>
-            <div
-              className="ag-theme-balham"
-              style={{
-                height:450
-              }}
-            >
-
-            <AgGridReact
-              columnDefs = {this.state.columnDefs}
-              rowData = {this.state.jobs  }
-              rowSelection = "multiple"
-              onGridReady = {params => this.gridApi = params.api}
-              autoGroupColumnDef={this.state.columnDefs}
-              onCellDoubleClicked={this.handleClick}
-            />
-          </div>
-        </div>
+    <div className="base-container admin border rounded border-success m-3 p-3">
+      <div>
+        Company Name : {this.state.companyName} <br/>
+        Job Title : {this.state.jobTitle} <br/>
+        Job Type: {this.state.jobType} <br/>
+        Classification : {this.state.jobCategory} <br/>
+        JAF : {this.state.jafFiles} <br/>
+        Schedule : <br/>
+      {this.state.fillSchedule}
+      <hr/>
       </div>
-      <div className="container-fluid row">
+      <div
+        className="ag-theme-balham"
+        style={{
+          height:500,
+        }}
+        >
+        <AgGridReact
+          columnDefs = {this.state.columnDefs}
+          rowData = {this.state.rowData}
+          rowSelection = "multiple"
+          onGridReady = {params => this.gridApi = params.api}
+          onCellDoubleClicked={this.handleClick}
+          getRowHeight={this.state.getRowHeight}
+        />
+      </div>
+      <div className="container-fluid row mt-2">
+        <div className="col-md-3"></div>
+        <div className="col-md-3"><button type="button" class="btn btn-warning btn-block m-1" onClick={this.opneRegistration}>Open Registration</button></div>
+        <div className="col-md-3"><button type="button" class="btn btn-warning btn-block m-1" onClick={this.closeRegistration}>Close Registration</button></div>
+      </div>
+      <div className="container-fluid row mt-2">
         <div className="col-md-2">
-          <button type="button" className="btn btn-block btn-success m-1">Add Job</button>
+          <Link style={{ textDecoration: 'none', color: 'white' }}to={"/admin/editJob/"+this.state.id}><button type="button" className="btn btn-block btn-success m-1">Edit Job</button></Link>
         </div>
         <div className="col-md-2">
-          <button type="button" className="btn btn-block btn-success m-1">Edit Details</button>
+          <Link style={{ textDecoration: 'none', color: 'white' }}to={"/admin/job/markProgress/"+this.state.id}><button type="button" className="btn btn-block btn-success m-1">Mark Progress</button></Link>
         </div>
         <div className="col-md-2">
-          <Popup trigger={
-          <button type="button" className="btn btn-block btn-success m-1">Deactivate</button>}position="top center"
-            >{close => (
-            <div className=" p-1">
-              <a className="close" onClick={close}>&times;</a>
-                <button type="button" className="btn btn-block btn-warning p-1 mt-1" onClick={this.handleDeactivate}>Confirm</button>
-            </div>
-          )}
-          </Popup>
+          <Link style={{ textDecoration: 'none', color: 'white' }}to={"/admin/job/addStudent/"+this.state.id}><button type="button" className="btn btn-block btn-success m-1">Add Student</button></Link>
         </div>
         <div className="col-md-2">
-          <Popup trigger={
-          <button type="button" className="btn btn-block btn-success m-1">Reset Password</button>}position="top center"
-          >{close => (
-          <div className=" p-1">
-            <a className="close" onClick={close}>&times;</a>
-            <form className="form" onSubmit = {this.handleSubmit} onChange={this.handleChange}>
-                <label htmlFor="password">New Password:</label>
-                  <input
-                    type="password"
-                    name="password"
-                    className="form-control"
-                    placeholder="Enter Password"
-                    maxLength="300"
-                    value={this.state.password}
-                    required
-                    />
-                  <button type="submit" className="btn btn-block btn-primary p-1 mt-1">Confirm</button>
-            </form>
-          </div>)}
-          </Popup>
+          <button type="button" className="btn btn-block btn-success m-1" onClick={this.handleDelete}>Delete Student</button>
         </div>
-        <div className="col-md-2"></div>
         <div className="col-md-2">
-          <Link to="/admin/companies/"><button type="button" class="btn btn-outline-dark btn-block m-1 mr-5">Back</button></Link>
+        </div>
+        <div className="col-md-2">
+          <Link style={{ textDecoration: 'none', color: 'white' }} to={"/admin/company/"+this.state.companyId}><button type="button" class="btn btn-outline-dark btn-block m-1 mr-5">Back</button></Link>
         </div>
       </div>
     </div>

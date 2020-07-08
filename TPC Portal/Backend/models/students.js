@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const jwt = require("jsonwebtoken");
 const uniqueValidator = require("mongoose-unique-validator");
 const Schema = mongoose.Schema;
 
@@ -17,7 +18,6 @@ const studentSchema = new Schema({
     enum: ["FTE", "INTERNSHIP"],
   },
   program: { type: String, required: true },
-  department: { type: String, required: true },
   course: { type: String },
   currentSemester: { type: Number, required: true, max: 7 },
   spi: {
@@ -39,7 +39,7 @@ const studentSchema = new Schema({
       rid: String,
       subject: String,
       message: String,
-      status: { type: String },
+      status: { type: String, enum: ["read", "unread"] },
     },
   ],
   resumeLink: String,
@@ -57,7 +57,19 @@ const studentSchema = new Schema({
     },
   },
   approvalStatus: String,
+  role: String,
+  resetPasswordToken: String,
+  resetPasswordExpires: Date,
 });
+
+studentSchema.methods.generateAuthToken = function () {
+  //Automatic Login
+  const token = jwt.sign(
+    { _id: this._id, role: "Student" },
+    "We_think_too_much_and_feel_too_little "
+  );
+  return token;
+};
 
 studentSchema.plugin(uniqueValidator);
 

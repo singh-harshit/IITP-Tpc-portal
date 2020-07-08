@@ -7,7 +7,7 @@ export class StudentResume extends React.Component
   constructor(props){
     super(props);
   this.state = {
-    id: props.match.params.id,
+    id: localStorage.getItem('_id'),
     resumeLink:'',
     resumeFile:null
   };
@@ -32,7 +32,7 @@ export class StudentResume extends React.Component
         formData.append('resumeFile',this.state.resumeFile);
         formData.append('resumeLink',this.state.resumeLink);
         console.log(formData);
-        axios.post('/student/resume/'+this.state.id,formData,{
+        axios.post('/backend/student/resume/'+this.state.id,formData,{
           headers: {
             'Content-Type': 'multipart/form-data'
           }

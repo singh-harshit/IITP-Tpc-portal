@@ -3,6 +3,9 @@ const { check } = require("express-validator");
 const router = express.Router();
 const adminStudentsController = require("../controllers/admin-students-controllers");
 const fileUpload = require("../middleware/file-upload");
+const auth = require("../middleware/auth");
+
+//router.use(auth);
 
 router.get("/students", adminStudentsController.getAllStudents);
 

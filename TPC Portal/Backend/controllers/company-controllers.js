@@ -1,10 +1,29 @@
 const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 const { validationResult } = require("express-validator");
 const HttpError = require("../models/http-error");
 const Company = require("../models/companies");
 const Admin = require("../models/admin");
+const Role = require("../models/Role");
+const companyLogin = async (req, res, next) => {
+  console.log("I m in company login");
+  const { userName, password } = req.body;
+  let existingCompany;
+  try {
+    existingCompany = await Company.findOne({ userName: userName });
+  } catch (err) {
+    console.log(err);
+    const error = new HttpError("Something went wrong ! try again later", 500);
+    return next(error);
+  }
+  if (!existingCompany) return next(new HttpError("Invalid Credentials!", 400));
 
-const companyLogin = (req, res, next) => {};
+  const validCompany = await bcrypt.compare(password, existingCompany.password);
+  if (!validCompany) return next(new HttpError("Invalid Credentials", 400));
+  const token = existingCompany.generateAuthToken();
+  res.json({ loginStatus: true, token });
+};
 
 const companyRegistration = async (req, res, next) => {
   const errors = validationResult(req);
@@ -33,7 +52,13 @@ const companyRegistration = async (req, res, next) => {
     companyLink,
     companyStatus: "Registered",
     approvalStatus: "PENDING APPROVAL",
+    role: Role.Company,
   });
+
+  //Hashing the password
+  const salt = await bcrypt.genSalt(10);
+  newCompany.password = await bcrypt.hash(newCompany.password, salt);
+
   // Saving to Database
   try {
     const sess = await mongoose.startSession();
@@ -50,7 +75,10 @@ const companyRegistration = async (req, res, next) => {
     return next(error);
   }
   console.log("Registration Complete and sent for approval");
-  res.json({ newCompany: newCompany.toObject({ getters: true }) });
+  const token = newCompany.generateAuthToken();
+  res
+    .header("x-auth-token", token)
+    .json({ newCompany: newCompany.toObject({ getters: true }) });
 };
 
 const companyRequests = async (req, res, next) => {

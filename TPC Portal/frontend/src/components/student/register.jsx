@@ -1,6 +1,6 @@
 import React from "react";
 import axios from 'axios';
-
+import Dropdown from "../../assets/dropDown"
 export class StudentRegister extends React.Component
 {
 
@@ -14,7 +14,6 @@ export class StudentRegister extends React.Component
       mobileNumber:null,
       registrationFor:'',
       program:'',
-      department:'',
       course:'',
       currentSemester:null,
       sem1: null,
@@ -30,8 +29,27 @@ export class StudentRegister extends React.Component
       bachelorsMarks: null,
       mastersMarks:null,
       file:'',
+      loading:true,
     };
-
+    componentDidMount = () =>{
+      this.getAllDetails();
+    };
+    getAllDetails = async () =>{
+        this.setState({loading:true})
+        await axios.get('/backend/admin/allDetails')
+          .then((response) => {
+            const data = response.data;
+            console.log('data',data);
+            this.setState({
+              programs:data.programs,
+              courses:data.courses,
+              loading:false,
+            })
+          })
+          .catch((e)=>{
+            console.log('Error Retrieving data',e);
+          });
+      };
   handleChange = (event) =>
   {
     const target = event.target;
@@ -72,7 +90,6 @@ export class StudentRegister extends React.Component
         formData.append('mobileNumber',this.state.mobileNumber);
         formData.append('registrationFor',this.state.registrationFor);
         formData.append('program',this.state.program);
-        formData.append('department',this.state.department);
         formData.append('course',this.state.course);
         formData.append('currentSemester',this.state.currentSemester);
         formData.append('spi',spi);
@@ -100,35 +117,43 @@ export class StudentRegister extends React.Component
   render()
   {
     return(
-      <div className="base-container border rounded border-success m-3 admin">
+      <div className="base-container border rounded border-success register">
+          {
+            this.state.loading ?
+            (
+              <div className="d-flex justify-content-center">
+              <div className="spinner-grow text-success"></div>
+              <div className="spinner-grow text-success"></div>
+              <div className="spinner-grow text-success"></div>
+              </div>
+            )
+            :(
         <section className="container-fluid">
-          <section className="row justify-content-around m-1 p-1 text-left">
-              <form className="form-inline" onSubmit={this.handleSubmit} onChange={this.handleChange}>
-                <div className="col-sm-6 p-3">
-
-                <div className="form-group row">
-                  <div className="col-md-3 p-1">
-                    <label htmlFor="name">Name:</label>
-                  </div>
-                  <div className="col-md-9 p-1">
-                    <input
+          <section className="m-1 p-1 text-left">
+              <form className="form row" onSubmit={this.handleSubmit} onChange={this.handleChange}>
+                <div className="col-md-6 p-5">
+                  <div className="form-group row">
+                    <div className="col-md-4 p-1">
+                      <label htmlFor="name">Name:</label>
+                    </div>
+                    <div className="col-md-8 p-1">
+                      <input
                       type="text"
                       name="name"
                       className="form-control"
                       placeholder="Enter Full Name"
                       maxLength="300"
                       value={this.state.name}
-
                       required
                       />
                   </div>
                 </div>
 
                 <div className="form-group row">
-                  <div className="col-md-3 p-1">
+                  <div className="col-md-4 p-1">
                     <label htmlFor="rollNo">RollNo:</label>
                   </div>
-                  <div className="col-md-9 p-1">
+                  <div className="col-md-8 p-1">
                   <input
                     type="text"
                     name="rollNo"
@@ -136,32 +161,32 @@ export class StudentRegister extends React.Component
                     placeholder="Enter Roll No"
                     maxLength="10"
                     value={this.state.rollNo}
-
                     required
                     />
                   </div>
                 </div>
 
                 <div className="form-group row">
-                  <div className="col-md-3 p-1">
+                  <div className="col-md-4 p-1">
                     <label htmlFor="password">set password:</label>
                   </div>
-                  <div className="col-md-9 p-1">
+                  <div className="col-md-8 p-1">
                     <input
                       type="password"
                       name="password"
                       className="form-control"
                       value={this.state.password}
+                      placeholder="Enter Password"
                       required
                       />
                   </div>
                 </div>
 
                 <div className="form-group row">
-                  <div className="col-md-3 p-1">
+                  <div className="col-md-4 p-1">
                     <label htmlFor="mobileNumber">Phone No:</label>
                   </div>
-                  <div className="col-md-9 p-1">
+                  <div className="col-md-8 p-1">
                   <input
                     type="number"
                     name="mobileNumber"
@@ -175,10 +200,10 @@ export class StudentRegister extends React.Component
                 </div>
 
                 <div className="form-group row">
-                  <div className="col-md-3 p-1">
+                  <div className="col-md-4 p-1">
                     <label htmlFor="gender">Gender:</label>
                   </div>
-                  <div className="col-md-9 p-1">
+                  <div className="col-md-8 p-1">
                     <select
                       className="form-control"
                       name="gender"
@@ -193,29 +218,30 @@ export class StudentRegister extends React.Component
                 </div>
 
                 <div className="form-group row">
-                  <div className="col-md-3 p-1">
+                  <div className="col-md-4 p-1">
                     <label htmlFor="program">Program:</label>
                   </div>
-                  <div className="col-md-9 p-1">
+                  <div className="col-md-8 p-1">
                     <select
                       className="form-control"
                       name="program"
                       value={this.state.program}
                       required>
                       <option value="">Select</option>
-                      <option value="BTech">B.Tech</option>
-                      <option value="MTech">M.Tech</option>
-                      <option value="Msc">M.Sc</option>
-                      <option value="PhD">Phd</option>
+                        {
+                          this.state.programs.map((element) =>{
+                            return(<Dropdown value={element} name={element}/>)
+                          })
+                        }
                     </select>
                   </div>
                 </div>
 
                 <div className="form-group row">
-                  <div className="col-md-3 p-1">
+                  <div className="col-md-4 p-1">
                     <label htmlFor="cpi">CPI:</label>
                   </div>
-                  <div className="col-md-9 p-1">
+                  <div className="col-md-8 p-1">
                   <input
                     type="number"
                     name="cpi"
@@ -229,10 +255,10 @@ export class StudentRegister extends React.Component
                 </div>
 
                 <div className="form-group row">
-                  <div className="col-md-3 p-1">
+                  <div className="col-md-4 p-1">
                     <label htmlFor="tenthMarks">Tenth Marks :</label>
                   </div>
-                  <div className="col-md-9 p-1">
+                  <div className="col-md-8 p-1">
                   <input
                     type="number"
                     name="tenthMarks"
@@ -246,10 +272,10 @@ export class StudentRegister extends React.Component
                 </div>
 
                 <div className="form-group row">
-                  <div className="col-md-3 p-1">
+                  <div className="col-md-4 p-1">
                     <label htmlFor="twelthMarks">Twelfth Marks:</label>
                   </div>
-                  <div className="col-md-9 p-1">
+                  <div className="col-md-8 p-1">
                   <input
                     type="number"
                     name="twelthMarks"
@@ -263,10 +289,10 @@ export class StudentRegister extends React.Component
                 </div>
 
                 <div className="form-group row">
-                  <div className="col-md-3 p-1">
+                  <div className="col-md-4 p-1">
                     <label htmlFor="bachelorsMarks">Bachelor's Marks</label>
                   </div>
-                  <div className="col-md-9 p-1">
+                  <div className="col-md-8 p-1">
                   <input
                     type="number"
                     name="bachelorsMarks"
@@ -279,10 +305,10 @@ export class StudentRegister extends React.Component
                 </div>
 
                 <div className="form-group row">
-                  <div className="col-md-3 p-1">
+                  <div className="col-md-4 p-1">
                     <label htmlFor="mastersMarks">Master's Marks:</label>
                   </div>
-                  <div className="col-md-9 p-1">
+                  <div className="col-md-8 p-1">
                   <input
                     type="number"
                     name="mastersMarks"
@@ -297,12 +323,12 @@ export class StudentRegister extends React.Component
               </div>
 
 
-              <div className="col-sm-6 p-3">
+              <div className="col-md-6 p-5">
                 <div className="form-group row">
-                  <div className="col-md-3 p-1">
+                  <div className="col-md-4 p-1">
                     <label htmlFor="instituteEmail">Institute Email address:</label>
                   </div>
-                  <div className="col-md-9 p-1">
+                  <div className="col-md-8 p-1">
                     <input
                       type="email"
                       name="instituteEmail"
@@ -316,10 +342,10 @@ export class StudentRegister extends React.Component
                 </div>
 
                 <div className="form-group row">
-                  <div className="col-md-3 p-1">
+                  <div className="col-md-4 p-1">
                     <label htmlFor="personalEmail">Alternate Email address:</label>
                   </div>
-                  <div className="col-md-9 p-1">
+                  <div className="col-md-8 p-1">
                     <input
                       type="email"
                       name="personalEmail"
@@ -331,10 +357,10 @@ export class StudentRegister extends React.Component
                 </div>
 
                 <div className="form-group row">
-                  <div className="col-md-3 p-1">
+                  <div className="col-md-4 p-1">
                     <label htmlFor="registrationFor">Registering for:</label>
                   </div>
-                  <div className="col-md-9 p-1">
+                  <div className="col-md-8 p-1">
                     <select
                       className="form-control"
                       name="registrationFor"
@@ -349,36 +375,31 @@ export class StudentRegister extends React.Component
                 </div>
 
                 <div className="form-group row">
-                  <div className="col-md-3 p-1">
-                    <label htmlFor="department">Department:</label>
+                  <div className="col-md-4 p-1">
+                    <label htmlFor="course">Course:</label>
                   </div>
-                  <div className="col-md-9 p-1">
+                  <div className="col-md-8 p-1">
                     <select
                       className="form-control"
-                      name="department"
-                      value={this.state.department}
+                      name="course"
+                      value={this.state.course}
 
                       required>
                       <option value="">Select</option>
-                      <option value="CB">Chemical & Biochemical Engineering</option>
-                      <option value="CE">Civil Engineering</option>
-                      <option value="CH">Chemistry</option>
-                      <option value="CS">Computer Science & Engineering</option>
-                      <option value="EE">Electrical Engineering</option>
-                      <option value="HS">Humanities & Social Sciences</option>
-                      <option value="ME">Mechanical Engineering</option>
-                      <option value="MM">Metallurgical & Materials Engineering</option>
-                      <option value="MT">Maths</option>
-                      <option value="PH">Physics</option>
+                        {
+                          this.state.courses.map((element) =>{
+                            return(<Dropdown value={element} name={element}/>)
+                          })
+                        }
                     </select>
                   </div>
                 </div>
 
                 <div className="form-group row">
-                  <div className="col-md-3 p-1">
+                  <div className="col-md-4 p-1">
                     <label htmlFor="currentSemester">Current Semester:</label>
                   </div>
-                  <div className="col-md-9 p-1">
+                  <div className="col-md-8 p-1">
                     <select
                       className="form-control"
                       name="currentSemester"
@@ -490,10 +511,10 @@ export class StudentRegister extends React.Component
 
                 </div>
                 <div className="form-group row">
-                  <div className="col-md-3 p-1">
+                  <div className="col-md-4 p-1">
                     <label htmlFor="" className='text-nowrap'>Enter Profile Pic:</label>
                   </div>
-                  <div className="col-md-9 p-1">
+                  <div className="col-md-8 p-1">
                     <input
                       type="file"
                       className="form-control-file border"
@@ -506,7 +527,7 @@ export class StudentRegister extends React.Component
               <button type="submit" className="btn btn-primary btn-block">Submit For Approval</button>
             </form>
           </section>
-        </section>
+        </section>)}
       </div>
   );
   }

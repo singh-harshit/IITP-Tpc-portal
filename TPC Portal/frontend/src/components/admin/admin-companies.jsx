@@ -62,13 +62,14 @@ export class AdminCompanies extends Component {
     rowData:rowData
   });
 }
-  handleSelect = () =>{
+  handleSelect = (e) =>{
     const selectedNodes = this.gridApi.getSelectedNodes();
     const selectedData = selectedNodes.map(node => node.data);
     console.log("helloo",selectedNodes);
     const selectedDataStringPresentation = selectedData.map(node => '/admin/company/' + node._id).join('/');
+    var link = `/admin/company/${e.data._id}`;
     this.setState({
-      redirect:selectedDataStringPresentation
+      redirect:link
     })
   }
 
@@ -138,7 +139,8 @@ export class AdminCompanies extends Component {
         rowData = {this.state.rowData}
         rowSelection = "multiple"
         onGridReady = {params => this.gridApi = params.api}
-        autoGroupColumnDef={this.state.columnDefs}
+        onCellDoubleClicked = {this.handleSelect}
+
       />
       </div>
       <div className="container-fluid row mt-2">
@@ -152,7 +154,7 @@ export class AdminCompanies extends Component {
           <button type="button" className="btn btn-block btn-success m-1" onClick={this.handleDeactivate}>Deactivate</button>
         </div>
         <div className="col-md-3">
-          <button type="button" className="btn btn-block btn-success m-1" onClick={this.handleSelect}>Add Bulk Company</button>
+          <button type="button" className="btn btn-block btn-success m-1">Add Bulk Company</button>
         </div>
       </div>
     </div>

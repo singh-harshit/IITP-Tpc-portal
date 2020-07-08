@@ -77,7 +77,7 @@ getStudent = () =>{
           program:data.program,
           department:data.department,
           currentSemester:data.currentSemester,
-          sem1:data.spi.sem1,
+          spi:data.spi,
           cpi:data.cpi,
           tenthMarks: data.tenthMarks,
           twelthMarks: data.twelthMarks,
@@ -234,7 +234,7 @@ getStudent = () =>{
                   SPI
                 </div>
                 <div className="col-md-8">
-                  : {this.state.sem1}
+                  : {this.state.spi}
                 </div>
               </div>
               <div className="row">

@@ -49,7 +49,7 @@ const jobSchema = new Schema({
   eligibleStudents: [{ type: mongoose.Types.ObjectId, ref: "Student" }],
   progressSteps: [
     {
-      name: String,
+      name: { type: String },
       qualifiedStudents: [{ type: mongoose.Types.ObjectId, ref: "Student" }],
       absentStudents: [{ type: mongoose.Types.ObjectId, ref: "Student" }],
       status: String,

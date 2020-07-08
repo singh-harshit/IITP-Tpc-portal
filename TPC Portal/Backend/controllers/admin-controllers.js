@@ -1,89 +1,30 @@
 const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 const { validationResult } = require("express-validator");
 const HttpError = require("../models/http-error");
 const Admin = require("../models/admin");
 const Company = require("../models/companies");
 const Job = require("../models/jobs");
+const Student = require("../models/students");
+const Coordinator = require("../models/coordinators");
 
-const adminLogin = (req, res, next) => {};
-
-// const getStudents = (req, res, next) => {
-//   var studprojection = {
-//     gender: false,
-//     personalEmail: false,
-//     department: false,
-//     currentSemester: false,
-//     spi: false,
-//     tenthMarks: false,
-//     twelthMarks: false,
-//     bachelorsMarks: false,
-//     mastersMarks: false,
-//     password: false,
-//   };
-//   Student.find(
-//     {
-//       program: req.query.program,
-//       course: req.query.course,
-//       cpi: { $gte: req.query.cpi },
-//       placement: {
-//         placementStatus: req.query.placementStatus,
-//         placedCategory: req.query.placedCategory,
-//       },
-//     },
-//     studprojection,
-//     function (err, docs) {
-//       if (err) {
-//         console.log(err);
-//         const error = new HttpError(
-//           "Something went wrong ! try again later",
-//           500
-//         );
-//         return next(error);
-//       }
-//       res.send(docs);
-//     }
-//   );
-// };
-
-// const exportStudents = (req, res, next) => {
-//   var studprojection = {
-//     gender: false,
-//     personalEmail: false,
-//     department: false,
-//     currentSemester: false,
-//     spi: false,
-//     tenthMarks: false,
-//     twelthMarks: false,
-//     bachelorsMarks: false,
-//     mastersMarks: false,
-//     password: false,
-//   };
-//   Student.find(
-//     {
-//       program: req.query.program,
-//       course: req.query.course,
-//       cpi: { $gte: req.query.cpi },
-//       placement: {
-//         placementStatus: req.query.placementStatus,
-//         placedCategory: req.query.placedCategory,
-//       },
-//     },
-//     studprojection,
-//     function (err, docs) {
-//       if (err) {
-//         console.log(err);
-//         const error = new HttpError(
-//           "Something went wrong ! try again later",
-//           500
-//         );
-//         return next(error);
-//       }
-//       var info = JSON.stringify(docs);
-//       var info1 = JSON.parse(info);
-//       res.xls("data.xlsx", info1);
-//     }
-//   );
-// };
+const adminLogin = async (req, res, next) => {
+  const { userName, password } = req.body;
+  let existingAdmin;
+  try {
+    existingAdmin = await Admin.findOne({ email: userName });
+  } catch (err) {
+    console.log(err);
+    const error = new HttpError("Something went wrong ! try again later", 500);
+    return next(error);
+  }
+  if (!existingAdmin) return next(new HttpError("Invalid Credentials", 400));
+  const validAdmin = await bcrypt.compare(password, existingAdmin.password);
+  if (!validAdmin) return next(new HttpError("Invalid Credentials", 400));
+  const token = jwt.sign({ _id: existingAdmin._id }, "We_think_too_much_and_feel_too_little ");
+  res.json({ loginStatus: true, token });
+};
 
 const getAllCompanies = async (req, res, next) => {
   let companyList;
@@ -309,14 +250,17 @@ const companyPasswordReset = async (req, res, next) => {
   const { userName, password } = req.body;
   let company;
   try {
-    company = await Company.findById(companyId);
+    company = await Company.findOne({ userName: userName, _id: companyId });
   } catch (err) {
     console.log(err);
     const error = new HttpError("Something went wrong ! try again later", 500);
     return next(error);
   }
-  company.userName = userName;
-  company.password = password;
+  if (!company) return next(new HttpError("Company doesn't exist", 404));
+
+  //Hashing the password
+  const salt = await bcrypt.genSalt(10);
+  company.password = await bcrypt.hash(password, salt);
   try {
     await company.save();
   } catch (err) {
@@ -328,6 +272,7 @@ const companyPasswordReset = async (req, res, next) => {
 };
 
 exports.adminLogin = adminLogin;
+
 //exports.getStudents = getStudents;
 //exports.exportStudents = exportStudents;
 exports.getAllCompanies = getAllCompanies;

@@ -79,7 +79,7 @@ export class AdminRequests extends React.Component
         var payload;
         if(e.data.companyName){payload={approvalType:"C",deletionType:"C"}}
         else if(e.data.name){payload={approvalType:"S",deletionType:"S"}}
-        else  if(e.data.jobTitle){payload={approvalType:'J',deletionType:"J"}}
+        else  if(e.data.jobTitle){payload={approvalType:'J',deletionType:'J'}}
         if(e.column.colId==='approve')
         {
           console.log(`/backend/admin/approve/request/${e.data._id}`);

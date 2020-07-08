@@ -5,7 +5,7 @@ export class StudentAppliedJobs extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      studId: props.match.params.id,
+      studId: localStorage.getItem('_id'),
       jobsList: [],
       jsonDataForTable: [],
     };

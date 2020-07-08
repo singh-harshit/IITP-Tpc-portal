@@ -2,6 +2,9 @@ const express = require("express");
 const { check } = require("express-validator");
 const router = express.Router();
 const adminRequestsController = require("../controllers/admin-requests-controller");
+const auth = require("../middleware/auth");
+
+//router.use(auth);
 
 router.get("/requests", adminRequestsController.getAllRequests);
 
@@ -21,7 +24,7 @@ router.get(
 
 router.patch(
   "/student/bulkApprove/request",
-  adminRequestsController.approveStudetnRequestsInBulk
+  adminRequestsController.approveStudentRequestsInBulk
 );
 
 router.patch(

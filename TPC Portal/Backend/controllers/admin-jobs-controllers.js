@@ -116,7 +116,6 @@ const addJob = async (req, res, next) => {
     jobType,
     jobCategory,
     ctc,
-    stipend,
     selectionProcess,
     modeOfInterview,
     schedule,
@@ -134,14 +133,13 @@ const addJob = async (req, res, next) => {
     selectionProcess,
     modeOfInterview,
     schedule,
+    ctc,
     eligibilityCriteria,
     publicRemarks,
     privateRemarks,
     jobStatus: "PENDING APPROVAL",
     //jafFiles: fileLinks,
   });
-  if (jobType === "FTE") newJob.ctc = ctc;
-  else newJob.stipend = stipend;
 
   try {
     const sess = await mongoose.startSession();
@@ -371,68 +369,188 @@ const addNewStep = async (req, res, next) => {
     name: stepName,
     status: "OPEN",
   };
-  let Size;
+  // let Size;
   let job;
   try {
-    job = await Job.findById(jobId);
+    const sess = await mongoose.startSession();
+    sess.startTransaction();
+    job = await Job.findOne({ _id: jobId, "progressSteps.name": stepName });
+    if (job) {
+      return next(
+        new HttpError("This step is already added! Try with a new step", 403)
+      );
+    }
+    await Job.updateOne(
+      { _id: jobId },
+      { $addToSet: { progressSteps: newStep } }
+    );
+    await sess.commitTransaction();
   } catch (err) {
     console.log(err);
     const error = new HttpError("Something went wrong! Try again later", 500);
     return next(error);
   }
-  if (!job) {
-    return next(new HttpError("Job not Found", 404));
-  }
-  Size = job.progressSteps.length;
-  newStep.qualifiedStudents = job.progressSteps[Size - 1].qualifiedStudents;
-  job.progressSteps.push(newStep);
-  //console.log(job.progressSteps);
-  try {
-    await job.save();
-  } catch (err) {
-    console.log(err);
-    const error = new HttpError("Something went wrong! Try again later", 500);
-    return next(error);
-  }
+  // if (!job) {
+  //   return next(new HttpError("Job not Found", 404));
+  // }
+  // Size = job.progressSteps.length;
+  // newStep.qualifiedStudents = job.progressSteps[Size - 1].qualifiedStudents;
+  // job.progressSteps.push(newStep);
+  // //console.log(job.progressSteps);
+  // try {
+  //   await job.save();
+  // } catch (err) {
+  //   console.log(err);
+  //   const error = new HttpError("Something went wrong! Try again later", 500);
+  //   return next(error);
+  // }
   res.json({ message: "Step Added" });
+};
+
+const getAllStepsWithStatus = async (req, res, next) => {
+  const jobId = req.params.jid;
+  let steps = [],
+    job;
+  try {
+    job = await Job.findById(jobId, { progressSteps: 1 });
+  } catch (err) {
+    console.log(err);
+    const error = new HttpError("Something went wrong! Try again later", 500);
+    return next(error);
+  }
+  for (eachStep of job.progressSteps) {
+    steps.push({ stepName: eachStep.name, stepStatus: eachStep.status });
+  }
+  console.log(steps);
+  res.json({ stepsWithStatus: steps });
 };
 
 const markStepCompleted = async (req, res, next) => {
   const jobId = req.params.jid;
-  const { stepName } = req.body;
+  const { stepsWithStatus } = req.body;
   try {
-    await Job.updateOne(
-      { _id: jobId, "progressSteps.name": stepName },
-      { $set: { "progressSteps.$.status": "Completed" } }
-    );
+    const sess = await mongoose.startSession();
+    sess.startTransaction();
+    for (eachStep of stepsWithStatus) {
+      await Job.updateOne(
+        { _id: jobId, "progressSteps.name": eachStep.name },
+        { $set: { "progressSteps.$.status": eachStep.status } }
+      ).session(sess);
+    }
+    await sess.commitTransaction();
   } catch (err) {
     console.log(err);
     const error = new HttpError("Something went wrong! Try again later", 500);
     return next(error);
   }
-  res.json({ message: stepName + " Completed" });
+  res.json("Steps status updated");
+};
+const saveJobStatus = async (req, res, next) => {
+  const jobId = req.params.jid;
+  const { jobStatus } = req.body;
+  let job, registeredStudents;
+  try {
+    const sess = await mongoose.startSession();
+    sess.startTransaction();
+    job = await Job.findById(jobId).session(sess);
+    let Size = job.progressSteps.length;
+    job.jobStatus = jobStatus;
+    registeredStudents = job.progressSteps[0].qualifiedStudents;
+    if (jobStatus === "Result Declared") {
+      job.selectedStudents = job.progressSteps[Size - 1].qualifiedStudents;
+      await StudentJob.updateMany(
+        { studId: job.selectedStudents, "appliedJobs.jobId": jobId },
+        { "appliedJobs.$.studentStatus": "selected" },
+        { session: sess }
+      );
+      await StudentJob.updateMany(
+        {
+          $and: [
+            { studId: registeredStudents },
+            {
+              appliedJobs: {
+                $elemMatch: {
+                  jobId: jobId,
+                  studentStatus: { $nin: ["selected", "absent"] },
+                },
+              },
+            },
+          ],
+        },
+        //{ $and: { "appliedJobs.jobId": jobId , "appliedJobs.studentStatus"} },
+        { "appliedJobs.$.studentStatus": "rejected" },
+        { session: sess }
+      );
+      let A1count = 0,
+        A2count = 0,
+        PSUcount = 0,
+        B1count = 0,
+        B2count = 0;
+      let applicationCount = {
+        A1count,
+        A2count,
+        PSUcount,
+        B1count,
+        B2count,
+      };
+      let placedDetails = {
+        status: "placed",
+        category: job.jobCategory,
+        placedJobId: jobId,
+        applicationCount: applicationCount,
+      };
+      await Student.updateMany(
+        { _id: job.selectedStudents },
+        { $set: { placement: placedDetails } },
+        { session: sess }
+      );
+    } else if (jobStatus === "Dropped") {
+      await StudentJob.updateMany(
+        { "appliedJobs.jobId": jobId },
+        { "appliedJobs.$.studentStatus": "rejected" },
+        { session: sess }
+      );
+    }
+    await job.save({ session: sess });
+    await sess.commitTransaction();
+  } catch (err) {
+    console.log(err);
+    const error = new HttpError("Something went wrong! Try again later", 500);
+    return next(error);
+  }
+  res.json("Updated Everything");
 };
 
 const saveJobProgress = async (req, res, next) => {
   const jobId = req.params.jid;
-  const { stepName, jobStatus, notSelectedIds, absentIds } = req.body;
+  const { stepName, selectedIds, absentIds } = req.body;
   let job;
   let updatedStudents;
+  //let registeredStudents;
   try {
     const sess = await mongoose.startSession();
     sess.startTransaction();
-    job = await Job.updateOne(
+    await Job.updateOne(
       { _id: jobId, "progressSteps.name": stepName },
       {
-        $pullAll: { "progressSteps.$.qualifiedStudents": notSelectedIds },
-        $set: { jobStatus: jobStatus },
-        $addToSet: { "progressSteps.$.absentStudents": { $each: absentIds } },
+        // $pullAll: { "progressSteps.$.qualifiedStudents": notSelectedIds },
+        $set: {
+          "progressSteps.$.absentStudents": absentIds,
+          "progressSteps.$.qualifiedStudents": selectedIds,
+          // selectedStudents: {
+          //   $cond: {
+          //     if: { jobStatus: "Result Declared" },
+          //     then: selectedIds,
+          //     else: [],
+          //   },
+          // },
+        },
+        // $addToSet: { "progressSteps.$.absentStudents": { $each: absentIds } },
       }
     ).session(sess);
     updatedStudents = await Job.findById(jobId, { progressSteps: 1 })
       .populate({
         path: "progressSteps.qualifiedStudents",
-        match: { "progressSteps.name": stepName },
         select:
           "name studId rollNo cpi course program department instituteEmail mobileNumber resumeFile",
       })
@@ -444,6 +562,20 @@ const saveJobProgress = async (req, res, next) => {
           "name studId rollNo cpi course program department instituteEmail mobileNumber resumeFile",
       })
       .execPopulate();
+    // registeredStudents = updatedStudents.progressSteps[0].qualifiedStudents;
+    // Student status update for this
+    let studentStatus = "shortListed in " + stepName;
+    await StudentJob.updateMany(
+      { studId: absentIds, "appliedJobs.jobId": jobId },
+      { "appliedJobs.$.studentStatus": "absent" },
+      { session: sess }
+    );
+    await StudentJob.updateMany(
+      { studId: selectedIds, "appliedJobs.jobId": jobId },
+      { "appliedJobs.$.studentStatus": studentStatus },
+      { session: sess }
+    );
+
     await sess.commitTransaction();
   } catch (err) {
     console.log(err);
@@ -515,7 +647,7 @@ const activeApplicantsByJobId = async (req, res, next) => {
 
 const addStudent = async (req, res, next) => {
   const jobId = req.params.jid;
-  const { rollNo } = req.body;
+  const { studentIds } = req.body;
   let job;
   try {
     job = await Job.findById(jobId);
@@ -528,21 +660,18 @@ const addStudent = async (req, res, next) => {
     return next(new HttpError("Job not Found", 404));
   }
   let Size = job.progressSteps.length;
-  let studId, student;
+  let stepName = job.progressSteps[Size - 1].name;
   try {
     const sess = await mongoose.startSession();
     sess.startTransaction();
-    student = await Student.findOne({ rollNo: rollNo }, { rollNo: 1 }).session(
-      sess
-    );
-    if (!student) {
-      return next(new HttpError("Student Not Found", 404));
-    }
-    studId = student._id;
-    let stepName = job.progressSteps[Size - 1].name;
     await Job.updateOne(
       { _id: jobId, "progressSteps.name": stepName },
-      { $addToSet: { "progressSteps.$.qualifiedStudents": studId } }
+      // { $addToSet: { "progressSteps.$.qualifiedStudents": studId } }
+      {
+        $addToSet: {
+          "progressSteps.$.qualifiedStudents": { $each: studentIds },
+        },
+      }
     ).session(sess);
     await sess.commitTransaction();
   } catch (err) {
@@ -557,7 +686,7 @@ const addStudent = async (req, res, next) => {
 
 const removeStudent = async (req, res, next) => {
   const jobId = req.params.jid;
-  const { rollNo } = req.body;
+  const { studentIds } = req.body;
   let job;
   try {
     job = await Job.findById(jobId);
@@ -571,20 +700,21 @@ const removeStudent = async (req, res, next) => {
   }
   let Size = job.progressSteps.length;
   let stepName = job.progressSteps[Size - 1].name;
-  let student, studId;
+  //let student, studId;
   try {
     const sess = await mongoose.startSession();
     sess.startTransaction();
-    student = await Student.findOne({ rollNo: rollNo }, { rollNo: 1 }).session(
-      sess
-    );
-    if (!student) {
-      return next(new HttpError("Student Not Found", 404));
-    }
-    studId = student._id;
+    // student = await Student.findOne({ rollNo: rollNo }, { rollNo: 1 }).session(
+    //   sess
+    // );
+    // if (!student) {
+    //   return next(new HttpError("Student Not Found", 404));
+    // }
+    // studId = student._id;
     await Job.updateOne(
       { _id: jobId, "progressSteps.name": stepName },
-      { $pull: { "progressSteps.$.qualifiedStudents": { $in: [studId] } } }
+      //{ $pull: { "progressSteps.$.qualifiedStudents": { $in: [studId] } } }
+      { $pullAll: { "progressSteps.$.qualifiedStudents": studentIds } }
     ).session(sess);
     await sess.commitTransaction();
   } catch (err) {
@@ -607,7 +737,9 @@ exports.getJobById = getJobById;
 exports.updateJobById = updateJobById;
 exports.markProgress = markProgress;
 exports.addNewStep = addNewStep;
+exports.getAllStepsWithStatus = getAllStepsWithStatus;
 exports.markStepCompleted = markStepCompleted;
+exports.saveJobStatus = saveJobStatus;
 exports.saveJobProgress = saveJobProgress;
 exports.activeApplicantsByJobId = activeApplicantsByJobId;
 exports.addStudent = addStudent;

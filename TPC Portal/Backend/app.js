@@ -3,8 +3,6 @@ const express = require("express");
 const mongoose = require("mongoose");
 const morgan = require("morgan");
 const path = require("path");
-const cors = require("cors");
-const bodyParser = require("body-parser");
 // Importing Routes
 const studentRoutes = require("./routes/student-routes");
 const companyRoutes = require("./routes/company-routes");
@@ -12,6 +10,14 @@ const adminRoutes = require("./routes/admin-routes");
 const adminJobRoutes = require("./routes/admin-jobs-routes");
 const adminRequestRoutes = require("./routes/admin-requests-routes");
 const adminStudentRoutes = require("./routes/admin-students-routes");
+const adminSettingRoutes = require("./routes/admin-setting-routes");
+const adminBackupRoutes = require("./routes/admin-backup-routes");
+const coordinatorStudentRoutes = require("./routes/coordinator-student-routes");
+const coordinatorCompanyRoutes = require("./routes/coordinator-company-routes");
+const coordinatorJobRoutes = require("./routes/admin-jobs-routes");
+const authRoutes = require("./routes/auth-routes");
+const auth = require("./middleware/auth");
+const authorize = require("./middleware/roles-auth");
 // Exporting Files
 const json2xls = require("json2xls");
 
@@ -19,6 +25,7 @@ const json2xls = require("json2xls");
 const HttpError = require("./models/http-error");
 
 const app = express();
+
 const PORT = process.env.PORT || 5000;
 app.use(json2xls.middleware);
 const MONGODB_URI =
@@ -50,17 +57,33 @@ app.use((req, res, next) => {
 app.use(morgan("tiny"));
 
 // Set the Routes
-app.use("/student", studentRoutes);
+app.use("/backend", authRoutes);
 
-app.use("/company", companyRoutes);
+app.use("/backend/student", studentRoutes);
 
-app.use("/admin", adminRoutes);
+app.use("/backend/company", companyRoutes);
 
-app.use("/admin", adminJobRoutes);
+app.use("/backend/coordinator", coordinatorStudentRoutes);
 
-app.use("/admin", adminRequestRoutes);
+app.use("/backend/coordinator", coordinatorCompanyRoutes);
 
-app.use("/admin", adminStudentRoutes);
+app.use("/backend/coordinator", coordinatorJobRoutes);
+
+app.use("/backend/admin", adminRoutes);
+
+// app.use(auth);
+
+// app.use(authorize("Admin"));
+
+app.use("/backend/admin", adminJobRoutes);
+
+app.use("/backend/admin", adminRequestRoutes);
+
+app.use("/backend/admin", adminStudentRoutes);
+
+app.use("/backend/admin", adminSettingRoutes);
+
+app.use("/backend/admin", adminBackupRoutes);
 
 // Unknown Route Error
 app.use((req, res, next) => {

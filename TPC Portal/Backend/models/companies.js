@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const jwt = require("jsonwebtoken");
 const uniqueValidator = require("mongoose-unique-validator");
 const Schema = mongoose.Schema;
 
@@ -38,7 +39,19 @@ const companySchema = new Schema({
   approvalStatus: String,
   companyStatus: String,
   jobs: [{ type: mongoose.Types.ObjectId, ref: "Job" }],
+  role: String,
+  resetPasswordToken: String,
+  resetPasswordExpires: Date,
 });
+
+companySchema.methods.generateAuthToken = function () {
+  //Automatic Login
+  const token = jwt.sign(
+    { _id: this._id, role: "Company" },
+    process.env.jwtPrivateKey
+  );
+  return token;
+};
 
 companySchema.plugin(uniqueValidator);
 

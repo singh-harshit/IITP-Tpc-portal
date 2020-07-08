@@ -3,8 +3,17 @@ const { check } = require("express-validator");
 const router = express.Router();
 const adminController = require("../controllers/admin-controllers");
 const fileUpload = require("../middleware/file-upload");
+const auth = require("../middleware/auth");
+const authorize = require("../middleware/roles-auth");
+const adminHomeController = require("../controllers/admin-home");
 
 router.post("/login", adminController.adminLogin);
+
+router.get("/home", adminHomeController.adminHomeStats);
+
+// router.use(auth);
+
+// router.use(authorize("Admin"));
 
 //Admin Companies Routes
 
