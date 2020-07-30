@@ -9,6 +9,8 @@ const MIME_TYPE_MAP = {
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
     "docx",
   "text/csv": "csv",
+  "application/vnd.ms-excel": "xls",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "xlsx",
 };
 
 const fileUpload = multer({

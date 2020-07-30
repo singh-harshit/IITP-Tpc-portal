@@ -20,39 +20,39 @@ export class AdminNavbar extends React.Component
 
           <div className="collapse navbar-collapse" id="collapsibleNavbar">
             <ul className="navbar-nav flex-column">
-              <Link to="/admin/">
-                <li className="nav-item nav-link">
+              <Link className = "nav-link" to="/admin/">
+                <li className="nav-item">
                   Home
                 </li>
               </Link>
-              <Link to="/admin/students/">
-                <li className="nav-item nav-link">
+              <Link className = "nav-link" to="/admin/students/">
+                <li className="nav-item">
                   Students
                 </li>
               </Link>
-              <Link to="/admin/companies/">
-                <li className="nav-item nav-link">
+              <Link className = "nav-link" to="/admin/companies/">
+                <li className="nav-item">
                   Companies
                 </li>
               </Link>
-              <Link to="/admin/jobs/">
-                <li className="nav-item nav-link">
-                  Jobs / Internship
-                </li>
-              </Link>
-              <Link to="/admin/requests/">
-                <li className="nav-item nav-link">
+              <Link className = "nav-link" to="/admin/requests/">
+                <li className="nav-item">
                   Requests
                 </li>
               </Link>
-              <Link to="/admin/settings/">
-                <li className="nav-item nav-link">
+              <Link className = "nav-link" to="/admin/settings/">
+                <li className="nav-item">
                   Settings
                 </li>
               </Link>
-              <Link to="/admin/backup/">
-                <li className="nav-item nav-link">
+              <Link className = "nav-link" to="/admin/backup/">
+                <li className="nav-item">
                   Backup
+                </li>
+              </Link>
+              <Link  className="nav-link" to="/">
+                <li className="nav-item">
+                  <i className='fas fa-sign-out-alt'></i>Sign Out
                 </li>
               </Link>
             </ul>

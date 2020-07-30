@@ -1,103 +1,106 @@
 import React from "react";
 import axios from "axios";
+import { AgGridReact } from 'ag-grid-react';
+import 'ag-grid-community/dist/styles/ag-grid.css';
+import 'ag-grid-community/dist/styles/ag-theme-balham.css';
 
 export class StudentEligibleJobs extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      studId: props.match.params.id,
-      rawData: [],
-      jobsList: [],
-      jsonDataForTable: [],
-    };
+  constructor(props)
+  {
+  super(props);
+  this.state =
+  {
+    refreshToken:localStorage.getItem('refreshToken'),
+    authToken:localStorage.getItem('authToken'),
+    _id:localStorage.getItem('_id'),
+    columnDefs: [
+      {headerName: 'Company',field: 'companyName', sortable:true, filter:true,checkboxSelection:true,onlySelected:true},
+      {headerName: 'Job Title',field: 'jobTitle'},
+      {headerName: 'Job Category',field: 'jobCategory', sortable:true, filter:true},
+      {headerName: 'JAF',field: 'jafFiles', sortable:true, filter:true},
+      {headerName: 'Deadline',field:'schedule', sortable:true, filter:true},
+      {headerName: 'Apply',field: 'apply',cellRenderer: function(params) {return `<div><button type="button" class="btn btn-block btn-success m-1">Apply</button></div>`}}
+    ],
+    rowData: [],
+    getRowHeight: function(params) {
+     return 50;
+   }
   }
+}
   // Fetching Data and Making json for table
   componentDidMount() {
-    /* Fetch Data */
+    this.getStudentInfo();
+  }
+
+  getStudentInfo = () => {
     axios
-      .get("/student/eligible/jobs/" + this.state.studId)
-      .then((response) => {
-        const jobsList = response.data.studentJobs.eligibleJobs;
-        this.setState({ jobsList: jobsList });
-        console.log("Student Data List Received!!!");
-        console.log("JobsList: ", this.state.jobsList);
-        /* Make JSON */
-        let jsonData = [];
-        for (let i = 0; i < jobsList.length; i++) {
-          let tempJsonObject = {
-            SNo: i + 1,
-            company: jobsList[i].companyName,
-            title: jobsList[i].jobTitle,
-            classification: jobsList[i].jobCategory,
-            jaf: jobsList[i].jaf,
-            lastDate: jobsList[i].schedule.Test,
-          };
-          jsonData.push(tempJsonObject);
+      .get("/backend/student/eligible/jobs/" + this.state._id,{
+        headers: {
+        'x-auth-token': this.state.authToken,
+        'x-refresh-token': this.state.refreshToken,
         }
-
-        this.setState({
-          jsonDataForTable: jsonData,
+      })
+      .then((response) => {
+        const data = response.data.studentJobs.eligibleJobs;
+        console.log('data',data);
+        data.forEach((item, i) => {
+          item.schedule=item.schedule[0].stepDate;
         });
-
-        console.log("JSON Data: ", this.state.jsonDataForTable);
+        console.log("rowData",data);
+        this.setState({rowData:data})
       })
       .catch((error) => {
         console.log("Receiving Student Data List Failed");
         console.log(error);
       });
+  };
+  handleClick = (e) =>{
+    if(e.column.colId==='apply')
+    {
+      let payload={
+        jobId:e.data._id
+      }
+      axios({
+        url: `/backend/student/apply/${this.state._id}`,
+        method: 'post',
+        data: payload,
+        headers: {
+					'x-auth-token': this.state.authToken,
+					'x-refresh-token': this.state.refreshToken,
+				}
+      })
+      .then((s) =>{
+        console.log('data has been sent to server',s);
+        alert(s.data.message);
+        this.getStudentInfo();
+      })
+      .catch((e)=>{
+        console.log('data error');
+      });
+    }
   }
-
-  // Making Table
-
-  getKeys = () => {
-    return Object.keys(this.state.jsonDataForTable);
-  };
-
-  displayHeaders = () => {
-    const headers = [
-      "S.No",
-      "Company",
-      "Title",
-      "Classification",
-      "JAF",
-      "Last Date",
-      "Apply",
-    ];
-
-    return headers.map((header, index) => {
-      return <th key={index}>{header}</th>;
-    });
-  };
-
-  displayTable = () => {
-    const jsonData = this.state.jsonDataForTable;
-    return jsonData.map((row, index) => {
-      return (
-        <tr key={index}>
-          <RenderRow key={index} data={row} />
-        </tr>
-      );
-    });
-  };
-
   render() {
     return (
-      <div className="AppliedJobs">
-        <table className="table">
-          <thead className="thead-light">
-            <tr>{this.displayHeaders()}</tr>
-          </thead>
-
-          <tbody>{this.displayTable()}</tbody>
-        </table>
+      <div className="base-container admin m-3">
+        <div
+          className="ag-theme-balham"
+          style={{
+            height:500,
+          }}
+          >
+          <AgGridReact
+            columnDefs = {this.state.columnDefs}
+            rowData = {this.state.rowData}
+            rowSelection = "multiple"
+            onGridReady = {params => this.gridApi = params.api}
+            onCellDoubleClicked={this.handleClick}
+            getRowHeight={this.state.getRowHeight}
+          />
+        </div>
       </div>
     );
   }
 }
-
-const RenderRow = (props) => {
-  const keys = Object.keys(props.data);
-  return keys.map((key, index) => {
-    return <td key={index}>{props.data[key]}</td>;
-  });
-};
+const scheduleRenderer = (props)=>{
+  return console.log('schedule',props);
+}

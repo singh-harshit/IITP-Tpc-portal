@@ -12,12 +12,11 @@ const studentJobSchema = new Schema({
   appliedJobs: [
     {
       jobId: { type: mongoose.Types.ObjectId, ref: "Job" },
-      jobStatus: {
+      studentStatus: {
         type: String,
         required: true,
-        enum: ["applied", "shortlisted", "rejected"],
+        // enum: ["applied", "selected", "rejected", "absent", "shortlisted"],
       },
-      attendance: String,
     },
   ],
   eligibleJobs: [{ type: mongoose.Types.ObjectId, ref: "Job" }],

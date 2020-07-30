@@ -3,8 +3,13 @@ import axios from 'axios';
 
 export class CompanyRegister extends React.Component
 {
+  constructor(props){
+    super(props);
 
-    state = {
+  this.state = {
+      refreshToken:localStorage.getItem('refreshToken'),
+      authToken:localStorage.getItem('authToken'),
+      _id:localStorage.getItem('_id'),
       companyName:"",
       userName: "",
       password: "",
@@ -22,7 +27,7 @@ export class CompanyRegister extends React.Component
       mailId3: '',
       mobileNumber3: ''
     };
-
+  }
     handleChange = (event) =>
     {
       const target = event.target;
@@ -33,7 +38,6 @@ export class CompanyRegister extends React.Component
       })
       console.log(this.state);
     };
-
     handleSubmit = (event) =>
     {
           event.preventDefault();
@@ -68,7 +72,11 @@ export class CompanyRegister extends React.Component
           axios({
             url: '/backend/company/registration',
             method: 'post',
-            data: payload
+            data: payload,
+            headers: {
+              'x-auth-token': this.state.authToken,
+              'x-refresh-token': this.state.refreshToken,
+            }
           })
           .then(() =>{
             console.log('data has been sent to server');

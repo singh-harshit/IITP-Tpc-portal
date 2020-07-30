@@ -3,18 +3,19 @@ import axios from 'axios';
 import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/dist/styles/ag-grid.css';
 import 'ag-grid-community/dist/styles/ag-theme-balham.css';
-import 'ag-grid-enterprise';
-import {Link} from 'react-router-dom';
+import {Link,Redirect} from 'react-router-dom';
 import Popup from "reactjs-popup";
 export class AdminCompany extends React.Component
 {
-  constructor(props)
-  {
-  super(props);
-  this.state =
-  {
+  constructor(props){
+    super(props);
+
+  this.state = {
+      refreshToken:localStorage.getItem('refreshToken'),
+      authToken:localStorage.getItem('authToken'),
+      _id:localStorage.getItem('_id'),
     id: props.match.params.cid,
-    close:'',
+
       companyName:"",
       userName: "",
       password: "",
@@ -53,14 +54,21 @@ export class AdminCompany extends React.Component
       this.getCompany();
     };
     getCompany = () =>{
-        axios.get('/backend/admin/companies/'+this.state.id)
+        axios.get('/backend/admin/companies/'+this.state.id,{
+          headers: {
+            'x-auth-token': this.state.authToken,
+            'x-refresh-token': this.state.refreshToken,
+          }
+        })
           .then((response) => {
             const data = response.data.companyDetails;
             console.log('data',data);
             this.setState(data)
           })
           .catch((e)=>{
-            console.log('Error Retrieving data',e);
+            this.setState({
+              redirect:"/error"
+            })
           });
       };
 
@@ -85,14 +93,18 @@ export class AdminCompany extends React.Component
         axios({
           url: `/backend/admin/companies/${this.state.id}/reset-password/`,
           method: 'patch',
-          data: payload
+          data: payload,
+          headers: {
+            'x-auth-token': this.state.authToken,
+            'x-refresh-token': this.state.refreshToken,
+          }
         })
         .then((e) =>{
           console.log('data has been sent to server',e);
-          alert(e.data);
+          alert(`Updated Password for: `+e.data.updatedCompany.companyName);
         })
         .catch((e)=>{
-          console.log('data error',e);
+          alert("Password Update unsuccessful");
         });
       };
 
@@ -106,7 +118,11 @@ export class AdminCompany extends React.Component
         axios({
           url: '/backend/admin/companies/deactivateCompany',
           method: 'patch',
-          data: payload
+          data: payload,
+          headers: {
+            'x-auth-token': this.state.authToken,
+            'x-refresh-token': this.state.refreshToken,
+          }
         })
         .then((e) =>{
           console.log('data has been sent to server');
@@ -115,13 +131,26 @@ export class AdminCompany extends React.Component
         })
         .catch(()=>{
           console.log('data error');
+          alert("Deactivate unsuccessful");
         });
+      }
+
+      handleClick = (e) =>{
+        var link = `/admin/job/${e.data._id}`;
+        console.log(e);
+        this.setState({
+          redirect:link
+        })
       }
 
   render()
   {
+    if (this.state.redirect)
+    {
+      return <Redirect to={this.state.redirect} />
+    }
     return(
-      <div className="base-container float-right admin">
+      <div className="base-container admin mr-1">
         <div className="row">
           <div className="col-md-6 border p-3 m-3 rounded border-success">
             <h4 className="m-3">
@@ -134,6 +163,16 @@ export class AdminCompany extends React.Component
                 </div>
               </div>
             </h4>
+            <p className="m-3">
+              <div className="row">
+                <div className="col-md-4 text-nowrap">
+                  Company UserName
+                </div>
+                <div className="col-md-8">
+                  :{this.state.userName}
+                </div>
+              </div>
+            </p>
             <p className="m-3 p-2">
               Contact 1
               <div className="row">
@@ -282,17 +321,17 @@ export class AdminCompany extends React.Component
               rowData = {this.state.jobs  }
               rowSelection = "multiple"
               onGridReady = {params => this.gridApi = params.api}
-              autoGroupColumnDef={this.state.columnDefs}
+              onCellDoubleClicked = {this.handleClick}
             />
           </div>
         </div>
       </div>
       <div className="container-fluid row">
         <div className="col-md-2">
-          <button type="button" className="btn btn-block btn-success m-1">Add Job</button>
+          <Link style={{ textDecoration: 'none', color: 'white' }}to="/admin/addJob"><button type="button" className="btn btn-block btn-success m-1">Add Job</button></Link>
         </div>
         <div className="col-md-2">
-          <button type="button" className="btn btn-block btn-success m-1">Edit Details</button>
+          <Link style={{ textDecoration: 'none', color: 'white' }}to={"/admin/editCompany/"+this.state.id}><button type="button" className="btn btn-block btn-success m-1">Edit Details</button></Link>
         </div>
         <div className="col-md-2">
           <Popup trigger={
@@ -329,7 +368,7 @@ export class AdminCompany extends React.Component
         </div>
         <div className="col-md-2"></div>
         <div className="col-md-2">
-          <Link to="/admin/companies/"><button type="button" class="btn btn-outline-dark btn-block m-1 mr-5">Back</button></Link>
+          <Link style={{ textDecoration: 'none', color: 'white' }}to="/admin/companies/"><button type="button" class="btn btn-outline-dark btn-block m-1 mr-5">Back</button></Link>
         </div>
       </div>
     </div>

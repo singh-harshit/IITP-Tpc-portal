@@ -22,19 +22,24 @@ export class CompanyNavbar extends React.Component
 
           <div className="collapse navbar-collapse" id="collapsibleNavbar">
             <ul className="navbar-nav flex-column">
-              <Link to="/company/register/">
-                <li className="nav-item nav-link">
+              <Link className="nav-link" to="/company">
+                <li className="nav-item">
                   Profile
                 </li>
               </Link>
-              <Link to='/company/jobs/'>
-                <li className="nav-item nav-link">
+              <Link className="nav-link" to='/company/jobs/'>
+                <li className="nav-item">
                   Jobs
                 </li>
               </Link>
-              <Link to="/company/requests/">
-                <li className="nav-item nav-link">
+              <Link className="nav-link" to="/company/requests/">
+                <li className="nav-item ">
                    Requests
+                </li>
+              </Link>
+              <Link className="nav-link" to="/">
+                <li className="nav-item ">
+                   <i className='fas fa-sign-out-alt'></i>Sign Out
                 </li>
               </Link>
             </ul>

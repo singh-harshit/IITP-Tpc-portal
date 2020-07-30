@@ -1,11 +1,19 @@
 const express = require("express");
 const { check } = require("express-validator");
 const router = express.Router();
+const auth = require("../middleware/auth");
+const authorize = require("../middleware/roles-auth");
 
 const companyController = require("../controllers/company-controllers");
 
-router.post("/login", companyController.companyLogin);
+// Tested
+router.post(
+  "/login",
+  [check("userName").not().isEmpty(), check("password").isLength({ min: 8 })],
+  companyController.companyLogin
+);
 
+// Tested
 router.post(
   "/registration",
   [
@@ -17,14 +25,22 @@ router.post(
   companyController.companyRegistration
 );
 
+router.use(auth);
+
+router.use(authorize("Company"));
+
+router.get("/profile/:cid", companyController.companyProfile);
+// Tested
 router.get("/requests/:cid", companyController.companyRequests);
 
+// Tested
 router.post(
   "/new-request/:cid",
-  [check("title").not().isEmpty(), check("message").not().isEmpty()],
+  [check("subject").not().isEmpty(), check("message").not().isEmpty()],
   companyController.companyNewRequest
 );
 
+// Tested
 router.get("/jobs/:cid", companyController.getAllJobs);
 
 module.exports = router;

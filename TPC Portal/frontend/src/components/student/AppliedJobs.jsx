@@ -1,97 +1,70 @@
 import React from "react";
 import axios from "axios";
-
+import { AgGridReact } from 'ag-grid-react';
+import 'ag-grid-community/dist/styles/ag-grid.css';
+import 'ag-grid-community/dist/styles/ag-theme-balham.css';
 export class StudentAppliedJobs extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      studId: props.match.params.id,
-      jobsList: [],
-      jsonDataForTable: [],
-    };
+  constructor(props)
+  {
+  super(props);
+  this.state =
+  {
+    refreshToken:localStorage.getItem('refreshToken'),
+    authToken:localStorage.getItem('authToken'),
+    _id:localStorage.getItem('_id'),
+    columnDefs: [
+      {headerName: 'Company',field: 'jobId.companyName', sortable:true, filter:true,checkboxSelection:true,onlySelected:true},
+      {headerName: 'Job Title',field: 'jobId.jobTitle'},
+      {headerName: 'Job Category',field: 'jobId.jobCategory', sortable:true, filter:true},
+      {headerName: 'Process',field:'jobId.process',filter:true},
+      {headerName: 'Deadline',field:'jobId.deadline', sortable:true, filter:true},
+    ],
+    rowData: [],
+  }
   }
   componentDidMount() {
-    /* Fetch Data */
     axios
-      .get("/student/applied/jobs/" + this.state.studId)
+      .get("/backend/student/applied/jobs/" + this.state._id,{
+        headers: {
+					'x-auth-token': this.state.authToken,
+					'x-refresh-token': this.state.refreshToken,
+				}
+      })
       .then((response) => {
-        const data = response.data;
-        this.setState({
-          jobsList: data.studentWithAppliedJobs.appliedJobs,
+        console.log("rsponse",response);
+        const data = response.data.studentWithAppliedJobs.appliedJobs;
+        data.forEach((item, i) => {
+          item.jobId.deadline=item.jobId.schedule[item.jobId.schedule.length-1].stepDate;
+          item.jobId.process=item.jobId.schedule[item.jobId.schedule.length-1].stepName;
         });
-        console.log("State Variable Set!");
-        /* Make JSON */
-        const jobsList = this.state.jobsList;
-        let jsonData = [];
-        for (let i = 0; i < jobsList.length; i++) {
-          if (jobsList[i].jobId) {
-            let jsonDataObject = {
-              SNo: i + 1,
-              company: jobsList[i].jobId.companyName,
-              title: jobsList[i].jobId.jobTitle,
-              classification: jobsList[i].jobId.jobCategory,
-              schedule: jobsList[i].jobId.schedule.ppt,
-              status: jobsList[i].jobStatus,
-            };
-            jsonData.push(jsonDataObject);
-          }
-        }
         this.setState({
-          jsonDataForTable: jsonData,
-        });
-        console.log("Json Variable Set!");
-        return null;
+          rowData:data
+        })
       })
       .catch((error) =>
         console.log("Error receiving in Student Job List", error)
       );
   }
 
-  displayHeaders = () => {
-    const headers = [
-      "S.No",
-      "Company Name",
-      "Title",
-      "Classification",
-      "Schedule",
-      "Status",
-    ];
-    return headers.map((header, index) => {
-      return <th key={index}>{header}</th>;
-    });
-  };
-
-  displayTable = () => {
-    const jsonData = this.state.jsonDataForTable;
-    return jsonData.map((row, index) => {
-      return (
-        <tr key={index}>
-          <RenderRow key={index} data={row} />
-        </tr>
-      );
-    });
-  };
 
   render() {
-    // console.log("Raw Data: ", this.state.jobsList);
-    // console.log("Json Data: ", this.state.jsonDataForTable);
-    return (
-      <div className="AppliedJobs">
-        <table className="table">
-          <thead className="thead-light">
-            <tr>{this.displayHeaders()}</tr>
-          </thead>
 
-          <tbody>{this.displayTable()}</tbody>
-        </table>
-      </div>
-    );
+      return (
+        <div className="base-container admin m-3">
+          <div
+            className="ag-theme-balham"
+            style={{
+              height:500,
+            }}
+            >
+            <AgGridReact
+              columnDefs = {this.state.columnDefs}
+              rowData = {this.state.rowData}
+              rowSelection = "multiple"
+              onGridReady = {params => this.gridApi = params.api}
+            />
+          </div>
+        </div>
+      );
   }
 }
-
-const RenderRow = (props) => {
-  const keys = Object.keys(props.data);
-  return keys.map((key, index) => {
-    return <td key={index}>{props.data[key]}</td>;
-  });
-};

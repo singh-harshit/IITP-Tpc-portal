@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
+const jwt = require("jsonwebtoken");
 const uniqueValidator = require("mongoose-unique-validator");
 const Schema = mongoose.Schema;
+require("dotenv").config();
 
 const companySchema = new Schema({
   companyName: { type: String, required: true },
@@ -31,14 +33,46 @@ const companySchema = new Schema({
       rid: String,
       subject: String,
       message: String,
-      status: { type: String, enum: ["read", "unread"] },
+      status: { type: String, enum: ["Read", "Unread"] },
     },
   ],
   remarks: [String],
-  approvalStatus: String,
-  companyStatus: String,
+  approvalStatus: {
+    type: String,
+    enum: ["Pending Approval", "Active", "Deactivated", "Dropped"],
+  },
+  companyStatus: {
+    type: String,
+    enum: ["Registered", "Active", "Deactivated"],
+  },
   jobs: [{ type: mongoose.Types.ObjectId, ref: "Job" }],
+  role: String,
+  resetPasswordToken: String,
+  resetPasswordExpires: Date,
 });
+
+companySchema.methods.generateAuthToken = function () {
+  //Automatic Login
+  const token = jwt.sign(
+    { _id: this._id, role: "Company" },
+    process.env.jwtPrivateKey,
+    {
+      expiresIn: "1m",
+    }
+  );
+  return token;
+};
+
+companySchema.methods.generateRefreshToken = function () {
+  const refreshToken = jwt.sign(
+    { _id: this._id, role: "Company" },
+    process.env.jwtPrivateKey + this.password,
+    {
+      expiresIn: "2d",
+    }
+  );
+  return refreshToken;
+};
 
 companySchema.plugin(uniqueValidator);
 

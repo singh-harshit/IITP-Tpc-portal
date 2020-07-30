@@ -7,7 +7,9 @@ export class StudentResume extends React.Component
   constructor(props){
     super(props);
   this.state = {
-    id: props.match.params.id,
+    refreshToken:localStorage.getItem('refreshToken'),
+    authToken:localStorage.getItem('authToken'),
+    _id:localStorage.getItem('_id'),
     resumeLink:'',
     resumeFile:null
   };
@@ -32,9 +34,11 @@ export class StudentResume extends React.Component
         formData.append('resumeFile',this.state.resumeFile);
         formData.append('resumeLink',this.state.resumeLink);
         console.log(formData);
-        axios.post('/student/resume/'+this.state.id,formData,{
+        axios.post('/backend/student/resume/'+this.state._id,formData,{
           headers: {
-            'Content-Type': 'multipart/form-data'
+            'Content-Type': 'multipart/form-data',
+    				'x-auth-token': this.state.authToken,
+    				'x-refresh-token': this.state.refreshToken,
           }
         })
         .then(() =>{

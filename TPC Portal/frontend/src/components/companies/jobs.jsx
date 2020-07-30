@@ -9,16 +9,17 @@ export class CompanyJobs extends React.Component{
   constructor(props)
   {
     super(props);
-    this.state =
-    {
-      id: props.match.params.id,
+    this.state = {
+        refreshToken:localStorage.getItem('refreshToken'),
+        authToken:localStorage.getItem('authToken'),
+        _id:localStorage.getItem('_id'),
       columnDefs: [
         {headerName: 'SNo.',field: 'sno', sortable:true, filter:true,checkboxSelection:true,cellRenderer: function(params) {return `<a href="https://www.google.com/search?q=${params.value}" target="_blank" rel="noopener">`+ params.value+'</a>'}},
         {headerName: 'Job Title',field: 'jobTitle', sortable:true, filter:true},
         {headerName: 'Job Status',field: 'jobStatus', sortable:true, filter:true},
         {headerName: 'Job Type',field: 'jobType', sortable:true, filter:true},
-        {headerName: 'Schedule',field: 'schedule', sortable:true, filter:true},
-        {headerName: 'Eligibility Criteria',field: 'eligibilityCriteria', sortable:true, filter:true},
+        {headerName: 'Current Process',field: 'schedule.stepName', sortable:true, filter:true},
+        {headerName: 'Deadline',field: 'schedule.stepDate', sortable:true, filter:true},
         {headerName: 'Registered Student',field: 'regStudent', sortable:true, filter:true},
         {headerName: 'Selected Student',field: 'selectedStudent', sortable:true, filter:true}
       ],
@@ -30,50 +31,24 @@ export class CompanyJobs extends React.Component{
   };
 
   fillTableData = (data) =>{
-    let rowData = [];
-    for (var i = 0; i < data.length; i++) {
-      const newData = data[i];
-      let rawSchedule = Object.entries(newData.schedule);
-      let schedule=[];
-      for(var j = 0; j < rawSchedule.length; j++) {
-        let sch = "";
-          for(var z = 0; z < rawSchedule[j].length; z++) {
-            sch=sch+rawSchedule[j][z];
-            if(z===0){  sch=sch+":";}
-          }
-          schedule.push(sch);
-        }
-
-        let rawCriteria = Object.entries(newData.eligibilityCriteria);
-        let criteria=[];
-        for(var j = 0; j < rawCriteria.length; j++) {
-          let sch = "";
-            for(var z = 0; z < rawCriteria[j].length; z++) {
-              sch=sch+rawCriteria[j][z];
-              if(z===0){  sch=sch+":";}
-            }
-            criteria.push(sch);
-          }
-      const row ={
-      sno:i+1,
-      jobTitle: newData.jobTitle,
-      jobStatus: newData.jobStatus,
-      jobType: newData.jobType,
-      schedule: schedule,
-      eligibilityCriteria: criteria,
-      regStudent: newData.registeredStudents,
-      selectedStudent: newData.selectedStudents,
-      jafFiles: newData.jafFiles
-    }
-    rowData.push(row);
-  }
-  this.setState({
-    rowData:rowData
-  });
+    data.map((element)=>{
+    element.schedule=element.schedule[element.schedule.length-1];
+    element.selectedStudent=element.progressSteps[element.progressSteps.length-1].qualifiedStudents.map((student)=>{return student.rollNo});
+    element.regStudent=element.progressSteps[0].qualifiedStudents.map((student)=>{return student.rollNo});
+    })
+    this.setState({
+      rowData:data
+    });
   }
 
   getJobs = () =>{
-    axios.get('/backend/company/jobs/'+this.state.id)
+    axios.get('/backend/company/jobs/'+this.state._id,{
+      headers:
+      {
+        'x-auth-token': this.state.authToken,
+        'x-refresh-token': this.state.refreshToken,
+      }
+    })
       .then((response) => {
         const data = response.data.allJobs.jobs;
         console.log('data',data);

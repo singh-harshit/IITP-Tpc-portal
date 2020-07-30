@@ -6,29 +6,34 @@
   position: fixed;
   text-align: center;
   z-index: 2;
+  background: linear-gradient(rgba(0,0,0,1),rgba(0,0,0,1));
 }
 .header h2 {
   margin: 0;
+  background: linear-gradient(rgba(0,0,0,1),rgba(0,0,0,1));
 }
 .header h1 {
   display: inline-block;
   padding-top: 10px;
   margin: 0;
+  background: linear-gradient(rgba(0,0,0,1),rgba(0,0,0,1));
 }
-@media only screen and (max-width: 600px) {
+@media only screen and (max-width: 768px) {
   .header {
     width: 100%;
     height: 15vh;
     display: inline-block;
     position: fixed;
-
+    background: linear-gradient(rgba(0,0,0,1),rgba(0,0,0,1));
     text-align: center;
   }
   .header h1 {
     font-size: 24px;
+    background: linear-gradient(rgba(0,0,0,1),rgba(0,0,0,1));
   }
   .header h2 {
     font-size: 22px;
+    background: linear-gradient(rgba(0,0,0,1),rgba(0,0,0,1));
   }
 }
 
@@ -37,6 +42,7 @@
   width: 100%;
   position: fixed;
   z-index: 2;
+  background: linear-gradient(rgba(0,0,0,1),rgba(0,0,0,1));
 }
 
 @media only screen and (min-width: 768px) {
@@ -45,11 +51,12 @@
     width: 20vw;
     /* height: 85vh; */
     height: 100%;
+    background: linear-gradient(rgba(0,0,0,1),rgba(0,0,0,1));
   }
 }
-.new-request {
+.new-request{
   position: fixed;
-  margin-top: 12vh;
+  margin-top: 15vh;
   z-index: 1;
   width: 100%;
 }
@@ -59,8 +66,8 @@
   left: 20vw;
 }
 
-@media only screen and (max-width: 600px) {
-  .new-request {
+@media only screen and (max-width: 768px) {
+  .new-request{
     position: fixed;
     margin-top: 19vh;
     z-index: 1;
@@ -69,27 +76,83 @@
   .old-request {
     position: absolute;
     top: 80vh !important;
-    left: 0;
+    left:0;
   }
 }
 .admin {
-  margin-top: 15vh;
   width: 75vw;
   margin-left: auto !important;
-  margin-top: 15vh !important;
+  margin-top:20vh !important;
 }
-@media only screen and (max-width: 600px) {
+@media only screen and (max-width: 768px) {
   .admin {
-    width: 90vw;
-    margin-top: 22vh !important;
+    width: 100vw;
+    margin-top:22vh !important;
     margin-left: auto !important;
   }
 }
 
-.AppliedJobs {
-  margin-top: 15vh;
-  margin-left: 20vw;
-  display: inline-block;
-  width: 80vw;
-  height: max-content;
+.login {
+  margin-top:15vh !important;
+  background: linear-gradient(rgba(0,0,0,0.1),rgba(0,0,0,0.1)),url(background/login.jpg);
+  background-position: bottom;
+	background-size: cover;
+	background-attachment: fixed;
+  height: 82vh;
+}
+@media only screen and (min-width: 768px){
+.login-form {
+  background: linear-gradient(rgba(207,255,229,0.6),rgba(207,255,229,1)) !important;
+  background-position: bottom;
+	background-size: cover;
+	background-attachment: fixed;
+  height: 80vh;
+  border-bottom-left-radius: 35px;
+  border-bottom-right-radius: 35px;
+  z-index: 1 ;
+  position: fixed;
+  width: 30vw;
+}
+}
+@media only screen and (max-width: 768px) {
+  .login {
+    margin-top:15vh !important;
+    background: linear-gradient(rgba(0,0,0,0.1),rgba(0,0,0,0.1)),url(background/login.jpg);
+    background-position: bottom;
+  	background-size: cover;
+  	background-attachment: fixed;
+    height: auto;
+    width: 100vw;
+  }
+  .login-form {
+
+    background: linear-gradient(rgba(207,255,229,0.6),rgba(207,255,229,1));
+    background-position: bottom;
+  	background-size: cover;
+  	background-attachment: fixed;
+    height: 85vh;
+    border-radius: 35px;
+    margin-left: 2vh;
+    margin-bottom: 15vh;
+  }
+}
+
+.register {
+  background: linear-gradient(rgba(0,0,0,0.1),rgba(0,0,0,0.1)),url(background/register.jpg);
+  background-position: bottom;
+  background-size: cover;
+  background-attachment: fixed;
+  width: 100vw;
+  margin-top:15vh !important;
+  margin-left: auto !important;
+}
+.resetPassword {
+  height:70vh;
+  width:20vw;
+}
+@media only screen and (max-width: 768px) {
+  .resetPassword {
+    height: 70vh;
+    width:100vw;
+  }
 }

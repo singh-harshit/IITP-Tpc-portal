@@ -20,7 +20,7 @@ const getAllRequests = async (req, res, next) => {
       .populate({ path: "companyApproval", select: "companyName" })
       .populate({
         path: "jobApproval",
-        select: "jobTitle jobCategory jafFiles",
+        select: "jobTitle jobCategory jafFiles companyName",
       })
       .populate({
         path: "studentApproval",
@@ -69,7 +69,7 @@ const approveRequest = async (req, res, next) => {
       if (!student) {
         return next(new HttpError("Student doesn't exist", 404));
       }
-      student.approvalStatus = "ACTIVE";
+      student.approvalStatus = "Active";
       await student.save({ session: sess });
       updateResult = await Admin.updateOne(
         {},
@@ -79,7 +79,6 @@ const approveRequest = async (req, res, next) => {
         studId: Id,
       });
       await newStudentJob.save({ session: sess });
-      console.log(updateResult);
       await sess.commitTransaction();
     } catch (err) {
       console.log(err);
@@ -99,7 +98,8 @@ const approveRequest = async (req, res, next) => {
       if (!company) {
         return next(new HttpError("Company doesn't exist", 404));
       }
-      company.approvalStatus = "ACTIVE";
+      company.approvalStatus = "Active";
+      company.companyStatus = "Active";
       await company.save({ session: sess });
       await Admin.updateOne(
         {},
@@ -124,40 +124,52 @@ const approveRequest = async (req, res, next) => {
       if (!job) {
         return next(new HttpError("Job doesn't exist", 404));
       }
-      job.jobStatus = "OPEN";
+      job.jobStatus = "Open";
+      eligibilityCriteria = job.eligibilityCriteria;
+      let students = await Student.find(
+        {
+          approvalStatus: "Active",
+          registrationFor: job.jobType,
+        },
+        {
+          program: 1,
+          course: 1,
+          cpi: 1,
+          tenthMarks: 1,
+          twelthMarks: 1,
+          bachelorsMarks: 1,
+          mastersMarks: 1,
+          placement: 1,
+        }
+      );
       await Admin.updateOne(
         {},
         { $pull: { jobApproval: { $in: [Id] } } }
       ).session(sess);
-      // Code for filtering for eligible student and displaying in their eligible section
-      const jobType = job.jobType;
-      const program = job.eligibilityCriteria.program;
-      const department = job.eligibilityCriteria.department;
-      const course = job.eligibilityCriteria.course;
-      const cpiCutOff = job.eligibilityCriteria.cpiCutOff || 0.0;
-      const tenthMarks = job.eligibilityCriteria.tenthMarks || 0.0;
-      const twelthMarks = job.eligibilityCriteria.twelthMarks || 0.0;
-      // External filtering for the Companies
-      const students = await Student.find(
-        {
-          $and: [
-            { approvalStatus: "ACTIVE" },
-            { registrationFor: jobType },
-            { program: program },
-            { department: department },
-            { cpi: { $gte: cpiCutOff } },
-            { tenthMarks: { $gte: tenthMarks } },
-            { twelthMarks: { $gte: twelthMarks } },
-            { $or: [{ course: { $exists: false } }, { course: course }] },
-          ],
-        },
-        { studId: 1, placement: 1, course: 1 }
-      ).session(sess);
-      console.log(students);
-      // Internal Filtering
+      let filteredStudents = [];
       for (eachStudent of students) {
+        console.log(eachStudent);
+        for (each of eligibilityCriteria) {
+          if (
+            each.program == eachStudent.program &&
+            each.course.indexOf(eachStudent.course) != -1 &&
+            eachStudent.cpi >= each.cpiCutOff &&
+            eachStudent.tenthMarks >= each.tenthMarks &&
+            eachStudent.twelthMarks >= each.twelthMarks &&
+            eachStudent.bachelorsMarks >= each.bachelorsMarks &&
+            eachStudent.mastersMarks >= each.mastersMarks
+          ) {
+            filteredStudents.push(eachStudent);
+            break;
+          }
+        }
+      }
+      console.log("Filtered Students");
+      console.log(filteredStudents);
+      // Internal Filtering
+      for (eachStudent of filteredStudents) {
         let eligible = false;
-        if (eachStudent.placement.status === "ACTIVE") {
+        if (eachStudent.placement.status === "Unplaced") {
           eligible = true;
         } else {
           const A1count = eachStudent.placement.applicationCount.A1count;
@@ -181,6 +193,7 @@ const approveRequest = async (req, res, next) => {
             else if (job.jobCategory === "B1" && B1count < 2) eligible = true;
           }
         }
+
         if (eligible === true) {
           job.eligibleStudents.push(eachStudent._id);
           await StudentJob.updateOne(
@@ -192,7 +205,7 @@ const approveRequest = async (req, res, next) => {
       // Adding our first step in progress steps of this job
       const newStep = {
         name: "Registration",
-        status: "OPEN",
+        status: "Not Completed",
       };
       job.progressSteps.push(newStep);
       await job.save({ session: sess });
@@ -230,7 +243,7 @@ const deleteRequest = async (req, res, next) => {
       const error = new HttpError("Student Not Found", 404);
       return next(error);
     }
-    student.approvalStatus = "DROPPED";
+    student.approvalStatus = "Dropped";
     try {
       const sess = await mongoose.startSession();
       sess.startTransaction();
@@ -255,7 +268,7 @@ const deleteRequest = async (req, res, next) => {
       const sess = await mongoose.startSession();
       sess.startTransaction();
       company = await Company.findById(Id).session(sess);
-      company.approvalStatus = "DROPPED";
+      company.approvalStatus = "Dropped";
       await company.save({ session: sess });
       await Admin.updateOne(
         {},
@@ -272,13 +285,28 @@ const deleteRequest = async (req, res, next) => {
     }
     res.json({ message: "Request Deleted" });
   } else if (deletionType === "J") {
-    let job;
+    let job, companyId;
+    try {
+      job = await Job.findById(Id);
+    } catch (err) {
+      return next(
+        new HttpError(
+          "Enter a valid deletion Type[S - Student,C - Company, J - Job]",
+          500
+        )
+      );
+    }
+    companyId = job.companyId;
+    console.log(job);
+    console.log(companyId);
     try {
       const sess = await mongoose.startSession();
       sess.startTransaction();
-      job = await Job.findById(Id).session(sess);
-      job.jobStatus = "DROPPED";
-      await job.save({ session: sess });
+      await Job.deleteOne({ _id: Id }).session(sess);
+      await Company.updateOne(
+        { _id: companyId },
+        { $pull: { jobs: { $in: [Id] } } }
+      ).session(sess);
       await Admin.updateOne(
         {},
         { $pull: { jobApproval: { $in: [Id] } } }
@@ -348,7 +376,7 @@ const approveStudentRequestsInBulk = async (req, res, next) => {
       let student;
       student = await Student.findById(eachId).session(sess);
       if (student) {
-        student.approvalStatus = "ACTIVE";
+        student.approvalStatus = "Active";
         await student.save({ session: sess });
         const newStudentJob = new StudentJob({
           studId: eachId,
@@ -386,10 +414,19 @@ const markReadStudentRequests = async (req, res, next) => {
       { $match: { idString: studId } },
     ]);
     //console.log(student);
+    if (!student[0]) return next(new HttpError("Student Not Found", 404));
     let Id = student[0]._id;
+    student = await Student.findOne({
+      _id: Id,
+      "requests._id": requestId,
+    }).session(sess);
+    if (!student) {
+      return next(new HttpError("Request Not Found", 404));
+    }
+    console.log(student);
     await Student.updateOne(
       { _id: Id, "requests._id": requestId },
-      { $set: { "requests.$.status": "read" } }
+      { $set: { "requests.$.status": "Read" } }
     ).session(sess);
     await Admin.updateOne(
       {},
@@ -420,6 +457,8 @@ const markReadCompanyRequests = async (req, res, next) => {
       },
       { $match: { idString: companyId } },
     ]);
+    if (!company[0]) return next(new HttpError("Company Not Found", 404));
+
     let Id = company[0]._id;
     company = await Company.findOne({
       _id: Id,
@@ -432,7 +471,7 @@ const markReadCompanyRequests = async (req, res, next) => {
 
     await Company.updateOne(
       { _id: Id, "requests._id": requestId },
-      { $set: { "requests.$.status": "read" } }
+      { $set: { "requests.$.status": "Read" } }
     ).session(sess);
     await Admin.updateOne(
       {},
