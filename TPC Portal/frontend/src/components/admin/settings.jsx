@@ -5,30 +5,32 @@ import Popup from "reactjs-popup";
 import Dropdown from '../../assets/dropDown';
 export class AdminSettings extends React.Component
 {
-  constructor(props)
-  {
+  constructor(props){
     super(props);
-    this.state =
-    {
+
+  this.state = {
+      refreshToken:localStorage.getItem('refreshToken'),
+      authToken:localStorage.getItem('authToken'),
+      _id:localStorage.getItem('_id'),
       classification:'',
       guidelines:'',
       jobStatus:'',
       step:'',
       course:'',
-      department:'',
+      courseProgram:'',
       program:'',
       oldclassifications:[],
       oldguidelines:[],
       oldjobStatus:[],
       oldsteps:[],
       oldcourses:[],
-      olddepartments:[],
       oldprograms:[],
       delclassification:'',
       delguidelines:'',
       deljobStatus:'',
       delstep:'',
       delcourse:'',
+      delcourseProgram:'',
       deldepartment:'',
       delprogram:'',
       regStatus:true,
@@ -42,7 +44,7 @@ export class AdminSettings extends React.Component
     this.getStatus();
   };
   getAllDetails = () =>{
-      axios.get('/backend/admin/allDetails')
+      axios.get('/backend/allDetails')
         .then((response) => {
           const data = response.data;
           console.log('data',data);
@@ -51,25 +53,31 @@ export class AdminSettings extends React.Component
             oldjobStatus:data.status,
             oldsteps:data.steps,
             oldguidelines:data.guideLines,
-            oldcourses:data.courses,
-            olddepartments:data.departments,
+            oldcourses:data.programAndCourses,
             oldprograms:data.programs,
           })
         })
         .catch((e)=>{
           console.log('Error Retrieving data',e);
+          this.setState({
+            redirect:"/error"
+          })
         });
     };
     getStatus = () =>{
-        axios.get('/backend/admin/checkRegStatus')
+        axios.get('/backend/checkRegStatus',{
+        })
           .then((response) => {
             const data = response.data;
             this.setState({
-              regStatus:data.RegStatus
+              regStatus:data.regStatus
             })
           })
           .catch((e)=>{
             console.log('Error Retrieving data',e);
+            this.setState({
+              redirect:"/error"
+            })
           });
       };
       handleChange = async (event) =>
@@ -209,57 +217,64 @@ export class AdminSettings extends React.Component
         }
         this.sendData(payload,'programs','delprogram');
       }
-      handleDepartment = (event) =>{
-        event.preventDefault();
-        let departments=this.state.olddepartments;
-        departments.push(this.state.department)
-        let payload={
-          departments:departments
-        }
-        this.sendData(payload,'departments','department');
-      }
-      handleDelDepartment = (event) =>{
-        event.preventDefault();
-        let departments=this.state.olddepartments;
-        let del = this.state.deldepartment;
-        let newDepartments=[];
-        departments.forEach((item, i) => {
-          if(item!==del)newDepartments.push(item);
-        });
-
-        let payload={
-          departments:newDepartments
-        }
-        this.sendData(payload,'departments','deldepartment');
-      }
       handleCourse = (event) =>{
         event.preventDefault();
         let courses=this.state.oldcourses;
-        courses.push(this.state.course)
-        let payload={
-          courses:courses
+        let program = this.state.courseProgram;
+        let course=this.state.course;
+        let find=0;
+        courses.forEach((item, i) => {
+          if(item.program===program){item.courses.push(course);find=1;}
+        });
+        if(!find)
+        {
+          let newCourse=[]
+          newCourse.push(course)
+          let newProgram={
+            program:program,
+            courses:newCourse
+          }
+          courses.push(newProgram);
         }
-        this.sendData(payload,'courses','course');
+        console.log("courses",courses);
+        let payload={
+          programsWithCourses:courses
+        }
+        this.setState({courseProgram :''});
+        this.sendData(payload,'programAndCourses','course');
       }
       handleDelCourse = (event) =>{
         event.preventDefault();
-        let courses=this.state.oldcourses;
+        let programAndCourses=this.state.oldcourses;
         let del = this.state.delcourse;
-        let newCourses=[];
-        courses.forEach((item, i) => {
-          if(item!==del)newCourses.push(item);
+        let delProgram = this.state.delcourseProgram;
+        let newProgramAndCourses=[];
+        programAndCourses.forEach((item, i) => {
+          if(item.program!==delProgram)newProgramAndCourses.push(item);
+          else {
+            let newCourses = [];
+            item.courses.forEach((course, i) => {
+              if(course!==del)newCourses.push(course);
+            });
+            newProgramAndCourses.push({program:item.program,courses:newCourses});
+          }
         });
 
         let payload={
-          courses:newCourses
+          programsWithCourses:newProgramAndCourses
         }
-        this.sendData(payload,'courses','delcourse');
+        this.setState({delcourseProgram:''});
+        this.sendData(payload,'programAndCourses','delcourse');
       }
       sendData = (payload,route,variable)=>{
         axios({
           url: `/backend/admin/${route}`,
           method: 'post',
-          data: payload
+          data: payload,
+          headers: {
+            'x-auth-token': this.state.authToken,
+            'x-refresh-token': this.state.refreshToken,
+          }
         })
         .then((s) =>{
           console.log('data has been sent to server',s);
@@ -270,12 +285,17 @@ export class AdminSettings extends React.Component
         })
         .catch((e)=>{
           console.log('data error',e,payload);
+          alert("Error Occured");
         });
       }
   handleRegistration = () =>{
     axios({
       url: `/backend/admin/changeRegStatus`,
       method: 'patch',
+      headers: {
+        'x-auth-token': this.state.authToken,
+        'x-refresh-token': this.state.refreshToken,
+      }
     })
     .then((s) =>{
       console.log('data has been sent to server',s);
@@ -284,6 +304,7 @@ export class AdminSettings extends React.Component
     })
     .catch((e)=>{
       console.log('data error',e);
+      alert("Request Error");
     });
   }
   handleAdminPasswordReset = (event) =>{
@@ -297,7 +318,11 @@ export class AdminSettings extends React.Component
       axios({
         url: `/backend/admin/resetPassword`,
         method: 'patch',
-        data: payload
+        data: payload,
+        headers: {
+          'x-auth-token': this.state.authToken,
+          'x-refresh-token': this.state.refreshToken,
+        }
       })
       .then((s) =>{
         console.log('data has been sent to server',s);
@@ -311,6 +336,7 @@ export class AdminSettings extends React.Component
       })
       .catch((e)=>{
         console.log('data error',e);
+        alert("Password Not Reset");
       });
     }
   }
@@ -384,24 +410,21 @@ export class AdminSettings extends React.Component
         </form>
       </div>
       <div className="container-fluid">
-        <form className="form row" onChange={this.handleChange} onSubmit={this.handleDepartment}>
-          <div className="col-md-3">
-            <label htmlFor="department" className="mr-sm-2">Add New Department:</label>
-          </div>
-          <div className="col-md-7">
-            <input type="text" name="department" value={this.state.department} className="form-control mb-2 mr-sm-2" required placeholder="Enter New Department"/>
-          </div>
-          <div className="col-md-2">
-          <button type="submit" className="btn btn-primary btn-block mb-2">Add</button>
-          </div>
-        </form>
-      </div>
-      <div className="container-fluid">
         <form className="form row" onChange={this.handleChange} onSubmit={this.handleCourse}>
           <div className="col-md-3">
             <label htmlFor="course" className="mr-sm-2">Add New Course:</label>
           </div>
-          <div className="col-md-7">
+          <div className="col-md-2">
+            <select className="form-control" name="courseProgram" value={this.state.courseProgram} required>
+              <option value="">Select</option>
+              {
+                this.state.oldprograms.map((element) =>{
+                  return(<Dropdown value={element} name={element}/>)
+                })
+              }
+            </select>
+          </div>
+          <div className="col-md-5">
             <input type="text" name="course" value={this.state.course} className="form-control mb-2 mr-sm-2" required placeholder="Enter New Course"/>
           </div>
           <div className="col-md-2">
@@ -426,7 +449,15 @@ export class AdminSettings extends React.Component
             </select>
           </div>
           <div className="col-md-2">
-            <button type="submit" className="btn btn-primary btn-block mb-2">Delete</button>
+            <Popup trigger={
+            <button type="button" className="btn btn-primary btn-block mb-2">Delete</button>}position="center"
+              >{close => (
+              <div className=" p-1">
+                <a className="close" onClick={close}>&times;</a>
+                  <button type="submit" className="btn btn-block btn-warning p-1 mt-1">Confirm</button>
+              </div>
+            )}
+            </Popup>
           </div>
         </form>
       </div>
@@ -446,7 +477,15 @@ export class AdminSettings extends React.Component
             </select>
           </div>
           <div className="col-md-2">
-            <button type="submit" className="btn btn-primary btn-block mb-2">Delete</button>
+            <Popup trigger={
+            <button type="button" className="btn btn-primary btn-block mb-2">Delete</button>}position="center"
+              >{close => (
+              <div className=" p-1">
+                <a className="close" onClick={close}>&times;</a>
+                  <button type="submit" className="btn btn-block btn-warning p-1 mt-1">Confirm</button>
+              </div>
+            )}
+            </Popup>
           </div>
         </form>
       </div>
@@ -466,7 +505,15 @@ export class AdminSettings extends React.Component
             </select>
           </div>
           <div className="col-md-2">
-            <button type="submit" className="btn btn-primary btn-block mb-2">Delete</button>
+            <Popup trigger={
+            <button type="button" className="btn btn-primary btn-block mb-2">Delete</button>}position="center"
+              >{close => (
+              <div className=" p-1">
+                <a className="close" onClick={close}>&times;</a>
+                  <button type="submit" className="btn btn-block btn-warning p-1 mt-1">Confirm</button>
+              </div>
+            )}
+            </Popup>
           </div>
         </form>
       </div>
@@ -486,7 +533,15 @@ export class AdminSettings extends React.Component
             </select>
           </div>
           <div className="col-md-2">
-            <button type="submit" className="btn btn-primary btn-block mb-2">Delete</button>
+            <Popup trigger={
+            <button type="button" className="btn btn-primary btn-block mb-2">Delete</button>}position="center"
+              >{close => (
+              <div className=" p-1">
+                <a className="close" onClick={close}>&times;</a>
+                  <button type="submit" className="btn btn-block btn-warning p-1 mt-1">Confirm</button>
+              </div>
+            )}
+            </Popup>
           </div>
         </form>
       </div>
@@ -506,27 +561,15 @@ export class AdminSettings extends React.Component
             </select>
           </div>
           <div className="col-md-2">
-            <button type="submit" className="btn btn-primary btn-block mb-2">Delete</button>
-          </div>
-        </form>
-      </div>
-      <div className="container-fluid">
-        <form className="form row" onChange={this.handleChange} onSubmit={this.handleDelDepartment}>
-          <div className="col-md-3">
-            <label htmlFor="deldepartment"> Delete Departments:</label>
-          </div>
-          <div className="col-md-7">
-            <select className="form-control" name="deldepartment" value={this.state.deldepartment} required>
-              <option value="">Select</option>
-              {
-                this.state.olddepartments.map((element) =>{
-                  return(<Dropdown value={element} name={element}/>)
-                })
-              }
-            </select>
-          </div>
-          <div className="col-md-2">
-            <button type="submit" className="btn btn-primary btn-block mb-2">Delete</button>
+            <Popup trigger={
+            <button type="button" className="btn btn-primary btn-block mb-2">Delete</button>}position="center"
+              >{close => (
+              <div className=" p-1">
+                <a className="close" onClick={close}>&times;</a>
+                  <button type="submit" className="btn btn-block btn-warning p-1 mt-1">Confirm</button>
+              </div>
+            )}
+            </Popup>
           </div>
         </form>
       </div>
@@ -535,18 +578,41 @@ export class AdminSettings extends React.Component
           <div className="col-md-3">
             <label htmlFor="delcourse"> Delete Courses:</label>
           </div>
-          <div className="col-md-7">
-            <select className="form-control" name="delcourse" value={this.state.delcourse} required>
+          <div className="col-md-2">
+            <select className="form-control" name="delcourseProgram" value={this.state.delcourseProgram} required>
               <option value="">Select</option>
               {
-                this.state.oldcourses.map((element) =>{
+                this.state.oldprograms.map((element) =>{
                   return(<Dropdown value={element} name={element}/>)
                 })
               }
             </select>
           </div>
+          <div className="col-md-5">
+            <select className="form-control" name="delcourse" value={this.state.delcourse} required>
+              <option value="">Select</option>
+              {
+                this.state.oldcourses.map((element) =>{
+                  if(element.program===this.state.delcourseProgram)
+                  {
+                    return element.courses.map((course)=>{
+                      return(<Dropdown value={course} name={course}/>)
+                    })
+                  }
+                })
+              }
+            </select>
+          </div>
           <div className="col-md-2">
-            <button type="submit" className="btn btn-primary btn-block mb-2">Delete</button>
+            <Popup trigger={
+            <button type="button" className="btn btn-primary btn-block mb-2">Delete</button>}position="center"
+              >{close => (
+              <div className=" p-1">
+                <a className="close" onClick={close}>&times;</a>
+                  <button type="submit" className="btn btn-block btn-warning p-1 mt-1">Confirm</button>
+              </div>
+            )}
+            </Popup>
           </div>
         </form>
       </div>
@@ -557,12 +623,12 @@ export class AdminSettings extends React.Component
         <div className="col-md-4">
           <button type="button" className="btn btn-block btn-success m-1" onClick={this.handleRegistration}>
             {
-              this.state.regStatus ? 'Open ':'Close '
+              this.state.regStatus===true ? 'Close ':'Open '
             }
             Student Registration</button>
         </div>
         <div className="col-md-4">
-          <Popup trigger={<button type="button" className="btn btn-block btn-success m-1">Reset Admin Password</button>} position="top center"
+          <Popup trigger={<button type="button" className="btn btn-block btn-success m-1">Reset Admin Password</button>} position="center"
           >{close => (
             <div className=" p-1">
               <a className="close" onClick={close}>&times;</a>

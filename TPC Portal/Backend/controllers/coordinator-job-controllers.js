@@ -1,11 +1,11 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
 const { validationResult } = require("express-validator");
 const HttpError = require("../models/http-error");
 const Company = require("../models/companies");
 const Admin = require("../models/admin");
 const Coordinator = require("../models/coordinators");
+const Job = require("../models/jobs");
 
 const coordinatorLogin = async (req, res, next) => {
   const { userName, password } = req.body;
@@ -27,9 +27,12 @@ const coordinatorLogin = async (req, res, next) => {
     existingCoordinator.password
   );
   if (!validCoordinator) return next(new HttpError("Invalid credentials", 400));
-
   const token = existingCoordinator.generateAuthToken();
-  res.json({ loginStatus: true, token });
+  const refreshToken = existingCoordinator.generateRefreshToken();
+  res.set("Access-Control-Expose-Headers", "x-auth-token, x-refresh-token");
+  res.set("x-auth-token", token);
+  res.set("x-refresh-token", refreshToken);
+  res.json({ loginStatus: true, _id: existingCoordinator._id });
 };
 
 const updateJobId = async (req, res, next) => {
@@ -45,7 +48,7 @@ const updateJobId = async (req, res, next) => {
   if (!job) {
     return next(new HttpError("Job doesn't exist", 404));
   }
-  if (job.jobStatus !== "PENDING APPROVAL") {
+  if (job.jobStatus !== "Pending Approval") {
     return next(
       new HttpError(
         "It is a approved job.You don't have permission to update it",
@@ -57,8 +60,7 @@ const updateJobId = async (req, res, next) => {
   const {
     jobTitle,
     jobCategory,
-    ctc,
-    stipend,
+    jobType,
     selectionProcess,
     modeOfInterview,
     schedule,
@@ -71,9 +73,8 @@ const updateJobId = async (req, res, next) => {
   job.selectionProcess = selectionProcess;
   job.schedule = schedule;
   job.eligibilityCriteria = eligibilityCriteria;
+  job.jobType = jobType;
   job.publicRemarks = publicRemarks;
-  if (job.jobType === "FTE") job.ctc = ctc;
-  else job.stipend = stipend;
   try {
     await job.save();
   } catch (err) {
@@ -82,6 +83,57 @@ const updateJobId = async (req, res, next) => {
     return next(error);
   }
   res.json({ updatedJobDetails: job });
+};
+
+const addCompany = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    console.log(errors);
+    return next(new HttpError("You have entered invalid data , recheck", 422));
+  }
+  const {
+    companyName,
+    userName,
+    password,
+    contact1,
+    contact2,
+    contact3,
+    companyLink,
+    remarks,
+    companyAddress,
+  } = req.body;
+  const newCompany = new Company({
+    companyName,
+    userName,
+    companyAddress,
+    contact1,
+    contact2,
+    contact3,
+    companyLink,
+    remarks,
+    companyStatus: "Registered",
+    approvalStatus: "Pending Approval",
+  });
+
+  //Hashing the password
+  const salt = await bcrypt.genSalt(10);
+  newCompany.password = await bcrypt.hash(password, salt);
+  // Saving to Database
+  try {
+    const sess = await mongoose.startSession();
+    sess.startTransaction();
+    await newCompany.save({ session: sess });
+    await Admin.updateOne(
+      {},
+      { $addToSet: { companyApproval: newCompany._id } }
+    );
+    await sess.commitTransaction();
+  } catch (err) {
+    console.log(err);
+    const error = new HttpError("Something went wrong ! try again later", 500);
+    return next(error);
+  }
+  res.json({ newCompany: newCompany.toObject({ getters: true }) });
 };
 
 const addJobAndCompany = async (req, res, next) => {
@@ -190,8 +242,7 @@ const resetPassword = async (req, res, next) => {
     const salt = await bcrypt.genSalt(10);
     existingCoordinator.password = await bcrypt.hash(newPassword, salt);
   } else {
-    console.log(err);
-    const error = new HttpError("You are not allowed", 404);
+    const error = new HttpError("Invalid Credentials", 404);
     return next(error);
   }
   try {
@@ -205,6 +256,7 @@ const resetPassword = async (req, res, next) => {
 };
 
 exports.coordinatorLogin = coordinatorLogin;
+exports.addCompany = addCompany;
 exports.addJobAndCompany = addJobAndCompany;
 exports.updateJobId = updateJobId;
 exports.resetPassword = resetPassword;

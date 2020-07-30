@@ -11,6 +11,9 @@ export class AdminJobAddStudent extends React.Component
     super(props);
     this.state =
     {
+      refreshToken:localStorage.getItem('refreshToken'),
+      authToken:localStorage.getItem('authToken'),
+      _id:localStorage.getItem('_id'),
       id: props.match.params.jid,
       columnDefs: [
         {headerName: 'Name',field: 'name', sortable:true, filter:true,checkboxSelection:true,onlySelected:true},
@@ -23,7 +26,12 @@ export class AdminJobAddStudent extends React.Component
       this.getStudents();
     };
     getStudents = () =>{
-        axios.get('/backend/admin/students')
+        axios.get('/backend/admin/students',{
+          headers: {
+            'x-auth-token': this.state.authToken,
+            'x-refresh-token': this.state.refreshToken,
+          }
+        })
           .then((response) => {
             const data = response.data.studentsInfo;
             console.log('data',data);
@@ -32,30 +40,34 @@ export class AdminJobAddStudent extends React.Component
             })
           })
           .catch((e)=>{
-            console.log('Error Retrieving data',e);
+            this.setState({
+              redirect:'/error'
+            })
           });
       };
 
      handleSelect = (e) =>{
         const selectedNodes = this.gridApi.getSelectedNodes();
-        const selectedData = selectedNodes.map(node => node.data);
-        console.log("helloo",selectedNodes);
-        selectedNodes.forEach((student, i) => {
+        const selectedData = selectedNodes.map(node => node.data._id);
           let payload={
-            rollNo:student.data.rollNo
+            studentIds:selectedData
           }
           axios({
             url: `/backend/admin/jobs/addStudent/${this.state.id}`,
             method: 'patch',
-            data: payload
+            data: payload,
+            headers: {
+    					'x-auth-token': this.state.authToken,
+    					'x-refresh-token': this.state.refreshToken,
+    				}
           })
           .then(() =>{
             console.log('data has been sent to server');
+            alert('Added Students')
           })
           .catch((error)=>{
-            alert('data error',error);
+            alert('Could Not Add Student');
           });
-        });
 
         /*this.setState({
           redirect:`/admin/job/${this.state.id}`

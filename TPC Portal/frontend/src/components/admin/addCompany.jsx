@@ -4,8 +4,13 @@ import {Redirect} from 'react-router-dom';
 
 export class AdminAddCompany extends React.Component
 {
+  constructor(props){
+    super(props);
 
-    state = {
+  this.state = {
+      refreshToken:localStorage.getItem('refreshToken'),
+      authToken:localStorage.getItem('authToken'),
+      _id:localStorage.getItem('_id'),
       companyName:"",
       userName: "",
       password: "",
@@ -24,6 +29,7 @@ export class AdminAddCompany extends React.Component
       mobileNumber3: '',
       redirect:''
     };
+  }
 
     handleChange = (event) =>
     {
@@ -70,7 +76,11 @@ export class AdminAddCompany extends React.Component
           axios({
             url: '/backend/admin/companies/addCompany',
             method: 'post',
-            data: payload
+            data: payload,
+            headers: {
+    					'x-auth-token': this.state.authToken,
+    					'x-refresh-token': this.state.refreshToken,
+    				}
           })
           .then(() =>{
             console.log('data has been sent to server');
@@ -80,7 +90,7 @@ export class AdminAddCompany extends React.Component
             this.resetUserInputs();
           })
           .catch(()=>{
-            console.log('data error');
+            console.log('Could Not Add Company');
           });
       };
 

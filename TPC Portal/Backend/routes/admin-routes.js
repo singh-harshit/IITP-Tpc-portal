@@ -5,27 +5,28 @@ const adminController = require("../controllers/admin-controllers");
 const fileUpload = require("../middleware/file-upload");
 const auth = require("../middleware/auth");
 const authorize = require("../middleware/roles-auth");
-const adminHomeController = require("../controllers/admin-home");
 
+// Tested
 router.post("/login", adminController.adminLogin);
 
-router.get("/home", adminHomeController.adminHomeStats);
+router.use(auth);
 
-// router.use(auth);
+router.use(authorize("Admin"));
 
-// router.use(authorize("Admin"));
+router.get("/home", adminController.home);
 
 //Admin Companies Routes
 
+// Tested
 router.get("/companies", adminController.getAllCompanies);
 
-// Expecting "array of Companies Id or may be One id but in inside array"  for the deletion
+// Tested
 router.patch("/companies/deactivateCompany", adminController.deactivateCompany);
 
-// Expecting "array of Companies Id or may be One id but in inside array"  for the deletion
+// Tested
 router.delete("/companies/deleteCompany", adminController.deleteCompany);
 
-//Expecting Company Details ... adding one company
+// Tested
 router.post(
   "/companies/addCompany",
   [
@@ -37,16 +38,17 @@ router.post(
   adminController.addCompany
 );
 
-// Adding many companies from csv files
+// Tested
 router.post(
   "/companies/addBulkCompany",
   fileUpload.single("companyDetails"),
   adminController.addBulkCompany
 );
 
-//ROUTE for individual company display ... Expecting companyId in URL (/admin/companies/:cid)
+// Tested
 router.get("/companies/:cid", adminController.getCompanyById);
 
+// Tested
 //Updating details of a Particular company .... Expecting [companyId , other details for the update]
 router.patch(
   "/companies/:cid",
@@ -58,10 +60,10 @@ router.patch(
   adminController.updateCompanyById
 );
 
-//Reset Password By the Admin
+// Tested
 router.patch(
   "/companies/:cid/reset-password",
-  [check("userName").not().isEmpty(), check("password").isLength({ min: 8 })],
+  [check("password").isLength({ min: 8 })],
   adminController.companyPasswordReset
 );
 

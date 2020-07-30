@@ -5,7 +5,10 @@
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js",
+    "start": "node app.js",
+    "build": "cd.. && cd frontend && npm run build",
+    "lib-install": "npm install && cd .. && cd frontend && npm install",
+    "heroku-postbuild": "npm run lib-install && npm run build",
     "Frontend": "cd .. && cd frontend && npm start",
     "dev": "concurrently -n 'server,client' -c 'red,green' \"nodemon app.js\" \"npm run Frontend\""
   },
@@ -18,7 +21,9 @@
     "concurrently": "^5.2.0",
     "config": "^3.3.1",
     "cors": "^2.8.5",
+    "csvjson": "^5.1.0",
     "debug": "^4.1.1",
+    "dotenv": "^8.2.0",
     "ejs": "^3.1.2",
     "export-to-csv": "^0.2.1",
     "express": "^4.17.1",
@@ -37,6 +42,8 @@
     "nodemon": "^2.0.4",
     "path-to-regexp": "^6.1.0",
     "sleep": "^6.2.0",
-    "uuid": "^8.1.0"
+    "uuid": "^8.1.0",
+    "xls-to-json-lc": "^0.3.4",
+    "xlsx-to-json-lc": "^0.5.0"
   }
 }

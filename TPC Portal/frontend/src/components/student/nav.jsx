@@ -6,25 +6,23 @@ export class StudentNavbar extends React.Component
   {
     super(props);
   }
-
   render()
   {
     return(
         <div className="nav-flex bg-dark">
         <nav className="navbar navbar-expand-md navbar-dark">
-
           <button className="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
             <span className="navbar-toggler-icon"></span>
           </button>
-
           <div className="collapse navbar-collapse" id="collapsibleNavbar">
             <ul className="navbar-nav flex-column">
-              <Link className="nav-link" to="/student/profile">
+              <Link className="nav-link" to="/student">
                 <li className="nav-item ">
                   Profile
                 </li>
               </Link>
-              { localStorage.getItem('_id') ?(<div>
+              { localStorage.getItem('approvalStatus')==="Active" ?(
+                <div>
               <Link  className="nav-link" to="/student/appliedjobs">
                 <li className="nav-item">
                   Jobs Applied

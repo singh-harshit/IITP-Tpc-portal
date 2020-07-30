@@ -6,7 +6,9 @@ export class StudentRequests extends React.Component {
     super(props);
 
   this.state = {
-    id : localStorage.getItem('_id'),
+    refreshToken:localStorage.getItem('refreshToken'),
+    authToken:localStorage.getItem('authToken'),
+    _id:localStorage.getItem('_id'),
     subject: "",
     message: "",
     posts: [],
@@ -34,7 +36,12 @@ export class StudentRequests extends React.Component {
 
   getPost = () => {
     axios
-      .get("/backend/student/requests/" + this.state.id)
+      .get("/backend/student/requests/" + this.state._id,{
+  				headers: {
+  					'x-auth-token': this.state.authToken,
+  					'x-refresh-token': this.state.refreshToken,
+  				}
+  			})
       .then((response) => {
         const data = response.data.oldRequests.requests;
         this.setState({ posts: data });
@@ -70,9 +77,14 @@ export class StudentRequests extends React.Component {
       message: message,
     };
     axios({
-      url: "/backend/student/new-request/" + this.state.id,
+      url: "/backend/student/new-request/" + this.state._id,
       method: "post",
       data: payload,
+      headers:
+      {
+        'x-auth-token': this.state.authToken,
+        'x-refresh-token': this.state.refreshToken,
+      }
     })
       .then(() => {
         console.log("data has been sent to server");

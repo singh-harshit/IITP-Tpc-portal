@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const uniqueValidator = require("mongoose-unique-validator");
 const Schema = mongoose.Schema;
+require("dotenv").config();
 
 const coordinatorSchema = new Schema({
   name: { type: String, required: true },
@@ -19,9 +20,22 @@ coordinatorSchema.methods.generateAuthToken = function () {
   //Automatic Login
   const token = jwt.sign(
     { _id: this._id, role: "Coordinator" },
-    process.env.jwtPrivateKey
+    process.env.jwtPrivateKey,
+    {
+      expiresIn: "1m",
+    }
   );
   return token;
+};
+coordinatorSchema.methods.generateRefreshToken = function () {
+  const refreshToken = jwt.sign(
+    { _id: this._id, role: "Coordinator" },
+    process.env.jwtPrivateKey + this.password,
+    {
+      expiresIn: "2d",
+    }
+  );
+  return refreshToken;
 };
 
 coordinatorSchema.plugin(uniqueValidator);

@@ -2,16 +2,18 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const { validationResult } = require("express-validator");
 const HttpError = require("../models/http-error");
-const Company = require("../models/companies");
-const Job = require("../models/jobs");
-const Student = require("../models/students");
 const Admin = require("../models/admin");
-const StudentJob = require("../models/studentjobs");
 const Coordinator = require("../models/coordinators");
 const Role = require("../models/Role");
 
+// Function for filtering only unique elements from an array
+const unique = (value, index, self) => {
+  return self.indexOf(value) === index;
+};
+
 const setJobClassifications = async (req, res, next) => {
-  const { classifications } = req.body;
+  let { classifications } = req.body;
+  classifications = classifications.filter(unique);
   try {
     await Admin.updateOne(
       {},
@@ -26,7 +28,8 @@ const setJobClassifications = async (req, res, next) => {
 };
 
 const setJobSteps = async (req, res, next) => {
-  const { steps } = req.body;
+  let { steps } = req.body;
+  steps = steps.filter(unique);
   try {
     await Admin.updateOne({}, { $set: { allJobSteps: steps } });
   } catch (err) {
@@ -39,6 +42,7 @@ const setJobSteps = async (req, res, next) => {
 
 const setJobStatus = async (req, res, next) => {
   const { status } = req.body;
+  status = status.filter(unique);
   try {
     await Admin.updateOne({}, { $set: { allJobStatus: status } });
   } catch (err) {
@@ -51,6 +55,7 @@ const setJobStatus = async (req, res, next) => {
 
 const setStudentPrograms = async (req, res, next) => {
   const { programs } = req.body;
+  programs = programs.filter(unique);
   try {
     await Admin.updateOne({}, { $set: { allStudentPrograms: programs } });
   } catch (err) {
@@ -61,119 +66,21 @@ const setStudentPrograms = async (req, res, next) => {
   res.json({ message: "New student program added" });
 };
 
-const setStudentDepartments = async (req, res, next) => {
-  const { departments } = req.body;
+const setStudentProgramsAndCourses = async (req, res, next) => {
+  let { programsWithCourses } = req.body;
+  programsWithCourses = programsWithCourses.filter(unique);
   try {
-    await Admin.updateOne({}, { $set: { allStudentDepartments: departments } });
-  } catch (err) {
-    console.log(err);
-    const error = new HttpError("Something went wrong ! try again later", 500);
-    return next(error);
-  }
-  res.json({ message: "New student department added" });
-};
-
-const setStudentCourses = async (req, res, next) => {
-  const { courses } = req.body;
-  try {
-    await Admin.updateOne({}, { $set: { allStudentCourses: courses } });
-  } catch (err) {
-    console.log(err);
-    const error = new HttpError("Something went wrong ! try again later", 500);
-    return next(error);
-  }
-  res.json({ message: "New student course added" });
-};
-
-const getAllDetails = async (req, res, next) => {
-  let classifications,
-    steps,
-    status,
-    programs,
-    courses,
-    departments,
-    guideLines;
-  let admin;
-  try {
-    admin = await Admin.findOne(
+    await Admin.updateOne(
       {},
-      {
-        allJobClassifications: 1,
-        allJobSteps: 1,
-        allJobStatus: 1,
-        allStudentPrograms: 1,
-        allStudentCourses: 1,
-        allStudentDepartments: 1,
-        guideLines: 1,
-      }
+      { $set: { allStudentProgramsAndCourses: programsWithCourses } }
     );
   } catch (err) {
     console.log(err);
     const error = new HttpError("Something went wrong ! try again later", 500);
     return next(error);
   }
-  classifications = admin.allJobClassifications;
-  steps = admin.allJobSteps;
-  status = admin.allJobStatus;
-  programs = admin.allStudentPrograms;
-  courses = admin.allStudentCourses;
-  departments = admin.allStudentDepartments;
-  guideLines = admin.guideLines;
-  res.json({
-    classifications: classifications,
-    steps: steps,
-    status: status,
-    programs: programs,
-    courses: courses,
-    departments: departments,
-    guideLines: guideLines,
-  });
+  res.json({ message: "New student courses added" });
 };
-
-// const getAllRules = async (req, res, next) => {
-//   let allRules, admin;
-//   try {
-//     admin = await Admin.findOne({}, { allRules: 1 });
-//     allRules = admin.allRules;
-//   } catch (err) {
-//     console.log(err);
-//     const error = new HttpError("Something went wrong ! try again later", 500);
-//     return next(error);
-//   }
-//   res.json({ allRules: allRules });
-// };
-
-// const setNewRule = async (req, res, next) => {
-//   const { category, subject, body } = req.body;
-//   let allRules, newRule, admin;
-//   newRule = { subject, body };
-//   try {
-//     const sess = await mongoose.startSession();
-//     sess.startTransaction();
-//     admin = await Admin.findOne({ "allRules.category": category }).session(
-//       sess
-//     );
-//     if (admin) {
-//       await Admin.updateOne(
-//         { "allRules.category": category },
-//         { $addToSet: { "allRules.$.rules": newRule } }
-//       ).session(sess);
-//     } else {
-//       await Admin.updateOne(
-//         {},
-//         { $addToSet: { allRules: { category: category, rules: newRule } } }
-//       ).session(sess);
-//     }
-//     admin = await Admin.findOne({}, { allRules: 1 }).session(sess);
-//     allRules = admin.allRules;
-//     await sess.commitTransaction();
-//   } catch (err) {
-//     console.log(err);
-//     const error = new HttpError("Something went wrong ! try again later", 500);
-//     return next(error);
-//   }
-//   res.json({ allRules: allRules });
-// };
 
 const setGuideLines = async (req, res, next) => {
   const { guideLines } = req.body;
@@ -187,6 +94,12 @@ const setGuideLines = async (req, res, next) => {
 };
 
 const assignNewCoordinator = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    console.log(errors);
+    return next(new HttpError("You have entered invalid data , recheck", 422));
+  }
+
   const {
     name,
     rollNo,
@@ -197,14 +110,11 @@ const assignNewCoordinator = async (req, res, next) => {
   } = req.body;
   let coordinator;
   try {
-    coordinator = await Coordinator.findOne({ emailId: emailId });
+    coordinator = await Coordinator.findOne({ rollNo: rollNo });
   } catch (err) {
     return next(new HttpError("Something went wrong ! try again later", 500));
   }
-  if (coordinator)
-    return next(
-      new HttpError("Coordinator with this emailId already Exist", 403)
-    );
+  if (coordinator) return next(new HttpError("Coordinator already Exist", 403));
 
   const newCoordinator = new Coordinator({
     name,
@@ -234,7 +144,7 @@ const getAllCoordinators = async (req, res, next) => {
   try {
     coordinators = await Coordinator.find(
       {},
-      { name: 1, emailId: 1, mobileNumber1: 1, mobileNumber2: 1 }
+      { name: 1, emailId: 1, mobileNumber1: 1, mobileNumber2: 1, rollNo: 1 }
     );
   } catch (err) {
     console.log(err);
@@ -257,6 +167,12 @@ const deleteCoordinator = async (req, res, next) => {
 };
 
 const resetPassword = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    console.log(errors);
+    return next(new HttpError("You have entered invalid data , recheck", 422));
+  }
+
   const { oldPassword, newPassword } = req.body;
   let admin;
   try {
@@ -276,8 +192,14 @@ const resetPassword = async (req, res, next) => {
 };
 
 const resetCodPassword = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    console.log(errors);
+    return next(new HttpError("You have entered invalid data , recheck", 422));
+  }
+
   const codId = req.params.codId;
-  const { newPassword } = req.body;
+  let { newPassword } = req.body;
   //Hashing the password
   const salt = await bcrypt.genSalt(10);
   newPassword = await bcrypt.hash(newPassword, salt);
@@ -313,33 +235,15 @@ const changeRegistrationStatus = async (req, res, next) => {
   else res.json({ message: "Registration Closed" });
 };
 
-const checkRegistrationStatus = async (req, res, next) => {
-  let RegStatus, admin;
-  try {
-    admin = await Admin.findOne({}, { registrationStatus: 1 });
-    RegStatus = admin.registrationStatus;
-  } catch (err) {
-    console.log(err);
-    const error = new HttpError("Something went wrong ! try again later", 500);
-    return next(error);
-  }
-  res.json({ RegStatus: RegStatus });
-};
-
 exports.setJobClassifications = setJobClassifications;
 exports.setJobStatus = setJobStatus;
 exports.setJobSteps = setJobSteps;
-exports.setStudentCourses = setStudentCourses;
-exports.setStudentDepartments = setStudentDepartments;
+exports.setStudentProgramsAndCourses = setStudentProgramsAndCourses;
 exports.setStudentPrograms = setStudentPrograms;
 exports.assignNewCoordinator = assignNewCoordinator;
 exports.deleteCoordinator = deleteCoordinator;
 exports.getAllCoordinators = getAllCoordinators;
-exports.getAllDetails = getAllDetails;
-// exports.getAllRules = getAllRules;
-// exports.setNewRule = setNewRule;
 exports.setGuideLines = setGuideLines;
 exports.resetCodPassword = resetCodPassword;
 exports.resetPassword = resetPassword;
 exports.changeRegistrationStatus = changeRegistrationStatus;
-exports.checkRegistrationStatus = checkRegistrationStatus;

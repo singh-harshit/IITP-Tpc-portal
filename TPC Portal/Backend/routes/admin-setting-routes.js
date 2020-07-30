@@ -2,49 +2,66 @@ const express = require("express");
 const { check } = require("express-validator");
 const router = express.Router();
 const adminSettingController = require("../controllers/admin-setting-controllers");
-const fileUpload = require("../middleware/file-upload");
 const auth = require("../middleware/auth");
+const authorize = require("../middleware/roles-auth");
 
-//router.use(auth);
-
+// Tested
 router.post("/classifications", adminSettingController.setJobClassifications);
 
+// Tested
 router.post("/steps", adminSettingController.setJobSteps);
 
+// Tested
 router.post("/status", adminSettingController.setJobStatus);
 
+// Tested
 router.post("/programs", adminSettingController.setStudentPrograms);
 
-router.post("/departments", adminSettingController.setStudentDepartments);
+// Tested
+router.post(
+  "/programAndCourses",
+  adminSettingController.setStudentProgramsAndCourses
+);
 
-router.post("/courses", adminSettingController.setStudentCourses);
-
+// Tested
 router.get("/coordinators", adminSettingController.getAllCoordinators);
 
-router.post("/newCoordinator", adminSettingController.assignNewCoordinator);
+// Tested
+router.post(
+  "/newCoordinator",
+  [
+    check("name").not().isEmpty(),
+    check("emailId").normalizeEmail().isEmail(),
+    check("rollNo").not().isEmpty(),
+    check("password").isLength({ min: 8 }),
+  ],
+  adminSettingController.assignNewCoordinator
+);
 
+// Tested
 router.patch("/deleteCoordinator", adminSettingController.deleteCoordinator);
 
-// router.post("/newRule", adminSettingController.setNewRule);
-
-// router.get("/rules", adminSettingController.getAllRules);
-
+// Tested
 router.post("/guideLines", adminSettingController.setGuideLines);
 
-router.patch("/resetPassword", adminSettingController.resetPassword);
+// Tested
+router.patch(
+  "/resetPassword",
+  [check("newPassword").isLength({ min: 8 })],
+  adminSettingController.resetPassword
+);
 
+// Tested
 router.patch(
   "/resetCodPassword/:codId",
+  [check("newPassword").isLength({ min: 8 })],
   adminSettingController.resetCodPassword
 );
 
-router.get("/allDetails", adminSettingController.getAllDetails);
-
+// Tested
 router.patch(
   "/changeRegStatus",
   adminSettingController.changeRegistrationStatus
 );
-
-router.get("/checkRegStatus", adminSettingController.checkRegistrationStatus);
 
 module.exports = router;

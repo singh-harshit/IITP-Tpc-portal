@@ -7,7 +7,6 @@ const Company = require("../models/companies");
 const Admin = require("../models/admin");
 const Role = require("../models/Role");
 const companyLogin = async (req, res, next) => {
-  console.log("I m in company login");
   const { userName, password } = req.body;
   let existingCompany;
   try {
@@ -22,7 +21,15 @@ const companyLogin = async (req, res, next) => {
   const validCompany = await bcrypt.compare(password, existingCompany.password);
   if (!validCompany) return next(new HttpError("Invalid Credentials", 400));
   const token = existingCompany.generateAuthToken();
-  res.json({ loginStatus: true, token });
+  const refreshToken = existingCompany.generateRefreshToken();
+  res.set("Access-Control-Expose-Headers", "x-auth-token, x-refresh-token");
+  res.set("x-auth-token", token);
+  res.set("x-refresh-token", refreshToken);
+  res.json({
+    loginStatus: true,
+    _id: existingCompany._id,
+    approvalStatus: existingCompany.approvalStatus,
+  });
 };
 
 const companyRegistration = async (req, res, next) => {
@@ -51,7 +58,7 @@ const companyRegistration = async (req, res, next) => {
     contact3: contact3 || null,
     companyLink,
     companyStatus: "Registered",
-    approvalStatus: "PENDING APPROVAL",
+    approvalStatus: "Pending Approval",
     role: Role.Company,
   });
 
@@ -76,9 +83,31 @@ const companyRegistration = async (req, res, next) => {
   }
   console.log("Registration Complete and sent for approval");
   const token = newCompany.generateAuthToken();
-  res
-    .header("x-auth-token", token)
-    .json({ newCompany: newCompany.toObject({ getters: true }) });
+  const refreshToken = newCompany.generateRefreshToken();
+  res.set("Access-Control-Expose-Headers", "x-auth-token, x-refresh-token");
+  res.set("x-auth-token", token);
+  res.set("x-refresh-token", refreshToken);
+  res.json({ newCompany: newCompany.toObject({ getters: true }) });
+};
+
+const companyProfile = async (req, res, next) => {
+  const companyId = req.params.cid;
+  try {
+    company = await Company.findById(companyId, {
+      companyName: 1,
+      userName: 1,
+      contact1: 1,
+      contact2: 1,
+      contact3: 1,
+      companyLink: 1,
+      companyAddress: 1,
+    });
+  } catch (err) {
+    console.log(err);
+    const error = new HttpError("Something went wrong! Try again later", 500);
+    return next(error);
+  }
+  res.json({ companyInfo: company });
 };
 
 const companyRequests = async (req, res, next) => {
@@ -114,7 +143,7 @@ const companyNewRequest = async (req, res, next) => {
     rid: companyInfo.requests.length + 1,
     subject,
     message,
-    status: "unread",
+    status: "Unread",
   };
   companyInfo.requests.push(newRequest);
   let rid = newRequest.rid - 1;
@@ -154,11 +183,11 @@ const getAllJobs = async (req, res, next) => {
   const populateObj = {
     path: "jobs",
     populate: {
-      path: "registeredStudents",
+      path: "progressSteps.qualifiedStudents",
       select: "name rollNo resumeLink",
     },
     select:
-      "jobTitle jobType jobStatus eligibilityCriteria schedule jafFiles registeredStudents selectedStudents",
+      "jobTitle jobType jobStatus eligibilityCriteria schedule jafFiles registeredStudents selectedStudents progressSteps",
   };
   try {
     allJobs = await Company.findById(companyId, { companyName: 1 }).populate(
@@ -174,6 +203,7 @@ const getAllJobs = async (req, res, next) => {
 
 exports.companyLogin = companyLogin;
 exports.companyRegistration = companyRegistration;
+exports.companyProfile = companyProfile;
 exports.companyRequests = companyRequests;
 exports.companyNewRequest = companyNewRequest;
 exports.getAllJobs = getAllJobs;

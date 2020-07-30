@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const uniqueValidator = require("mongoose-unique-validator");
+require("dotenv").config();
 const Schema = mongoose.Schema;
 
 const studentSchema = new Schema({
@@ -18,6 +19,7 @@ const studentSchema = new Schema({
     enum: ["FTE", "INTERNSHIP"],
   },
   program: { type: String, required: true },
+  //department: { type: String, required: true },
   course: { type: String },
   currentSemester: { type: Number, required: true, max: 7 },
   spi: {
@@ -27,6 +29,8 @@ const studentSchema = new Schema({
     sem4: { type: Number, max: 10 },
     sem5: { type: Number, max: 10 },
     sem6: { type: Number, max: 10 },
+    sem7: { type: Number, max: 10 },
+    sem8: { type: Number, max: 10 },
   },
   cpi: { type: Number, required: true, max: 10 },
   tenthMarks: { type: Number, required: true, max: 100 },
@@ -39,14 +43,14 @@ const studentSchema = new Schema({
       rid: String,
       subject: String,
       message: String,
-      status: { type: String, enum: ["read", "unread"] },
+      status: { type: String, enum: ["Read", "Unread"] },
     },
   ],
   resumeLink: String,
   resumeFile: String,
   placement: {
-    status: { type: String },
-    category: { type: String, enum: ["A1", "B1", "B2", "PSU", ""] },
+    status: { type: String, enum: ["Placed", "Unplaced"] },
+    category: { type: String },
     placedJobId: { type: mongoose.Types.ObjectId, ref: "Job" },
     applicationCount: {
       A1count: Number,
@@ -56,7 +60,10 @@ const studentSchema = new Schema({
       B2count: Number,
     },
   },
-  approvalStatus: String,
+  approvalStatus: {
+    type: String,
+    enum: ["Pending Approval", "Active", "Deactivated", "Dropped"],
+  },
   role: String,
   resetPasswordToken: String,
   resetPasswordExpires: Date,
@@ -66,9 +73,23 @@ studentSchema.methods.generateAuthToken = function () {
   //Automatic Login
   const token = jwt.sign(
     { _id: this._id, role: "Student" },
-    "We_think_too_much_and_feel_too_little "
+    process.env.jwtPrivateKey,
+    {
+      expiresIn: "1m",
+    }
   );
   return token;
+};
+
+studentSchema.methods.generateRefreshToken = function () {
+  const refreshToken = jwt.sign(
+    { _id: this._id, role: "Student" },
+    process.env.jwtPrivateKey + this.password,
+    {
+      expiresIn: "2d",
+    }
+  );
+  return refreshToken;
 };
 
 studentSchema.plugin(uniqueValidator);

@@ -146,3 +146,13 @@
   margin-top:15vh !important;
   margin-left: auto !important;
 }
+.resetPassword {
+  height:70vh;
+  width:20vw;
+}
+@media only screen and (max-width: 768px) {
+  .resetPassword {
+    height: 70vh;
+    width:100vw;
+  }
+}

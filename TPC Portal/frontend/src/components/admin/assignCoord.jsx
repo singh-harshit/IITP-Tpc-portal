@@ -7,11 +7,13 @@ import {Link,Redirect} from 'react-router-dom';
 import Popup from "reactjs-popup";
 export class AdminAssignCoordinators extends React.Component
 {
-  constructor(props)
-  {
+  constructor(props){
     super(props);
-    this.state =
-    {
+
+  this.state = {
+      refreshToken:localStorage.getItem('refreshToken'),
+      authToken:localStorage.getItem('authToken'),
+      _id:localStorage.getItem('_id'),
       columnDefs: [
         {headerName: 'Name',field: 'name', sortable:true, filter:true,checkboxSelection:true,onlySelected:true},
         {headerName: 'Email',field: 'emailId', sortable:true, filter:true},
@@ -26,7 +28,12 @@ export class AdminAssignCoordinators extends React.Component
       this.getAllCoordinators();
     };
     getAllCoordinators = () =>{
-        axios.get('/backend/admin/coordinators')
+        axios.get('/backend/admin/coordinators',{
+          headers: {
+            'x-auth-token': this.state.authToken,
+            'x-refresh-token': this.state.refreshToken,
+          }
+        })
           .then((response) => {
             const data = response.data.allCoordinators;
             console.log('data',data);
@@ -35,7 +42,9 @@ export class AdminAssignCoordinators extends React.Component
             })
           })
           .catch((e)=>{
-            console.log('Error Retrieving data',e);
+            this.setState({
+              redirect:"/error"
+            })
           });
       };
       handleChange = (event) =>
@@ -59,14 +68,18 @@ export class AdminAssignCoordinators extends React.Component
         axios({
           url: `/backend/admin/deleteCoordinator`,
           method: 'patch',
-          data: payload
+          data: payload,
+          headers: {
+            'x-auth-token': this.state.authToken,
+            'x-refresh-token': this.state.refreshToken,
+          }
         })
         .then(() =>{
           console.log('data has been sent to server');
           this.getAllCoordinators();
         })
         .catch((error)=>{
-          alert('data error',error);
+          alert('Could Not Delete Coordinator');
         });
       }
       handleCoordPasswordReset = (e) =>{
@@ -84,7 +97,11 @@ export class AdminAssignCoordinators extends React.Component
            axios({
              url: `/backend/admin/resetCodPassword/${del[0]}`,
              method: 'patch',
-             data: payload
+             data: payload,
+             headers: {
+               'x-auth-token': this.state.authToken,
+               'x-refresh-token': this.state.refreshToken,
+             }
            })
            .then((s) =>{
              alert(s.data.message);
@@ -93,7 +110,7 @@ export class AdminAssignCoordinators extends React.Component
              })
            })
            .catch((error)=>{
-             console.log(error);
+             alert("password reset unsuccessful");
            });
          }
        }
@@ -110,7 +127,11 @@ export class AdminAssignCoordinators extends React.Component
         axios({
           url: `/backend/admin/newCoordinator`,
           method: 'post',
-          data: payload
+          data: payload,
+          headers: {
+            'x-auth-token': this.state.authToken,
+            'x-refresh-token': this.state.refreshToken,
+          }
         })
         .then(() =>{
           console.log('data has been sent to server');
@@ -118,7 +139,7 @@ export class AdminAssignCoordinators extends React.Component
           this.getAllCoordinators();
         })
         .catch((error)=>{
-          alert('data error',error);
+          alert('Could Not Set New Coordinator',error);
         });
       }
       resetState = () =>{
@@ -144,7 +165,7 @@ export class AdminAssignCoordinators extends React.Component
           <div
             className="ag-theme-balham"
             style={{
-              height:421,
+              height:410,
             }}
             >
             <AgGridReact

@@ -5,12 +5,18 @@ import 'ag-grid-community/dist/styles/ag-grid.css';
 import 'ag-grid-community/dist/styles/ag-theme-balham.css';
 import {Link,Redirect} from 'react-router-dom';
 export class AdminStudents extends Component {
-  state = {
+  constructor(props){
+    super(props);
+
+  this.state = {
+      refreshToken:localStorage.getItem('refreshToken'),
+      authToken:localStorage.getItem('authToken'),
+      _id:localStorage.getItem('_id'),
     redirect:null,
     columnDefs: [
-      {headerName: 'Rollno',field: 'rollNo', sortable:true, filter:true,checkboxSelection:true,cellRenderer: function(params) {return `<a href=/admin/student/${params.value}>${params.value}</a>`}},
+      {headerName: 'Rollno',field: 'rollNo', sortable:true, filter:true,checkboxSelection:true},
       {headerName: 'Name',field: 'name', sortable:true, filter:true},
-      {headerName: 'CPI',field: 'cpi', sortable:true, filter:true},
+      {headerName: 'CPI',field: 'cpi', sortable:true, filter:"agNumberColumnFilter"},
       {headerName: 'Program',field: 'program', sortable:true, filter:true},
       {headerName: 'Mail',field: 'instituteEmail', sortable:true, filter:true},
       {headerName: 'Mob',field: 'mobileNumber', sortable:true, filter:true},
@@ -24,6 +30,7 @@ export class AdminStudents extends Component {
       }
     }
   };
+}
 /*
   componentDidMount(){
     fetch('url')
@@ -45,7 +52,12 @@ export class AdminStudents extends Component {
     this.getStudents();
   };
   getStudents = () =>{
-    axios.get('/backend/admin/students/')
+    axios.get('/backend/admin/students/',{
+      headers: {
+        'x-auth-token': this.state.authToken,
+        'x-refresh-token': this.state.refreshToken,
+      }
+    })
       .then((response) => {
         const data = response.data.studentsInfo;
         console.log('data',data);
@@ -54,7 +66,9 @@ export class AdminStudents extends Component {
         })
       })
       .catch((e)=>{
-        console.log('Error Retrieving data',e);
+        this.setState({
+          redirect:"/error"
+        })
       });
   }
   render()

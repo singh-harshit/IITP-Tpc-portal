@@ -46,7 +46,6 @@ const backup = async (req, res, next) => {
     for (let i = 0; i < names.Schemas.length; i++) {
       data = await names.Schemas[i].find({}).session(sess);
       let jsonContent = JSON.stringify(data);
-      console.log(jsonContent);
       let filePath = directoryPath + "/" + names.Collections[i] + ".json";
       fse.outputFileSync(filePath, jsonContent);
     }
@@ -179,48 +178,48 @@ const getAllBackupDates = async (req, res, next) => {
 
 const startNewSession = async (req, res, next) => {
   backup(req, res, next);
-  let admin,
-    allCompanies = [];
+  let admin;
+  try {
+    await Company.updateMany(
+      {},
+      {
+        $set: {
+          jobs: [],
+          requests: [],
+          approvalStatus: "PA",
+          companyStatus: "Registered",
+        },
+      }
+    );
+    // admin = await Admin.findOne({});
+    // admin.studentApproval = [];
+    // admin.studentRequests = [];
+    // admin.jobApproval = [];
+    // admin.companyRequests = [];
+    // admin.registrationStatus = false;
+    // admin.onlyCpiUpdate = false;
+    // admin.companyApproval = [];
+    // await admin.save();
+  } catch (err) {
+    return next(new HttpError("Error in Admin data update", 500));
+  }
 
   try {
     const sess = await mongoose.startSession();
     sess.startTransaction();
-    allCompanies = await Company.find(
-      {},
-      { companyName: 1 },
-      { session: sess }
-    );
-    admin = await Admin.findOne({}).session(sess);
-    admin = await Admin.findOne({});
-    admin.studentApproval = [];
-    admin.studentRequests = [];
-    admin.jobApproval = [];
-    admin.companyRequests = [];
-    admin.registrationStatus = false;
-    admin.onlyCpiUpdate = false;
-    admin.companyApproval = [];
-    for (let i = 0; i < allCompanies.length; i++) {
-      admin.companyApproval.push(allCompanies[i]._id);
-    }
-    await admin.save({ session: sess });
-    await sess.commitTransaction();
-  } catch (err) {
-    console.log(err);
-    const error = new HttpError("Something Went wrong! Try again later", 500);
-    return next(error);
-  }
-  try {
-    const sess = await mongoose.startSession();
-    sess.startTransaction();
     for (let i = 0; i < names.Schemas.length; i++) {
-      if (
-        names.Collections[i] !== "companies" &&
-        names.Collections[i] !== "admins"
-      ) {
-        await names.Schemas[i].deleteMany({});
-      }
+      if (names.Collections[i] !== "companies")
+        await names.Schemas[i].deleteMany({}, { session: sess });
     }
     await sess.commitTransaction();
+    // for (let i = 0; i < names.Schemas.length; i++) {
+    //   if (
+    //     names.Collections[i] !== "companies" &&
+    //     names.Collections[i] !== "admins"
+    //   ) {
+    //     await names.Schemas[i].deleteMany({});
+    //   }
+    // }
   } catch (err) {
     console.log(err);
     const error = new HttpError("Something Went wrong! Try again later", 500);

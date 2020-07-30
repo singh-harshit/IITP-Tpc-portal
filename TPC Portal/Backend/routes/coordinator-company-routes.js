@@ -3,6 +3,7 @@ const { check } = require("express-validator");
 const router = express.Router();
 const fileUpload = require("../middleware/file-upload");
 const adminController = require("../controllers/admin-controllers");
+const coordinatorController = require("../controllers/coordinator-job-controllers");
 const auth = require("../middleware/auth");
 const authorize = require("../middleware/roles-auth");
 
@@ -23,7 +24,7 @@ router.post(
     check("password").isLength({ min: 8 }),
     check("contact1.mailId").normalizeEmail().isEmail(),
   ],
-  adminController.addCompany
+  coordinatorController.addCompany
 );
 
 // Adding many companies from csv files

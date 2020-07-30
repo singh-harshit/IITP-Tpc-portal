@@ -10,7 +10,6 @@ const Job = require("../models/jobs");
 const Role = require("../models/Role");
 
 const login = async (req, res, next) => {
-  console.log("Hiii");
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     console.log(errors);
@@ -28,7 +27,7 @@ const login = async (req, res, next) => {
   }
   console.log(existingStudent);
   if (!existingStudent) {
-    console.log("Username not found");
+    console.log("Student not found");
     return next(new HttpError("Invalid Credentials", 400));
   }
   const validStudent = await bcrypt.compare(password, existingStudent.password);
@@ -37,7 +36,15 @@ const login = async (req, res, next) => {
     return next(new HttpError("Invalid Credentials", 400));
   }
   const token = existingStudent.generateAuthToken();
-  res.json({ loginStatus: true, token ,_id:existingStudent._id});
+  const refreshToken = existingStudent.generateRefreshToken();
+  res.set("Access-Control-Expose-Headers", "x-auth-token, x-refresh-token");
+  res.set("x-auth-token", token);
+  res.set("x-refresh-token", refreshToken);
+  res.json({
+    loginStatus: true,
+    _id: existingStudent._id,
+    approvalStatus: existingStudent.approvalStatus,
+  });
 };
 
 const registration = async (req, res, next) => {
@@ -55,7 +62,6 @@ const registration = async (req, res, next) => {
     mobileNumber,
     registrationFor,
     program,
-    department,
     course,
     currentSemester,
     spi,
@@ -75,7 +81,6 @@ const registration = async (req, res, next) => {
     const error = new HttpError("SignUp Failed! try again later", 500);
     return next(error);
   }
-  console.log(existingStudent);
   if (existingStudent) {
     const error = new HttpError("User already exist! login Instead", 422);
     return next(error);
@@ -91,7 +96,6 @@ const registration = async (req, res, next) => {
     mobileNumber,
     registrationFor,
     program,
-    department,
     course,
     currentSemester,
     spi,
@@ -102,16 +106,11 @@ const registration = async (req, res, next) => {
     mastersMarks,
     password,
     placement: {
-      status: "unplaced",
-      category: "",
+      status: "Unplaced",
     },
-    approvalStatus: "PENDING APPROVAL",
-    role: Role.Student,
+    approvalStatus: "Pending Approval",
+    role: Role.roles.Student,
   });
-  //Logic of Image Upload
-  newStudent.image = req.file
-    ? "http://localhost:5000/" + req.file.path
-    : "Still Not Uploaded";
 
   //Hashing the password
   const salt = await bcrypt.genSalt(10);
@@ -133,59 +132,132 @@ const registration = async (req, res, next) => {
     return next(error);
   }
   const token = newStudent.generateAuthToken();
-  res
-    .header("x-auth-token", token)
-    .json({ newStudent: newStudent.toObject({ getters: true }) });
+  const refreshToken = newStudent.generateRefreshToken();
+  res.set("Access-Control-Expose-Headers", "x-auth-token, x-refresh-token");
+  res.set("x-auth-token", token);
+  res.set("x-refresh-token", refreshToken);
+  res.json({ newStudent: newStudent.toObject({ getters: true }) });
 };
 
-const profile = async (req, res, next) => {
+const home = async (req, res, next) => {
   const studentId = req.params.sid;
-  let studentInfo = [];
-  console.log(studentId);
+
+  let studentJobs;
   try {
-    studentInfo = await Student.findOne(
-      { _id: studentId },
-      {
-        name: 1,
-        rollNo: 1,
-        instituteEmail: 1,
-        personalEmail: 1,
-        gender: 1,
-        mobileNumber: 1,
-        registrationFor: 1,
-        program: 1,
-        department: 1,
-        course: 1,
-        currentSemester: 1,
-        spi: 1,
-        cpi: 1,
-        tenthMarks: 1,
-        twelthMarks: 1,
-        bachelorsMarks: 1,
-        mastersMarks: 1,
-        approvalStatus: 1,
-        image: 1,
-      }
-    );
+    studentJobs = await StudentJob.findOne({ studId: studentId }).populate({
+      path: "appliedJobs.jobId",
+      select: "schedule jobTitle companyName jobStatus",
+      match: { jobStatus: ["Open", "Ongoing"] },
+    });
+    if (!studentJobs) {
+      return res.json({ message: "Not approved till now" });
+    }
+    studentJobs = await studentJobs
+      .populate({
+        path: "eligibleJobs",
+        select: "jobTitle jobStatus",
+        match: { jobStatus: "Open" },
+      })
+      .execPopulate();
   } catch (err) {
     console.log(err);
     const error = new HttpError("Something went wrong! Try again later", 500);
     return next(error);
   }
-  res.json({ studentInfo: studentInfo });
+  let upComingDates = [];
+  let currDate = new Date();
+  if (studentJobs.appliedJobs.length != 0) {
+    for (eachJob of studentJobs.appliedJobs) {
+      if (
+        eachJob.jobId != null &&
+        eachJob.studentStatus !== "Rejected" &&
+        eachJob.studentStatus !== "Selected" &&
+        eachJob.jobId.jobStatus === "Ongoing"
+      ) {
+        for (eachSchedule of eachJob.jobId.schedule) {
+          if (eachSchedule.stepDate) {
+            var first = eachSchedule.stepDate.split(",");
+            var d = first[0].split("-");
+            console.log(d);
+            let comingDate = new Date(
+              parseInt(d[0]),
+              parseInt(d[1]),
+              parseInt(d[2])
+            );
+            if (comingDate >= currDate) {
+              let newUpcoming = {
+                companyName: eachJob.jobId.companyName,
+                stepName: eachSchedule.stepName,
+                stepDate: eachSchedule.stepDate,
+              };
+              upComingDates.push(newUpcoming);
+            }
+          }
+        }
+      }
+    }
+  }
+  res.json({
+    eligibleJobsCount: studentJobs.eligibleJobs.length,
+    upComingDates: upComingDates,
+    currDate: currDate,
+    studentJobs: studentJobs,
+  });
+};
+
+const profile = async (req, res, next) => {
+  const studentId = req.params.sid;
+  let studentInfo, admin;
+  try {
+    const sess = await mongoose.startSession();
+    sess.startTransaction();
+    studentInfo = await Student.findById(studentId, {
+      name: 1,
+      rollNo: 1,
+      instituteEmail: 1,
+      personalEmail: 1,
+      gender: 1,
+      mobileNumber: 1,
+      registrationFor: 1,
+      program: 1,
+      course: 1,
+      currentSemester: 1,
+      spi: 1,
+      cpi: 1,
+      tenthMarks: 1,
+      twelthMarks: 1,
+      bachelorsMarks: 1,
+      mastersMarks: 1,
+      approvalStatus: 1,
+      resumeFile: 1,
+      image: 1,
+    }).session(sess);
+    admin = await Admin.findOne({}, { onlyCpiUpdate: 1 }).session(sess);
+    await sess.commitTransaction();
+  } catch (err) {
+    console.log(err);
+    const error = new HttpError("Something went wrong! Try again later", 500);
+    return next(error);
+  }
+  res.json({ studentInfo: studentInfo, onlyCpiUpdate: admin.onlyCpiUpdate });
 };
 
 const editProfile = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    console.log(errors);
+    return next(new HttpError("You have entered invalid data , recheck", 422));
+  }
   const studId = req.params.sid;
   let student;
   try {
     student = await Student.findById(studId);
   } catch (err) {
-    console.log(err);
-    const error = new HttpError("Something went wrong! Try again later", 500);
-    return next(error);
+    return next(new HttpError("Something went wrong! Try again later", 500));
   }
-  if (student.approvalStatus === "PENDING APPROVAL") {
+  if (!student) return next(new HttpError("Student not found", 404));
+
+  if (student.approvalStatus === "Pending Approval") {
     const {
       name,
       rollNo,
@@ -195,7 +267,6 @@ const editProfile = async (req, res, next) => {
       mobileNumber,
       registrationFor,
       program,
-      department,
       course,
       currentSemester,
       spi,
@@ -213,7 +284,6 @@ const editProfile = async (req, res, next) => {
     student.mobileNumber = mobileNumber;
     student.registrationFor = registrationFor;
     student.program = program;
-    student.department = department;
     student.course = course;
     student.currentSemester = currentSemester;
     student.spi = spi;
@@ -230,11 +300,34 @@ const editProfile = async (req, res, next) => {
       return next(error);
     }
   } else {
+    return next(new HttpError("You can't update. Consult with Admin", 403));
+  }
+  res.json({ message: "Profile Updated" });
+};
+
+const setProfilePicture = async (req, res, next) => {
+  const studId = req.params.sid;
+  let student;
+  try {
+    student = await Student.findById(studId, { image: 1 });
+  } catch (err) {
     console.log(err);
     const error = new HttpError("You can't update. Consult with Admin", 403);
     return next(error);
   }
-  res.json({ message: "Details Updated" });
+  if (!student) {
+    return next(new HttpError("Student not found", 404));
+  }
+  //Logic of Image Upload
+  if (req.file) {
+    student.image = "http://localhost:5000/" + req.file.path;
+  }
+  try {
+    await student.save();
+  } catch (err) {
+    return next(new HttpError("Something went wrong! Try again later", 500));
+  }
+  res.json({ message: "Profile Picture Updated" });
 };
 
 const updateCpiOnly = async (req, res, next) => {
@@ -255,6 +348,7 @@ const updateCpiOnly = async (req, res, next) => {
       const sess = await mongoose.startSession();
       sess.startTransaction();
       student = await Student.findById(studId).session(sess);
+      //return res.json(student);
       student.spi = spi;
       student.cpi = cpi;
       await student.save({ session: sess });
@@ -273,9 +367,13 @@ const eligibleJobs = async (req, res, next) => {
   console.log(studId);
   let eligibleJobs;
   try {
-    eligibleJobs = await StudentJob.findOne({ studId: studId }).populate({
+    eligibleJobs = await StudentJob.findOne(
+      { studId: studId },
+      { eligibleJobs: 1, studId: 1 }
+    ).populate({
       path: "eligibleJobs",
-      select: "companyName companyId jobTitle jobCategory jafFiles schedule",
+      select:
+        "companyName companyId jobTitle jobCategory jafFiles schedule jobStatus",
     });
   } catch (err) {
     console.log(err);
@@ -297,20 +395,21 @@ const applyForJob = async (req, res, next) => {
       {
         $project: {
           idString: { $toString: "$_id" },
+          jobStatus: 1,
+          jobCategory: 1,
           _id: 1,
         },
       },
       { $match: { idString: jobId } },
     ]);
-    //console.log(job);
-    if (!job) {
+    if (job.length === 0) {
       return next(new HttpError("Job doesn't exist anymore", 404));
     }
+    if (job[0].jobStatus !== "Open")
+      return res.json("Registration Closed! You cannot apply now");
     const student = await Student.findById(studId).session(sess);
-    if (
-      student.placement.status === "DEACTIVE" ||
-      student.placement.status === "PENDING APPROVAL"
-    ) {
+    if (!student) return next(new HttpError("Student not found", 404));
+    if (student.approvalStatus !== "Active") {
       return next(
         new HttpError(
           "You are not allowed for applying! Consult with admin",
@@ -318,6 +417,13 @@ const applyForJob = async (req, res, next) => {
         )
       );
     }
+    if (student.resumeFile == null)
+      return next(
+        new HttpError(
+          "You have not uploaded your resume! you can not apply for any job",
+          403
+        )
+      );
     newRegistration = await Job.findById(job[0]._id).session(sess);
     newRegistration.progressSteps[0].qualifiedStudents.push(studId);
     await newRegistration.save({ session: sess });
@@ -325,12 +431,12 @@ const applyForJob = async (req, res, next) => {
       { studId: studId },
       {
         $pull: { eligibleJobs: { $in: [jobId] } },
-        $addToSet: { appliedJobs: { jobId: jobId, studentStatus: "applied" } },
+        $addToSet: { appliedJobs: { jobId: jobId, studentStatus: "Applied" } },
       }
     ).session(sess);
 
-    if (student.placement.status === "placed") {
-      let count = job.jobCategory;
+    if (student.placement.status === "Placed") {
+      let count = job[0].jobCategory;
       count += "count";
       student.placement.applicationCount[count] += 1;
     }
@@ -355,7 +461,7 @@ const appliedJobs = async (req, res, next) => {
       { studId: 1, _id: 0, "appliedJobs.jobStatus": 1 }
     ).populate({
       path: "appliedJobs.jobId",
-      select: "companyName jobTitle jobCategory schedule",
+      select: "companyName jobTitle jobCategory schedule jobStatus",
     });
   } catch (err) {
     console.log(err);
@@ -371,46 +477,32 @@ const requests = async (req, res, next) => {
   try {
     oldRequests = await Student.findOne(
       { _id: studId },
-      { studId: 1, requests: 1 }
+      { rollNo: 1, requests: 1 }
     );
   } catch (err) {
     console.log(err);
-    const error = new HttpError("Something went wrong! Try again later", 500);
-    return next(error);
+    return next(new HttpError("Something went wrong! Try again later", 500));
   }
   res.json({ oldRequests: oldRequests });
 };
 
 const newRequest = async (req, res, next) => {
   const studId = req.params.sid;
-
   let studentInfo;
   try {
     studentInfo = await Student.findById(studId);
   } catch (err) {
-    console.log(err);
-    const error = new HttpError("Something went wrong! Try again later", 500);
-    return next(error);
+    return next(new HttpError("Something went wrong! Try again later", 500));
   }
   if (!studentInfo) {
     return next(new HttpError("User not found", 404));
   }
   const { subject, message } = req.body;
-  // Student.findByIdAndUpdate(studId, req.body, (error, data) => {
-  //   if (error) {
-  //     return next(error);
-  //     console.log(error);
-  //   } else {
-  //     res.json(data);
-  //     console.log("User updated successfully !");
-  //   }
-  // });
-  console.log(req.body);
   const newRequest = {
     rid: studentInfo.requests.length + 1,
     subject: subject,
     message: message,
-    status: "unread",
+    status: "Unread",
   };
   studentInfo.requests.push(newRequest);
   let rid = newRequest.rid - 1;
@@ -428,7 +520,7 @@ const newRequest = async (req, res, next) => {
             _id: Id,
             studId: studentInfo._id,
             subject: subject,
-            message: message,
+            content: message,
           },
         },
       }
@@ -436,8 +528,7 @@ const newRequest = async (req, res, next) => {
     await sess.commitTransaction();
   } catch (err) {
     console.log(err);
-    const error = new HttpError("Something went wrong! Try again later", 500);
-    return next(error);
+    return next(new HttpError("Something went wrong! Try again later", 500));
   }
   res.json({ oldRequests: studentInfo.requests });
 };
@@ -449,29 +540,29 @@ const resumeUpload = async (req, res, next) => {
     return next(new HttpError("You have entered invalid data , recheck", 422));
   }
   const studentId = req.params.sid;
-  console.log(studentId);
   const { resumeLink } = req.body;
-  console.log(req.file.path);
   const resumeFile = "http://localhost:5000/" + req.file.path;
   let studentInfo;
   try {
-    studentInfo = await Student.findOne({ _id: studentId });
+    studentInfo = await Student.findById(studentId);
   } catch (err) {
     console.log(err);
-    const error = new HttpError("Something went wrong! Try again later", 500);
-    return next(error);
+    return next(new HttpError("Something went wrong! Try again later", 500));
   }
-  console.log(studentInfo);
   if (!studentInfo) {
-    const error = new HttpError("User not Found", 404);
-    return next(error);
+    return next(new HttpError("Student not found", 404));
   }
   // Deleting previous file if any from our server
+
   if (studentInfo.resumeFile) {
     const path = studentInfo.resumeFile.split("/localhost:5000/")[1];
-    fs.unlink(path, (err) => {
-      console.log(err);
-    });
+
+    if (fs.existsSync(path)) {
+      //file exists
+      fs.unlink(path, (err) => {
+        console.log(err);
+      });
+    }
   }
   studentInfo.resumeFile = resumeFile;
   studentInfo.resumeLink = resumeLink;
@@ -480,8 +571,7 @@ const resumeUpload = async (req, res, next) => {
     await studentInfo.save();
   } catch (err) {
     console.log(err);
-    const error = new HttpError("Something went wrong! Try again later", 500);
-    return next(error);
+    return next(new HttpError("Something went wrong! Try again later", 500));
   }
   res.json({
     resumeDetails: { resumeFile: resumeFile, resumeLink: resumeLink },
@@ -501,13 +591,10 @@ const resetPassword = async (req, res, next) => {
     existingStudent = await Student.findById(studentId);
   } catch (err) {
     console.log(err);
-    const error = new HttpError("Something went wrong! Try again later", 500);
-    return next(error);
+    return next(new HttpError("Something went wrong! Try again later", 500));
   }
   if (!existingStudent) {
-    console.log(err);
-    const error = new HttpError("You are not allowed", 404);
-    return next(error);
+    return next(new HttpError("Student not found", 404));
   }
   const validOldPassword = await bcrypt.compare(
     oldPassword,
@@ -517,24 +604,23 @@ const resetPassword = async (req, res, next) => {
     const salt = await bcrypt.genSalt(10);
     existingStudent.password = await bcrypt.hash(newPassword, salt);
   } else {
-    console.log(err);
-    const error = new HttpError("You are not allowed", 404);
-    return next(error);
+    return next(new HttpError("Invalid Credentials", 403));
   }
   try {
     await existingStudent.save();
   } catch (err) {
     console.log(err);
-    const error = new HttpError("Something went wrong! Try again later", 500);
-    return next(error);
+    return next(new HttpError("Something went wrong! Try again later", 500));
   }
   res.json({ message: "Password Reset", newPassword: newPassword });
 };
 
 exports.login = login;
 exports.registration = registration;
+exports.home = home;
 exports.profile = profile;
 exports.editProfile = editProfile;
+exports.setProfilePicture = setProfilePicture;
 exports.applyForJob = applyForJob;
 exports.appliedJobs = appliedJobs;
 exports.eligibleJobs = eligibleJobs;

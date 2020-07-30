@@ -4,11 +4,13 @@ import {Redirect} from 'react-router-dom';
 
 export class AdminEditCompany extends React.Component
 {
-  constructor(props)
-  {
-  super(props);
-  this.state =
-  {
+  constructor(props){
+    super(props);
+
+  this.state = {
+      refreshToken:localStorage.getItem('refreshToken'),
+      authToken:localStorage.getItem('authToken'),
+      _id:localStorage.getItem('_id'),
     id: props.match.params.cid,
       companyName:"",
       userName: "",
@@ -74,7 +76,11 @@ export class AdminEditCompany extends React.Component
           axios({
             url: `/backend/admin/companies/${this.state.id}`,
             method: 'patch',
-            data: payload
+            data: payload,
+            headers: {
+    					'x-auth-token': this.state.authToken,
+    					'x-refresh-token': this.state.refreshToken,
+    				}
           })
           .then(() =>{
             console.log('data has been sent to server');
@@ -84,13 +90,19 @@ export class AdminEditCompany extends React.Component
           })
           .catch(()=>{
             console.log('data error');
+            alert("Request Unsuccessful");
           });
       };
       componentDidMount = () =>{
         this.getCompany();
       };
       getCompany = () =>{
-          axios.get('/backend/admin/companies/'+this.state.id)
+          axios.get('/backend/admin/companies/'+this.state.id,{
+            headers: {
+    					'x-auth-token': this.state.authToken,
+    					'x-refresh-token': this.state.refreshToken,
+    				}
+          })
             .then((response) => {
               const data = response.data.companyDetails;
               console.log('data',data);
@@ -121,7 +133,9 @@ export class AdminEditCompany extends React.Component
               }
             })
             .catch((e)=>{
-              console.log('Error Retrieving data',e);
+              this.setState({
+                redirect:"/error"
+              })
             });
         };
   render()

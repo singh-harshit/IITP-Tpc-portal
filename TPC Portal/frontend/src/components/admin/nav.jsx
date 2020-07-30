@@ -35,11 +35,6 @@ export class AdminNavbar extends React.Component
                   Companies
                 </li>
               </Link>
-              <Link className = "nav-link" to="/admin/jobs/">
-                <li className="nav-item">
-                  Jobs / Internship
-                </li>
-              </Link>
               <Link className = "nav-link" to="/admin/requests/">
                 <li className="nav-item">
                   Requests
@@ -57,7 +52,7 @@ export class AdminNavbar extends React.Component
               </Link>
               <Link  className="nav-link" to="/">
                 <li className="nav-item">
-                  <i class='fas fa-sign-out-alt'></i>Sign Out
+                  <i className='fas fa-sign-out-alt'></i>Sign Out
                 </li>
               </Link>
             </ul>

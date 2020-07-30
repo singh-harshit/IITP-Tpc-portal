@@ -1,6 +1,7 @@
 import React from "react";
 import axios from 'axios';
-import Dropdown from "../../assets/dropDown"
+import Dropdown from "../../assets/dropDown";
+import {Redirect} from 'react-router-dom';
 export class StudentRegister extends React.Component
 {
 
@@ -30,19 +31,22 @@ export class StudentRegister extends React.Component
       mastersMarks:null,
       file:'',
       loading:true,
+      courses:[],
+      programs:[],
     };
     componentDidMount = () =>{
       this.getAllDetails();
+      this.getRegStatus();
     };
     getAllDetails = async () =>{
         this.setState({loading:true})
-        await axios.get('/backend/admin/allDetails')
+        await axios.get('/backend/allDetails')
           .then((response) => {
             const data = response.data;
             console.log('data',data);
             this.setState({
               programs:data.programs,
-              courses:data.courses,
+              courses:data.programAndCourses,
               loading:false,
             })
           })
@@ -61,14 +65,7 @@ export class StudentRegister extends React.Component
     console.log(this.state);
   }
 
-  handleFile = (event) =>
-  {
-    let file = event.target.files[0];
-    console.log('uploaded:',file);
-    this.setState({
-      file: file,
-    });
-  }
+
   handleSubmit = (event) => {
         event.preventDefault();
         let spi = {
@@ -80,42 +77,56 @@ export class StudentRegister extends React.Component
           sem6:this.state.sem6,
           sem7:this.state.sem7
         };
-        const formData = new FormData();
-        formData.append('name',this.state.name);
-        formData.append('password',this.state.password);
-        formData.append('rollNo',this.state.rollNo);
-        formData.append('gender',this.state.gender);
-        formData.append('instituteEmail',this.state.instituteEmail);
-        formData.append('personalEmail',this.state.personalEmail);
-        formData.append('mobileNumber',this.state.mobileNumber);
-        formData.append('registrationFor',this.state.registrationFor);
-        formData.append('program',this.state.program);
-        formData.append('course',this.state.course);
-        formData.append('currentSemester',this.state.currentSemester);
-        formData.append('spi',spi);
-        formData.append('cpi',this.state.cpi);
-        formData.append('tenthMarks',this.state.tenthMarks);
-        formData.append('twelthMarks',this.state.tenthMarks);
-        formData.append('bachelorsMarks',this.state.bachelorsMarks);
-        formData.append('mastersMarks',this.state.mastersMarks);
-        formData.append('image',this.state.file);
-        console.log(formData);
-        axios.post('/backend/student/registration/',formData,{
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
+        if(!this.state.bachelorsMarks)this.state.bachelorsMarks=0;
+        if(!this.state.mastersMarks)this.state.mastersMarks=0;
+        let payload=({
+          name:this.state.name,
+          password:this.state.password,
+          rollNo:this.state.rollNo,
+          gender:this.state.gender,
+          instituteEmail:this.state.instituteEmail,
+          personalEmail:this.state.personalEmail,
+          mobileNumber:this.state.mobileNumber,
+          registrationFor:this.state.registrationFor,
+          program:this.state.program,
+          course:this.state.course,
+          currentSemester:this.state.currentSemester,
+          spi:spi,
+          cpi:this.state.cpi,
+          tenthMarks:this.state.tenthMarks,
+          twelthMarks:this.state.twelthMarks,
+          bachelorsMarks:this.state.bachelorsMarks,
+          mastersMarks:this.state.mastersMarks,
+        });
+        axios.post('/backend/student/registration/',payload,{
         })
         .then(() =>{
           console.log('data has been sent to server');
-
+          this.setState({redirect:"/"})
         })
         .catch((e)=>{
           console.log('data error',e);
         });
     };
-
+  getRegStatus = ()=>{
+    axios.get('/backend/checkRegStatus',{
+    })
+      .then((response) => {
+        const data = response.data.regStatus;
+        if(data!==true){
+          this.setState({redirect:"/error"})
+        }
+      })
+      .catch((e)=>{
+        console.log('Error Retrieving data',e);
+      });
+  }
   render()
   {
+    if (this.state.redirect)
+    {
+      return <Redirect to={this.state.redirect} />
+    }
     return(
       <div className="base-container border rounded border-success register">
           {
@@ -193,7 +204,6 @@ export class StudentRegister extends React.Component
                     className="form-control"
                     placeholder="Enter Phone No"
                     value={this.state.mobileNumber}
-
                     required
                   />
                   </div>
@@ -248,7 +258,7 @@ export class StudentRegister extends React.Component
                     className="form-control"
                     placeholder="Enter CPI"
                     value={this.state.cpi}
-
+                    min="0" max="10"
                     required
                   />
                   </div>
@@ -263,9 +273,9 @@ export class StudentRegister extends React.Component
                     type="number"
                     name="tenthMarks"
                     className="form-control"
-                    placeholder="Enter Percentage/CGPA"
+                    placeholder="Enter Percentage"
                     value={this.state.tenthMarks}
-
+                    min="0" max="100"
                     required
                   />
                   </div>
@@ -282,7 +292,7 @@ export class StudentRegister extends React.Component
                     className="form-control"
                     placeholder="Enter percentage"
                     value={this.state.twelthMarks}
-
+                    min="0" max="100"
                     required
                   />
                   </div>
@@ -297,9 +307,9 @@ export class StudentRegister extends React.Component
                     type="number"
                     name="bachelorsMarks"
                     className="form-control"
-                    placeholder="Enter Percentage/CGPA"
+                    placeholder="Enter CGPA"
                     value={this.state.bachelorsMarks}
-
+                    min="0" max="10"
                   />
                   </div>
                 </div>
@@ -313,9 +323,9 @@ export class StudentRegister extends React.Component
                     type="number"
                     name="mastersMarks"
                     className="form-control"
-                    placeholder="Enter Percentage/CGPA"
+                    placeholder="Enter CGPA"
                     value={this.state.mastersMarks}
-
+                    min="0" max="10"
                   />
                   </div>
                 </div>
@@ -369,7 +379,7 @@ export class StudentRegister extends React.Component
                       required>
                       <option value="">Select</option>
                       <option value="FTE">FTE</option>
-                      <option value="Internship">Internship</option>
+                      <option value="INTERNSHIP">INTERNSHIP</option>
                     </select>
                   </div>
                 </div>
@@ -388,7 +398,13 @@ export class StudentRegister extends React.Component
                       <option value="">Select</option>
                         {
                           this.state.courses.map((element) =>{
-                            return(<Dropdown value={element} name={element}/>)
+                            if(element.program===this.state.program)
+                            {
+                              return element.courses.map((course)=>
+                              {
+                                return(<Dropdown value={course} name={course}/>);
+                              })
+                            }
                           })
                         }
                     </select>
@@ -423,11 +439,12 @@ export class StudentRegister extends React.Component
                   </div>
                   <div className="col-md-5 p-1" width= '10vw'>
                     <input
-                      type="number"
+                      type="number" step="any"
                       name="sem1"
                       className="form-control"
                       placeholder="Enter SPI"
                       value={this.state.sem1}
+                      min="0" max="10"
                       />
                   </div>
                   <div className="col-md-1 p-1">
@@ -435,11 +452,12 @@ export class StudentRegister extends React.Component
                   </div>
                   <div className="col-md-5 p-1" width = '10vw'>
                     <input
-                      type="number"
+                      type="number" step="any"
                       name="sem2"
                       className="form-control"
                       placeholder="Enter SPI"
                       value={this.state.sem2}
+                      min="0" max="10"
                       />
                   </div>
                 </div>
@@ -449,11 +467,12 @@ export class StudentRegister extends React.Component
                   </div>
                   <div className="col-md-5 p-1" width= '10vw'>
                     <input
-                      type="number"
+                      type="number" step="any"
                       name="sem3"
                       className="form-control"
                       placeholder="Enter SPI"
                       value={this.state.sem3}
+                      min="0" max="10"
                       />
                   </div>
                   <div className="col-md-1 p-1">
@@ -461,11 +480,12 @@ export class StudentRegister extends React.Component
                   </div>
                   <div className="col-md-5 p-1" width = '10vw'>
                     <input
-                      type="number"
+                      type="number" step="any"
                       name="sem4"
                       className="form-control"
                       placeholder="Enter SPI"
                       value={this.state.sem4}
+                      min="0" max="10"
                       />
                   </div>
                 </div>
@@ -475,11 +495,12 @@ export class StudentRegister extends React.Component
                   </div>
                   <div className="col-md-5 p-1" width= '10vw'>
                     <input
-                      type="number"
+                      type="number" step="any"
                       name="sem5"
                       className="form-control"
                       placeholder="Enter SPI"
                       value={this.state.sem5}
+                      min="0" max="10"
                       />
                   </div>
                   <div className="col-md-1 p-1">
@@ -487,11 +508,12 @@ export class StudentRegister extends React.Component
                   </div>
                   <div className="col-md-5 p-1" width = '10vw'>
                     <input
-                      type="number"
+                      type="number" step="any"
                       name="sem6"
                       className="form-control"
                       placeholder="Enter SPI"
                       value={this.state.sem6}
+                      min="0" max="10"
                       />
                   </div>
                 </div>
@@ -501,26 +523,15 @@ export class StudentRegister extends React.Component
                   </div>
                   <div className="col-md-5 p-1" width= '10vw'>
                     <input
-                      type="number"
+                      type="number" step="any"
                       name="sem7"
                       className="form-control"
                       placeholder="Enter SPI"
                       value={this.state.sem7}
+                      min="0" max="10"
                       />
                   </div>
 
-                </div>
-                <div className="form-group row">
-                  <div className="col-md-4 p-1">
-                    <label htmlFor="" className='text-nowrap'>Enter Profile Pic:</label>
-                  </div>
-                  <div className="col-md-8 p-1">
-                    <input
-                      type="file"
-                      className="form-control-file border"
-                      onChange={this.handleFile}
-                      />
-                  </div>
                 </div>
               </div>
               <hr/>

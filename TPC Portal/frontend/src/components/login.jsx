@@ -22,7 +22,7 @@ export class Login extends React.Component
     this.getAllDetails();
   };
   getAllDetails = () =>{
-      axios.get('/backend/admin/allDetails')
+      axios.get('/backend/allDetails')
         .then((response) => {
           const data = response.data;
           console.log('data',data);
@@ -58,8 +58,11 @@ export class Login extends React.Component
       })
       .then((s) =>{
         console.log('data has been sent to server',s);
-        localStorage.setItem('jwt',s.data.token);
+        if(s.data.approvalStatus)localStorage.setItem('approvalStatus',s.data.approvalStatus);
         localStorage.setItem('_id',s.data._id);
+        localStorage.setItem('authToken',s.headers["x-auth-token"]);
+        localStorage.setItem('refreshToken',s.headers["x-refresh-token"]);
+        localStorage.setItem('role',this.state.accType);
         this.props.history.push(`/${this.state.accType}`);
       })
       .catch((error)=>{
@@ -111,7 +114,7 @@ export class Login extends React.Component
             <nav class="navbar navbar-light align-self-end mt-auto p-2">
               <ul class="navbar-nav">
                 <li class="nav-item">
-                  <Link className="nav-link" to="/forgot-password">
+                  <Link className="nav-link" to="/user-reset-password">
                     forgot password
                   </Link>
                 </li>

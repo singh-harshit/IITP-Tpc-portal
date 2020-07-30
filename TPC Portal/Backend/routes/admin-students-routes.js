@@ -5,28 +5,30 @@ const adminStudentsController = require("../controllers/admin-students-controlle
 const fileUpload = require("../middleware/file-upload");
 const auth = require("../middleware/auth");
 
-//router.use(auth);
-
+// Tested
 router.get("/students", adminStudentsController.getAllStudents);
 
 router.post("/students", adminStudentsController.getAllStudentsWithFilter);
 
-router.post("/students/export", adminStudentsController.exportFilteredStudents);
-
+// Tested
 router.get("/student/:sid", adminStudentsController.getStudentById);
 
+// Tested
 router.patch("/student/:sid", adminStudentsController.updateStudentById);
 
+// Tested
 router.patch(
   "/student/resetPassword/:sid",
   adminStudentsController.resetPassword
 );
 
+// Tested
 router.patch(
   "/student/changeStatus/:sid",
   adminStudentsController.changeStatus
 );
 
+// Tested
 router.patch(
   "/students/setStatusCpiUpdate",
   adminStudentsController.statusOfCpiUpdate

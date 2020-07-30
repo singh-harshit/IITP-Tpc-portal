@@ -12,8 +12,6 @@ router.get("/students", adminStudentsController.getAllStudents);
 
 router.post("/students", adminStudentsController.getAllStudentsWithFilter);
 
-router.post("/students/export", adminStudentsController.exportFilteredStudents);
-
 router.get("/student/:sid", adminStudentsController.getStudentById);
 
 module.exports = router;

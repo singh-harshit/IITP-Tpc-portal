@@ -14,7 +14,7 @@ const adminSettingRoutes = require("./routes/admin-setting-routes");
 const adminBackupRoutes = require("./routes/admin-backup-routes");
 const coordinatorStudentRoutes = require("./routes/coordinator-student-routes");
 const coordinatorCompanyRoutes = require("./routes/coordinator-company-routes");
-const coordinatorJobRoutes = require("./routes/admin-jobs-routes");
+const coordinatorJobRoutes = require("./routes/coordinator-job-routes");
 const authRoutes = require("./routes/auth-routes");
 const auth = require("./middleware/auth");
 const authorize = require("./middleware/roles-auth");
@@ -29,7 +29,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 app.use(json2xls.middleware);
 const MONGODB_URI =
-  "mongodb+srv://Vivek:tpcportal@tpc-portal-server-oxadw.mongodb.net/Places?retryWrites=true&w=majority";
+  "mongodb+srv://Vivek:tpcportal@tpc-portal-server-oxadw.mongodb.net/Tpc_Portal_Testing?retryWrites=true&w=majority";
 
 // Data parsing
 app.use(express.json());
@@ -57,31 +57,32 @@ app.use((req, res, next) => {
 app.use(morgan("tiny"));
 
 // Set the Routes
+
 app.use("/backend", authRoutes);
 
 app.use("/backend/student", studentRoutes);
 
 app.use("/backend/company", companyRoutes);
 
+app.use("/backend/coordinator", coordinatorJobRoutes);
+
 app.use("/backend/coordinator", coordinatorStudentRoutes);
 
 app.use("/backend/coordinator", coordinatorCompanyRoutes);
 
-app.use("/backend/coordinator", coordinatorJobRoutes);
-
 app.use("/backend/admin", adminRoutes);
 
-// app.use(auth);
+app.use(auth);
 
-// app.use(authorize("Admin"));
+app.use(authorize("Admin"));
+
+app.use("/backend/admin", adminSettingRoutes);
 
 app.use("/backend/admin", adminJobRoutes);
 
 app.use("/backend/admin", adminRequestRoutes);
 
 app.use("/backend/admin", adminStudentRoutes);
-
-app.use("/backend/admin", adminSettingRoutes);
 
 app.use("/backend/admin", adminBackupRoutes);
 
@@ -107,10 +108,17 @@ app.use((error, req, res, next) => {
     .json({ message: error.message || "An unknown error occured" });
 });
 
-mongoose
-  .connect(MONGODB_URI)
+mongoose.connect(process.env.MONGODB_URI || MONGODB_URI,
+  {
+    useNewUrlParser:true,
+    useUnifiedTopology:true,
+  })
   .then(() => {
     console.log("Connection established to Database");
+    if(process.env.Node_ENV === 'production')
+    {
+      app.use(express.static('../frontend/build'))
+    }
     app.listen(5000);
   })
   .catch((err) => {

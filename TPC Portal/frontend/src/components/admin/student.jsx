@@ -3,16 +3,18 @@ import axios from 'axios';
 import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/dist/styles/ag-grid.css';
 import 'ag-grid-community/dist/styles/ag-theme-balham.css';
-import 'ag-grid-enterprise';
 import {Link} from 'react-router-dom';
 import Popup from "reactjs-popup";
+import {Redirect} from 'react-router-dom';
 export class AdminStudent extends React.Component
 {
-  constructor(props)
-  {
+  constructor(props){
     super(props);
-    this.state =
-    {
+
+  this.state = {
+      refreshToken:localStorage.getItem('refreshToken'),
+      authToken:localStorage.getItem('authToken'),
+      _id:localStorage.getItem('_id'),
       id: props.match.params.sid,
       name:'',
       password:'',
@@ -23,16 +25,9 @@ export class AdminStudent extends React.Component
       mobileNumber:'',
       registrationFor:'',
       program:'',
-      department:'',
       course:'',
       currentSemester:'',
-      sem1: '',
-      sem2: '',
-      sem3: '',
-      sem4: '',
-      sem5: '',
-      sem6: '',
-      sem7: '',
+      spi:[],
       cpi:'',
       tenthMarks: '',
       twelthMarks: '',
@@ -41,16 +36,15 @@ export class AdminStudent extends React.Component
       approvalStatus: 'Nun',
       image:'',
       columnDefs1: [
-        {headerName: 'Company',field: 'company', sortable:true, filter:true,cellRenderer: function(params) {return `<a href="https://www.google.com/search?q=${params.value}" target="_blank" rel="noopener">`+ params.value+'</a>'}},
-        {headerName: 'Job Title',field: 'job', sortable:true, filter:true},
-        {headerName: 'Classification',field: 'classification', sortable:true, filter:true},
-        {headerName: 'Attendance',field: 'attendance', sortable:true, filter:true},
-        {headerName: 'Application Status',field: 'applicationStatus', sortable:true, filter:true},
+        {headerName: 'Company',field: 'jobId.companyName', sortable:true, filter:true,cellRenderer: function(params) {return `<a href="https://www.google.com/search?q=${params.value}" target="_blank" rel="noopener">`+ params.value+'</a>'}},
+        {headerName: 'Job Title',field: 'jobId.jobTitle', sortable:true, filter:true},
+        {headerName: 'Classification',field: 'jobId.jobCategory', sortable:true, filter:true},
+        {headerName: 'Application Status',field: 'studentStatus', sortable:true, filter:true},
       ],
       columnDefs2: [
-        {headerName: 'Company',field: 'company', sortable:true, filter:true,cellRenderer: function(params) {return `<a href="https://www.google.com/search?q=${params.value}" target="_blank" rel="noopener">`+ params.value+'</a>'}},
-        {headerName: 'Job Title',field: 'job', sortable:true, filter:true},
-        {headerName: 'Classification',field: 'classification', sortable:true, filter:true},
+        {headerName: 'Company',field: 'companyName', sortable:true, filter:true,cellRenderer: function(params) {return `<a href="https://www.google.com/search?q=${params.value}" target="_blank" rel="noopener">`+ params.value+'</a>'}},
+        {headerName: 'Job Title',field: 'jobTitle', sortable:true, filter:true},
+        {headerName: 'Classification',field: 'jobCategory', sortable:true, filter:true},
         {headerName: 'Job Status',field: 'jobStatus', sortable:true, filter:true},
       ],
       rowData1: [],
@@ -63,10 +57,16 @@ componentDidMount = () =>{
 };
 
 getStudent = () =>{
-    axios.get('/backend/admin/student/'+this.state.id)
+    axios.get('/backend/admin/student/'+this.state.id,{
+      headers: {
+        'x-auth-token': this.state.authToken,
+        'x-refresh-token': this.state.refreshToken,
+      }
+    })
       .then((response) => {
         const data = response.data.studentInfo;
-        console.log('data',data);
+        const job = response.data;
+        console.log('data',job);
         this.setState({
           name:data.name,
           rollNo:data.rollNo,
@@ -75,9 +75,9 @@ getStudent = () =>{
           personalEmail:data.personalEmail,
           mobileNumber:data.mobileNumber,
           program:data.program,
-          department:data.department,
+          course:data.course,
           currentSemester:data.currentSemester,
-          spi:data.spi,
+          spi:Object.entries(data.spi),
           cpi:data.cpi,
           tenthMarks: data.tenthMarks,
           twelthMarks: data.twelthMarks,
@@ -85,12 +85,21 @@ getStudent = () =>{
           mastersMarks: data.mastersMarks,
           approvalStatus: data.approvalStatus,
           image:data.image,
-          rowData1:data.studentAppliedJobs,
-          rowData2:data.studentEligibleJobs
         });
+        if(job.studentAppliedJobs.appliedJobs)
+        {
+          this.setState({rowData1:job.studentAppliedJobs.appliedJobs,})
+        }
+        if(job.studentEligibleJobs.eligibleJobs)
+        {
+          this.setState({rowData2:job.studentEligibleJobs.eligibleJobs,})
+        }
       })
       .catch((e)=>{
         console.log('Error Retrieving data',e);
+        this.setState({
+          redirect:"/error"
+        })
       });
   };
 
@@ -115,7 +124,11 @@ getStudent = () =>{
     axios({
       url: '/backend/admin/student/resetPassword/'+this.state.id,
       method: 'patch',
-      data: payload
+      data: payload,
+      headers: {
+        'x-auth-token': this.state.authToken,
+        'x-refresh-token': this.state.refreshToken,
+      }
     })
     .then((e) =>{
       console.log('data has been sent to server');
@@ -123,35 +136,52 @@ getStudent = () =>{
     })
     .catch(()=>{
       console.log('data error');
+      alert("Reset Password Failed");
     });
   };
 
   handleDeactivate = () =>{
-    let payload = {
-      approvalStatus: 'Deactivated'
-    }
+    let payload;
+    if(this.state.approvalStatus==="Active"){
+    payload = {
+      status: 'Deactivated'
+    }}
+    else {payload = {
+      status: 'Active'
+    }}
     axios({
-      url: '/backend/admin//student/changeStatus/'+this.state.id,
+      url: '/backend/admin/student/changeStatus/'+this.state.id,
       method: 'patch',
-      data: payload
+      data: payload,
+      headers: {
+        'x-auth-token': this.state.authToken,
+        'x-refresh-token': this.state.refreshToken,
+      }
     })
     .then((e) =>{
       console.log('data has been sent to server');
-      this.getStudents();
+      this.getStudent();
       alert(e.data.message);
     })
     .catch(()=>{
       console.log('data error');
+      alert("Reset password failed");
     });
   }
   render()
   {
+
+    if (this.state.redirect)
+    {
+      return <Redirect to={this.state.redirect} />
+    }
     return(
       <div className="base-container admin border rounded border-success m-3">
         <p className="m-3 p-2">
           <div className="row">
             <div className="col-md-2">
-              <img className="img-fluid rounded" src="https://i.pinimg.com/236x/0c/92/0d/0c920d58b210a74a75868df885160a5f--jon-snow-wolf-dire-wolf.jpg" alternate="hello"></img>
+              <img className="img-fluid rounded" src={
+                  this.state.image==="Still Not Uploaded"?"https://pecb.com/conferences/wp-content/uploads/2017/10/no-profile-picture.jpg":this.state.image} alternate="hello"></img>
               <button type="button" className="btn btn-block btn-primary mt-2">{this.state.approvalStatus}</button>
             </div>
             <div className="col-md-5">
@@ -189,10 +219,10 @@ getStudent = () =>{
               </div>
               <div className="row">
                 <div className="col-md-4">
-                  Department
+                  course
                 </div>
                 <div className="col-md-8">
-                  : {this.state.department}
+                  : {this.state.course}
                 </div>
               </div>
               <div className="row">
@@ -201,6 +231,22 @@ getStudent = () =>{
                 </div>
                 <div className="col-md-8">
                   : {this.state.currentSemester}
+                </div>
+              </div>
+              <div className="row">
+                <div className="col-md-4">
+                  CPI
+                </div>
+                <div className="col-md-8">
+                  : {this.state.cpi}
+                </div>
+              </div>
+              <div className="row">
+                <div className="col-md-4">
+                  SPI
+                </div>
+                <div className="col-md-8">
+                  : {this.state.spi.map((sp)=>sp[1]+', ')}
                 </div>
               </div>
             </div>
@@ -231,22 +277,39 @@ getStudent = () =>{
               </div>
               <div className="row">
                 <div className="col-md-4">
-                  SPI
+                  Tenth Marks
                 </div>
                 <div className="col-md-8">
-                  : {this.state.spi}
+                  : {this.state.tenthMarks}
                 </div>
               </div>
               <div className="row">
                 <div className="col-md-4">
-                  CPI
+                  Twelfth Marks
                 </div>
                 <div className="col-md-8">
-                  : {this.state.cpi}
+                  : {this.state.twelthMarks}
+                </div>
+              </div>
+              <div className="row">
+                <div className="col-md-4">
+                  Bachelor's Marks
+                </div>
+                <div className="col-md-8">
+                  : {this.state.bachelorsMarks}
+                </div>
+              </div>
+              <div className="row">
+                <div className="col-md-4">
+                  Master's Marks
+                </div>
+                <div className="col-md-8">
+                  : {this.state.mastersMarks}
                 </div>
               </div>
             </div>
           </div>
+
         </p>
         <div className="container-fluid">
           <hr className="bg-dark"/>
@@ -259,7 +322,7 @@ getStudent = () =>{
           >
 
           <AgGridReact
-            columnDefs = {this.state.columnDefs}
+            columnDefs = {this.state.columnDefs1}
             rowData = {this.state.rowData1}
             rowSelection = "multiple"
             onGridReady = {params => this.gridApi = params.api}
@@ -286,6 +349,9 @@ getStudent = () =>{
         </div>
         <div className="container-fluid row mt-2">
           <div className="col-md-3">
+            <Link style={{ textDecoration: 'none', color: 'white' }} to={`/admin/editStudent/${this.state.id}`}><button type="button" class="btn btn-success btn-block m-1">Edit Profile</button></Link>
+          </div>
+          <div className="col-md-3">
             <Popup trigger={
             <button type="button" className="btn btn-block btn-success m-1">Reset Password</button>}position="top center"
             >{close => (
@@ -308,11 +374,12 @@ getStudent = () =>{
             </Popup>
           </div>
           <div className="col-md-3">
-            <button type="button" className="btn btn-block btn-success m-1" onClick={this.handleDeactivate}>Deactivate</button>
+            <button type="button" className="btn btn-block btn-success m-1" onClick={this.handleDeactivate}>
+              {this.state.approvalStatus==="Active"?"Deactivate":"Activate"}
+            </button>
           </div>
-          <div className="col-md-3"></div>
           <div className="col-md-3">
-            <Link to="/admin/students/"><button type="button" class="btn btn-outline-dark btn-block m-1">Back</button></Link>
+            <Link style={{ textDecoration: 'none', color: 'white' }} to="/admin/students/"><button type="button" class="btn btn-outline-dark btn-block m-1">Back</button></Link>
           </div>
         </div>
       </div>

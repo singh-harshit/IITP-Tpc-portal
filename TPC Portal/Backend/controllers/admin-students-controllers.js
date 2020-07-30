@@ -1,3 +1,4 @@
+const bcrypt = require("bcrypt");
 const mongoose = require("mongoose");
 const { validationResult } = require("express-validator");
 const HttpError = require("../models/http-error");
@@ -11,22 +12,22 @@ const getAllStudents = async (req, res, next) => {
   let studentsInfo;
   try {
     studentsInfo = await Student.aggregate([
-      { $match: { registrationFor: "FTE" } },
       {
         $project: {
           name: 1,
           rollNo: 1,
           program: 1,
-          department: 1,
+          registrationFor: 1,
           course: 1,
           cpi: 1,
           instituteEmail: 1,
           mobileNumber: 1,
           resumeLink: 1,
           resumeFile: 1,
+          approvalStatus: 1,
           status: {
             $cond: {
-              if: { $eq: ["$placement.status", "placed"] },
+              if: { $eq: ["$placement.status", "Placed"] },
               then: {
                 $concat: ["$placement.status", " in ", "$placement.category"],
               },
@@ -95,59 +96,6 @@ const getAllStudentsWithFilter = async (req, res, next) => {
   res.json({ studentsInfo: studentsInfo });
 };
 
-const exportFilteredStudents = async (req, res, next) => {
-  const { registrationFor, program, department, cpi, status } = req.body;
-  let studentsInfo;
-  try {
-    studentsInfo = await Student.aggregate([
-      {
-        $project: {
-          name: 1,
-          rollNo: 1,
-          program: 1,
-          department: 1,
-          course: 1,
-          cpi: 1,
-          registrationFor: 1,
-          instituteEmail: 1,
-          mobileNumber: 1,
-          resumeLink: 1,
-          resumeFile: 1,
-          matchedProgram: { $in: ["$program", program] },
-          matchedDepartment: { $in: ["$department", department] },
-          status: {
-            $cond: {
-              if: { $eq: ["$placement.status", "placed"] },
-              then: {
-                $concat: ["$placement.status", " in ", "$placement.category"],
-              },
-              else: "$placement.status",
-            },
-          },
-        },
-      },
-      {
-        $match: {
-          $and: [
-            { registrationFor: registrationFor },
-            { status: status },
-            { cpi: { $gte: cpi } },
-            { matchedDepartment: true },
-            { matchedProgram: true },
-          ],
-        },
-      },
-    ]);
-  } catch (err) {
-    console.log(err);
-    const error = new HttpError("Something went wrong! Try again later", 500);
-    return next(error);
-  }
-  var info = JSON.stringify(studentsInfo);
-      var info1 = JSON.parse(info);
-      res.xls("data.xlsx", info1);
-};
-
 const getStudentById = async (req, res, next) => {
   const studId = req.params.sid;
   let studentInfo, studentAppliedJobs, studentEligibleJobs;
@@ -158,7 +106,6 @@ const getStudentById = async (req, res, next) => {
       name: 1,
       rollNo: 1,
       program: 1,
-      department: 1,
       course: 1,
       instituteEmail: 1,
       mobileNumber: 1,
@@ -167,10 +114,16 @@ const getStudentById = async (req, res, next) => {
       spi: 1,
       cpi: 1,
       personalEmail: 1,
+      approvalStatus: 1,
+      tenthMarks: 1,
+      twelthMarks: 1,
+      bachelorsMarks: 1,
+      mastersMarks: 1,
+      image: 1,
     }).session(sess);
     studentAppliedJobs = await StudentJob.findOne(
       { studId: studId },
-      { studId: 1, appliedJobs: 1, _id: 0 }
+      { appliedJobs: 1, _id: 0 }
     ).populate("appliedJobs.jobId", {
       companyName: 1,
       jobTitle: 1,
@@ -178,7 +131,7 @@ const getStudentById = async (req, res, next) => {
     });
     studentEligibleJobs = await StudentJob.findOne(
       { studId: studId },
-      { studId: 1, eligibleJobs: 1, _id: 0 }
+      { eligibleJobs: 1, _id: 0 }
     ).populate("eligibleJobs", {
       companyName: 1,
       jobTitle: 1,
@@ -213,24 +166,35 @@ const updateStudentById = async (req, res, next) => {
     spi,
     cpi,
     personalEmail,
+    tenthMarks,
+    twelthMarks,
+    bachelorsMarks,
+    mastersMarks,
   } = req.body;
   try {
-    await Student.updateById(studId, {
-      $set: {
-        name: name,
-        rollNo: rollNo,
-        gender: gender,
-        program: program,
-        department: department,
-        currentSemester: currentSemester,
-        cpi: cpi,
-        spi: spi,
-        course: course,
-        instituteEmail: instituteEmail,
-        personalEmail: personalEmail,
-        mobileNumber: mobileNumber,
-      },
-    });
+    await Student.updateOne(
+      { _id: studId },
+      {
+        $set: {
+          name: name,
+          rollNo: rollNo,
+          gender: gender,
+          program: program,
+          department: department,
+          currentSemester: currentSemester,
+          cpi: cpi,
+          spi: spi,
+          course: course,
+          instituteEmail: instituteEmail,
+          personalEmail: personalEmail,
+          mobileNumber: mobileNumber,
+          tenthMarks: tenthMarks,
+          twelthMarks: twelthMarks,
+          bachelorsMarks: bachelorsMarks,
+          mastersMarks: mastersMarks,
+        },
+      }
+    );
   } catch (err) {
     console.log(err);
     const error = new HttpError("Something went wrong! Try again later", 500);
@@ -241,7 +205,7 @@ const updateStudentById = async (req, res, next) => {
 
 const resetPassword = async (req, res, next) => {
   const studId = req.params.sid;
-  const { newPassword } = req.body;
+  let { newPassword } = req.body;
   let student;
   try {
     const sess = await mongoose.startSession();
@@ -250,7 +214,9 @@ const resetPassword = async (req, res, next) => {
     if (!student) {
       return next(new HttpError("Student not Found", 404));
     }
-    student.password = newPassword;
+    //Hashing the password
+    const salt = await bcrypt.genSalt(10);
+    student.password = await bcrypt.hash(newPassword, salt);
     await student.save({ session: sess });
     await sess.commitTransaction();
   } catch (err) {
@@ -258,7 +224,7 @@ const resetPassword = async (req, res, next) => {
     const error = new HttpError("Something went wrong! Try again later", 500);
     return next(error);
   }
-  res.json({ message: "Password updated for" + student.rollNo });
+  res.json({ message: "Password updated for " + student.rollNo });
 };
 
 const changeStatus = async (req, res, next) => {
@@ -269,7 +235,16 @@ const changeStatus = async (req, res, next) => {
     const sess = await mongoose.startSession();
     sess.startTransaction();
     student = await Student.findById(studId).session(sess);
-    student.placement.status = status;
+    student.approvalStatus = status;
+    if (status == "Active") {
+      studJob = await StudentJob.findOne({ studId: studId }).session(sess);
+      if (!studJob) {
+        const newStudentJob = new StudentJob({
+          studId: studId,
+        });
+        await newStudentJob.save({ session: sess });
+      }
+    }
     await student.save({ session: sess });
     await sess.commitTransaction();
   } catch (err) {
@@ -300,7 +275,6 @@ const statusOfCpiUpdate = async (req, res, next) => {
 
 exports.getAllStudents = getAllStudents;
 exports.getAllStudentsWithFilter = getAllStudentsWithFilter;
-exports.exportFilteredStudents = exportFilteredStudents;
 exports.getStudentById = getStudentById;
 exports.updateStudentById = updateStudentById;
 exports.resetPassword = resetPassword;

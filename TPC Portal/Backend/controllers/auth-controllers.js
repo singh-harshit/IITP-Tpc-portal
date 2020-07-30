@@ -41,9 +41,12 @@ const forgotPassword = async (req, res, next) => {
   if (!existingPerson) {
     return next(new HttpError("User not found!", 404));
   }
-  email = "vibrojnv@gmail.com";
+  //email = "vibrojnv@gmail.com";
   //Send Auto Generated Mail for password reset
-  const token = existingPerson.generateAuthToken();
+  const token = jwt.sign(
+    { _id: existingPerson._id, role: existingPerson.role },
+    process.env.resetPasswordTokenKey
+  );
   existingPerson.resetPasswordToken = token;
   existingPerson.resetPasswordExpires = Date.now() + 3600000; //1 hour
   try {
@@ -89,7 +92,7 @@ const resetPassword = async (req, res, next) => {
   let id, role, User;
   let existingPerson;
   try {
-    const decoded = jwt.verify(token, process.env.jwtPrivateKey);
+    const decoded = jwt.verify(token, process.env.resetPasswordTokenKey);
     id = decoded._id;
     role = decoded.role;
     console.log(role);
@@ -108,7 +111,7 @@ const resetPassword = async (req, res, next) => {
     return next(new HttpError("Invalid token or expired token", 400));
   }
   if (!existingPerson)
-    return next(new HttpError("Invalid tokem or expired token", 400));
+    return next(new HttpError("Invalid token or expired token", 400));
 
   //Hashing the password
   const salt = await bcrypt.genSalt(10);
@@ -124,5 +127,69 @@ const resetPassword = async (req, res, next) => {
   res.json("Password Changed");
 };
 
+const guideLines = async (req, res, next) => {
+  let admin;
+  try {
+    admin = await Admin.findOne({}, { guideLines: 1 });
+  } catch (err) {
+    console.log(err);
+    const error = new HttpError("Something went wrong ! try again later", 500);
+    return next(error);
+  }
+  res.json({ guidLines: admin.guideLines });
+};
+const checkRegistrationStatus = async (req, res, next) => {
+  let RegStatus, admin;
+  try {
+    admin = await Admin.findOne({}, { registrationStatus: 1 });
+    RegStatus = admin.registrationStatus;
+    if (RegStatus == null)
+      return next(new HttpError("Registration status not define yet", 500));
+  } catch (err) {
+    console.log(err);
+    const error = new HttpError("Something went wrong ! try again later", 500);
+    return next(error);
+  }
+  res.json({ regStatus: RegStatus });
+};
+
+const getAllDetails = async (req, res, next) => {
+  let classifications, steps, status, programs, programAndCourses, guideLines;
+  let admin;
+  try {
+    admin = await Admin.findOne(
+      {},
+      {
+        allJobClassifications: 1,
+        allJobSteps: 1,
+        allJobStatus: 1,
+        allStudentPrograms: 1,
+        allStudentProgramsAndCourses: 1,
+        guideLines: 1,
+      }
+    );
+  } catch (err) {
+    console.log(err);
+    const error = new HttpError("Something went wrong ! try again later", 500);
+    return next(error);
+  }
+  classifications = admin.allJobClassifications;
+  steps = admin.allJobSteps;
+  status = admin.allJobStatus;
+  programs = admin.allStudentPrograms;
+  programAndCourses = admin.allStudentProgramsAndCourses;
+  guideLines = admin.guideLines;
+  res.json({
+    classifications: classifications,
+    steps: steps,
+    status: status,
+    programs: programs,
+    programAndCourses: programAndCourses,
+    guideLines: guideLines,
+  });
+};
 exports.forgotPassword = forgotPassword;
 exports.resetPassword = resetPassword;
+exports.guideLines = guideLines;
+exports.checkRegistrationStatus = checkRegistrationStatus;
+exports.getAllDetails = getAllDetails;
