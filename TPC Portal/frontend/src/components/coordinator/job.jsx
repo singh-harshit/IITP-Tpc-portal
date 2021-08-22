@@ -5,6 +5,10 @@ import 'ag-grid-community/dist/styles/ag-grid.css';
 import 'ag-grid-community/dist/styles/ag-theme-balham.css';
 import {Link,Redirect} from 'react-router-dom';
 import Popup from "reactjs-popup";
+import  JSZip from 'jszip';
+import JSZipUtils from 'jszip-utils';
+import FileSaver from "file-saver";
+
 export class CoordinatorJob extends React.Component
 {
   constructor(props){
@@ -18,12 +22,16 @@ export class CoordinatorJob extends React.Component
       columnDefs: [
         {headerName: 'Name',field: 'name', sortable:true, filter:true,checkboxSelection:true,onlySelected:true},
         {headerName: 'Roll No',field: 'rollNo', sortable:true, filter:true},
-        {headerName: 'CPI',field: 'cpi', sortable:true, filter:true},
+        {headerName: 'CPI',field: 'cpi', sortable:true, filter:"agNumberColumnFilter"},
+        {headerName: '10th Score',field: 'tenthMarks', sortable:true, filter:"agNumberColumnFilter"},
+        {headerName: '12th Score',field: 'twelthMarks', sortable:true, filter:"agNumberColumnFilter"},
         {headerName: 'Program',field: 'program', sortable:true, filter:true},
-        {headerName: 'Mail',field: 'instituteEmail', sortable:true, filter:true},
+        {headerName: 'Course',field: 'course', sortable:true, filter:true},
+        {headerName: 'Institute Email',field: 'instituteEmail', sortable:true, filter:true},
+        {headerName: 'Personal Email',field: 'personalEmail', sortable:true, filter:true},
         {headerName: 'Mob',field: 'mobileNumber', sortable:true, filter:true},
-        {headerName: 'Application Status',field: 'selectedStudents', sortable:true, filter:true},
         {headerName: 'Resume',field: 'resumeFile', sortable:true, filter:true,cellRenderer: function(params) {return `<a href="${params.value}" target="_blank" rel="noopener">`+ params.value+'</a>'}},
+        {headerName: 'Resume Link',field: 'resumeLink', sortable:true, filter:true,cellRenderer: function(params) {return `<a href="${params.value}" target="_blank" rel="noopener">`+ params.value+'</a>'}},
       ],
       rowData: [],
       eligibilityCriteria:[]
@@ -42,14 +50,12 @@ export class CoordinatorJob extends React.Component
         })
           .then((response) => {
             const data = response.data.jobDetails;
-            console.log('data',data);
             this.setState(data);
             this.setState({
               fillSchedule:this.fillSchedule()
             });
           })
           .catch((e)=>{
-            console.log('Error Retrieving data',e);
             this.setState({
               redirect:"/error"
             })
@@ -64,13 +70,11 @@ export class CoordinatorJob extends React.Component
         })
           .then((response) => {
             const data = response.data.activeStudents;
-            console.log('Applicants',data);
             this.setState({
               rowData:data
             })
           })
           .catch((e)=>{
-            console.log('Error Retrieving data',e);
             this.setState({
               redirect:"/error"
             })
@@ -107,7 +111,6 @@ export class CoordinatorJob extends React.Component
           }
         })
         .then(() =>{
-          console.log('data has been sent to server');
           this.getApplicants()
         })
         .catch((error)=>{
@@ -130,10 +133,10 @@ export class CoordinatorJob extends React.Component
           }
         })
         .then(() =>{
-          console.log('data has been sent to server');
+          alert('Registration Open')
         })
         .catch((error)=>{
-          alert('Could Not Open');
+          alert('Could Not Open Registration');
         });
       }
       closeRegistration = (e) =>{
@@ -150,10 +153,10 @@ export class CoordinatorJob extends React.Component
           }
         })
         .then(() =>{
-          console.log('data has been sent to server');
+          alert('Registration Closed')
         })
         .catch((error)=>{
-          alert('Could Not Close');
+          alert('Could Not Close Registration');
         });
       }
       handleDeleteJob = ()=>{
@@ -178,6 +181,32 @@ export class CoordinatorJob extends React.Component
           alert("Could Not Delete Job");
         });
       }
+      onBtnExport = () => {this.gridApi.exportDataAsCsv();}
+
+      handleExportFiles = () => {
+        let urls=this.state.rowData.map((data)=>"/files/"+data.resumeFile);
+        let company=this.state.companyName;
+        let job=this.state.jobTitle;
+        var zip = new JSZip();
+        var count = 0;
+        urls.forEach(async function(url){
+          var filename = url.replace("/files/https://iitp-tpc-portal-file-storage.s3.ap-south-1.amazonaws.com/","");
+          var fileURL = url.replace("https://iitp-tpc-portal-file-storage.s3.ap-south-1.amazonaws.com/","");
+          // loading a file and add it in a zip file
+          await JSZipUtils.getBinaryContent(fileURL, function (err, data) {
+             if(err) {
+                alert("file error")
+             }
+             zip.file(filename, data);
+             count++;
+             if (count == urls.length) {
+              zip.generateAsync({ type: 'blob' }).then(function (content) {
+                FileSaver.saveAs(content, company+"_"+job+".zip");
+              });
+            }
+          });
+        });
+      };
   render()
   {
     if (this.state.redirect)
@@ -219,6 +248,8 @@ export class CoordinatorJob extends React.Component
       {this.state.fillSchedule}
       <hr/>
       </div>
+      <button className="btn btn-primary m-1 btn-sm" onClick={() => this.onBtnExport()}>Export</button>
+      <button className="btn btn-primary m-1 btn-sm" onClick={() => this.handleExportFiles()}>Export Resume</button>
       <div
         className="ag-theme-balham"
         style={{

@@ -1,5 +1,6 @@
 import React from "react";
 import axios from "axios";
+import {Redirect} from 'react-router-dom';
 
 export class StudentRequests extends React.Component {
   constructor(props){
@@ -18,7 +19,6 @@ export class StudentRequests extends React.Component {
     if (!posts.length) {
       return null;
     }
-    console.log(posts);
     return posts.map((post, index) => (
       <div
         key={index}
@@ -45,11 +45,12 @@ export class StudentRequests extends React.Component {
       .then((response) => {
         const data = response.data.oldRequests.requests;
         this.setState({ posts: data });
-        console.log("data", this.state.posts);
         this.displayPost(this.state.posts);
       })
       .catch(() => {
-        console.log("Error Retrieving data");
+        this.setState({
+          redirect:"/error"
+        })
       });
   };
 
@@ -87,12 +88,11 @@ export class StudentRequests extends React.Component {
       }
     })
       .then(() => {
-        console.log("data has been sent to server");
         this.resetUserInputs();
         this.getPost();
       })
       .catch(() => {
-        console.log("data error");
+        alert("Request send Failed");
       });
   };
 
@@ -104,7 +104,11 @@ export class StudentRequests extends React.Component {
   };
 
   render() {
-    console.log("State:", this.state);
+
+    if (this.state.redirect)
+    {
+      return <Redirect to={this.state.redirect} />
+    }
     return (
       <div className="base-container">
         <section className="container-fluid">
@@ -119,6 +123,7 @@ export class StudentRequests extends React.Component {
                     className="form-control"
                     name="subject"
                     placeholder="Enter Subject"
+                    required
                     value={this.state.subject}
                     onChange={this.handleChange}
                   />
@@ -131,6 +136,7 @@ export class StudentRequests extends React.Component {
                     rows="5"
                     value={this.state.message}
                     onChange={this.handleChange}
+                    required
                   ></textarea>
                 </div>
                 <br />

@@ -36,13 +36,13 @@ export class CoordinatorStudent extends React.Component{
       approvalStatus: 'Nun',
       image:'',
       columnDefs1: [
-        {headerName: 'Company',field: 'jobId.companyName', sortable:true, filter:true,cellRenderer: function(params) {return `<a href="https://www.google.com/search?q=${params.value}" target="_blank" rel="noopener">`+ params.value+'</a>'}},
+        {headerName: 'Company',field: 'jobId.companyName', sortable:true, filter:true,cellRenderer: function(params){ return `<a href="https://iitp-tpc-portal.netlify.app/coordinator/job/${params.data._id}" target="_blank" rel="noopener">`+ params.value+'</a>'}},
         {headerName: 'Job Title',field: 'jobId.jobTitle', sortable:true, filter:true},
         {headerName: 'Classification',field: 'jobId.jobCategory', sortable:true, filter:true},
         {headerName: 'Application Status',field: 'studentStatus', sortable:true, filter:true},
       ],
       columnDefs2: [
-        {headerName: 'Company',field: 'companyName', sortable:true, filter:true,cellRenderer: function(params) {return `<a href="https://www.google.com/search?q=${params.value}" target="_blank" rel="noopener">`+ params.value+'</a>'}},
+        {headerName: 'Company',field: 'companyName', sortable:true, filter:true,cellRenderer: function(params){ return `<a href="https://iitp-tpc-portal.netlify.app/coordinator/job/${params.data._id}" target="_blank" rel="noopener">`+ params.value+'</a>'}},
         {headerName: 'Job Title',field: 'jobTitle', sortable:true, filter:true},
         {headerName: 'Classification',field: 'jobCategory', sortable:true, filter:true},
         {headerName: 'Job Status',field: 'jobStatus', sortable:true, filter:true},
@@ -66,8 +66,8 @@ getStudent = () =>{
       .then((response) => {
         const data = response.data.studentInfo;
         const job = response.data;
-        console.log('data',job);
         this.setState({
+          registrationFor:data.registrationFor,
           name:data.name,
           rollNo:data.rollNo,
           gender:data.gender,
@@ -84,6 +84,8 @@ getStudent = () =>{
           bachelorsMarks: data.bachelorsMarks,
           mastersMarks: data.mastersMarks,
           approvalStatus: data.approvalStatus,
+          resumeFile: data.resumeFile,
+          resumeLink:data.resumeLink,
           image:data.image,
         });
         if(job.studentAppliedJobs.appliedJobs)
@@ -96,7 +98,6 @@ getStudent = () =>{
         }
       })
       .catch((e)=>{
-        console.log('Error Retrieving data',e);
         this.setState({
           redirect:"/error"
         })
@@ -112,7 +113,6 @@ getStudent = () =>{
     this.setState({
       [name]:value
     })
-    console.log(this.state);
   };
   render()
   {
@@ -153,6 +153,14 @@ getStudent = () =>{
                 </div>
                 <div className="col-md-8">
                   : {this.state.gender}
+                </div>
+              </div>
+              <div className="row">
+                <div className="col-md-4">
+                  Registered For
+                </div>
+                <div className="col-md-8">
+                  : {this.state.registrationFor}
                 </div>
               </div>
               <div className="row">
@@ -251,6 +259,22 @@ getStudent = () =>{
                 </div>
                 <div className="col-md-8">
                   : {this.state.mastersMarks}
+                </div>
+              </div>
+              <div className="row">
+                <div className="col-md-4">
+                  Resume
+                </div>
+                <div className="col-md-8">
+                  : {this.state.resumeFile?(<a href={this.state.resumeFile} target="_blank" rel="noopener noreferrer"><button className="btn btn-primary btn-sm">Open</button></a>):"Not uploaded"}
+                </div>
+              </div>
+              <div className="row mt-1">
+                <div className="col-md-4">
+                  Resume Link:
+                </div>
+                <div className="col-md-8">
+                  : {this.state.resumeFile?(<a href={this.state.resumeLink} target="_blank" rel="noopener noreferrer"><button className="btn btn-primary btn-sm">Open</button></a>):"Not uploaded"}
                 </div>
               </div>
             </div>

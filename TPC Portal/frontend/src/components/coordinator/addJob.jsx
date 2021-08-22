@@ -28,7 +28,6 @@ export class CoordinatorAddJob extends React.Component
       await axios.get('/backend/allDetails')
         .then((response) => {
           const data = response.data;
-          console.log('data',data);
           let programs = [];
           data.programAndCourses.forEach((item, i) => {
             let program = item.program;
@@ -72,7 +71,6 @@ export class CoordinatorAddJob extends React.Component
     const target = event.target;
     const name = target.name;
     const value = target.value;
-    console.log(event.value);
     if(name==="companyName")
     {
       var list = value.split(',');
@@ -87,10 +85,8 @@ export class CoordinatorAddJob extends React.Component
         [name]:value
       })
     }
-    console.log(this.state);
   }
   handleCompanyList = (data) =>{
-    console.log(data);
   const companyList = data.map((company,index) =>
     <option key={company._id} label={company.companyName} value={[company._id,company.companyName]}>{company.companyName}</option>
     )
@@ -118,7 +114,6 @@ export class CoordinatorAddJob extends React.Component
     let programs=this.state.programs  ;
     let checkprogram=event.target.name;
     let checkcourse=event.target.value;
-  //  console.log(checkprogram,checkcourse);
     programs.forEach((program, i) => {
       if(program.value===checkprogram)
       {
@@ -131,7 +126,6 @@ export class CoordinatorAddJob extends React.Component
   }
   handleProgramChange = (event)=>{
     let target=event.target;
-    console.log(target.value);
     let upprogram=target.name.split(',');
     let upfield=upprogram[1];
     upprogram=upprogram[0];
@@ -155,9 +149,9 @@ export class CoordinatorAddJob extends React.Component
         eligibilityCriteria.push({
           program:program.value,
           course:courses,
-          cpiCutOff:program.cpi,
-          tenthMarks:program.tenthMarks,
-          twelthMarks:program.twelthMarks,
+          cpiCutOff:program.cpi?program.cpi:0,
+          tenthMarks:program.tenthMarks?program.tenthMarks:0,
+          twelthMarks:program.twelthMarks?program.twelthMarks:0,
           bachelorsMarks:program.bachelorsMarks?program.bachelorsMarks:0,
           mastersMarks:program.mastersMarks?program.mastersMarks:0,
           ctc:program.ctc,
@@ -188,7 +182,6 @@ export class CoordinatorAddJob extends React.Component
         }
       })
       .then( async(s)=>{
-        console.log('data has been sent to server');
         const formData = new FormData();
         formData.append('resumeFiles',this.state.file);
         await this.setState({
@@ -224,7 +217,6 @@ export class CoordinatorAddJob extends React.Component
   handleFile = (event) =>
   {
     let file = event.target.files[0];
-    console.log('uploaded:',file);
     this.setState({
       file: file,
     });
@@ -438,7 +430,7 @@ export class CoordinatorAddJob extends React.Component
                       </div>
                       <div className="col-md-9 p-1">
                         <input
-                          type="number"
+                          type="number" step="any"
                           name={program.value+",cpi"}
                           className="form-control"
                           placeholder="Enter CPI"
@@ -470,7 +462,7 @@ export class CoordinatorAddJob extends React.Component
                       </div>
                       <div className="col-md-9 p-1">
                         <input
-                          type="number"
+                          type="number" step="any"
                           name={program.value+",twelthMarks"}
                           className="form-control"
                           placeholder="Enter Marks"
@@ -486,7 +478,7 @@ export class CoordinatorAddJob extends React.Component
                       </div>
                       <div className="col-md-9 p-1">
                         <input
-                          type="number"
+                          type="number" step="any"
                           name={program.value+",bachelorsMarks"}
                           className="form-control"
                           placeholder="Enter Marks"
@@ -502,7 +494,7 @@ export class CoordinatorAddJob extends React.Component
                       </div>
                       <div className="col-md-9 p-1">
                         <input
-                          type="number"
+                          type="number" step="any"
                           name={program.value+",mastersMarks"}
                           className="form-control"
                           placeholder="Enter Marks"

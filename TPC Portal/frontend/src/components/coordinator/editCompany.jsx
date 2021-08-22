@@ -39,7 +39,6 @@ export class CoordinatorEditCompany extends React.Component
       this.setState({
         [name]:value
       })
-      console.log(this.state);
     };
 
     handleSubmit = (event) =>
@@ -72,7 +71,6 @@ export class CoordinatorEditCompany extends React.Component
             contact2: contact2,
             contact3: contact3
           };
-          console.log(payload);
           axios({
             url: `/backend/coordinator/companies/${this.state.id}`,
             method: 'patch',
@@ -83,13 +81,12 @@ export class CoordinatorEditCompany extends React.Component
     				}
           })
           .then(() =>{
-            console.log('data has been sent to server');
             this.setState({
               redirect:`/coordinator/company/${this.state.id}`
             })
           })
           .catch(()=>{
-            console.log('data error');
+            alert("Could Not Update company details");
           });
       };
       componentDidMount = () =>{
@@ -104,7 +101,6 @@ export class CoordinatorEditCompany extends React.Component
           })
             .then((response) => {
               const data = response.data.companyDetails;
-              console.log('data',data);
               this.setState(data)
               this.setState({
                 name1:data.contact1.name,
@@ -132,7 +128,9 @@ export class CoordinatorEditCompany extends React.Component
               }
             })
             .catch((e)=>{
-              console.log('Error Retrieving data',e);
+              this.setState({
+                redirect:"/error"
+              })
             });
         };
   render()

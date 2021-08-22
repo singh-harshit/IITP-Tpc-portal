@@ -1,5 +1,6 @@
 import React from "react";
 import axios from 'axios';
+import {Redirect} from 'react-router-dom';
 
 export class CompanyProfile extends React.Component
 {
@@ -47,7 +48,6 @@ export class CompanyProfile extends React.Component
       })
         .then((response) => {
           const data = response.data.companyInfo;
-          console.log('data',data);
           this.setState(data)
         })
         .catch((e)=>{
@@ -59,6 +59,10 @@ export class CompanyProfile extends React.Component
 
     render()
     {
+      if (this.state.redirect)
+      {
+        return <Redirect to={this.state.redirect} />
+      }
       return(
         <div className="col-md-12 border p-3 m-3 rounded admin border-success">
   <h4 className="m-3">

@@ -1,5 +1,6 @@
 import React from 'react';
 import axios from 'axios';
+import {Redirect} from 'react-router-dom';
 
 
 export class CompanyRequests extends React.Component{
@@ -19,7 +20,6 @@ export class CompanyRequests extends React.Component{
 
   displayPost = (posts) =>{
     if(!posts.length){ return null;}
-    console.log(posts);
     return posts.map((post,index) =>(
       <div key={index} className="container bg-success text-light p-3 my-3 border">
         <h3>{post.subject}</h3>
@@ -43,11 +43,12 @@ export class CompanyRequests extends React.Component{
       .then((response) => {
         const data = response.data.oldRequests.requests;
         this.setState({posts: data});
-        console.log('data',this.state.posts);
         this.displayPost(this.state.posts);
       })
       .catch(()=>{
-        console.log('Error Retrieving data');
+        this.setState({
+          redirect:"/error"
+        })
       });
   }
 
@@ -82,12 +83,11 @@ export class CompanyRequests extends React.Component{
       }
     })
       .then(() => {
-        console.log("data has been sent to server");
         this.resetUserInputs();
         this.getPost();
       })
       .catch((error) => {
-        console.log(error);
+        alert("Could Not Send Request");
       });
   };
 
@@ -99,8 +99,10 @@ export class CompanyRequests extends React.Component{
   };
 
   render(){
-
-    console.log('State:',this.state);
+    if (this.state.redirect)
+    {
+      return <Redirect to={this.state.redirect} />
+    }
     return(
       <div className="base-container">
         <section className="container-fluid">

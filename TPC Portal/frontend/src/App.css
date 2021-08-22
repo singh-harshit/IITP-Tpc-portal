@@ -69,7 +69,7 @@
 @media only screen and (max-width: 768px) {
   .new-request{
     position: fixed;
-    margin-top: 19vh;
+    margin-top: 23vh;
     z-index: 1;
     width: 100%;
   }
@@ -130,7 +130,7 @@
     background-position: bottom;
   	background-size: cover;
   	background-attachment: fixed;
-    height: 85vh;
+    height: 700px;
     border-radius: 35px;
     margin-left: 2vh;
     margin-bottom: 15vh;

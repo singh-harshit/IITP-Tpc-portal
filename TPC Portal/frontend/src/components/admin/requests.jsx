@@ -14,23 +14,23 @@ export class AdminRequests extends React.Component
       authToken:localStorage.getItem('authToken'),
       _id:localStorage.getItem('_id'),
       columnDefs1: [
-        {headerName: 'Company',field: 'companyName', sortable:true, filter:true,checkboxSelection:true,onlySelected:true,cellRenderer: function(params){ return `<a href="http://localhost:3000/admin/company/${params.data._id}" target="_blank" rel="noopener">`+ params.value+'</a>'}},
-        {headerName: 'Approve',field: 'approve',cellRenderer: function(params) {return `<div><button type="button" class="btn btn-block btn-success m-1">Approve</button></div>`}},
+        {headerName: 'Company',field: 'companyName', sortable:true, filter:true,checkboxSelection:true,onlySelected:true,cellRenderer: function(params){ return `<a href="https://iitp-tpc-portal.netlify.app/admin/company/${params.data._id}" target="_blank" rel="noopener">`+ params.value+'</a>'}},
+        {headerName: 'Approve',field: 'approve',cellRenderer: function(params) {return `<button type="button" class="btn btn-block btn-success m-1">Approve</button>`}},
         {headerName: 'Delete',field: 'deleteApproval',cellRenderer: function(params) {return `<button type="button" class="btn btn-block btn-danger m-1">Delete</button>`}},
       ],
       rowData1: [],
       columnDefs2: [
-        {headerName: 'Student',field: 'name', sortable:true, filter:true,checkboxSelection:true,onlySelected:true,cellRenderer: function(params){ return `<a href="http://localhost:3000/admin/student/${params.data._id}" target="_blank" rel="noopener">`+ params.value+'</a>'}},
+        {headerName: 'Student',field: 'name', sortable:true, filter:true,checkboxSelection:true,onlySelected:true,cellRenderer: function(params){ return `<a href="https://iitp-tpc-portal.netlify.app/admin/student/${params.data._id}" target="_blank" rel="noopener">`+ params.value+'</a>'}},
         {headerName: 'Roll No',field: 'rollNo', sortable:true, filter:true},
-        {headerName: 'Approve',field: 'approve',cellRenderer: function(params) {return `<div><button type="button" class="btn btn-block btn-success m-1">Approve</button></div>`}},
+        {headerName: 'Approve',field: 'approve',cellRenderer: function(params) {return `<button type="button" class="btn btn-block btn-success m-1">Approve</button>`}},
         {headerName: 'Delete',field: 'deleteApproval',cellRenderer: function(params) {return `<button type="button" class="btn btn-block btn-danger m-1">Delete</button>`}},
       ],
       rowData2: [],
       columnDefs3: [
-        {headerName: 'Job Title',field: 'jobTitle', sortable:true, filter:true,checkboxSelection:true,onlySelected:true,cellRenderer: function(params){ return `<a href="http://localhost:3000/admin/job/${params.data._id}" target="_blank" rel="noopener">`+ params.value+'</a>'}},
+        {headerName: 'Job Title',field: 'jobTitle', sortable:true, filter:true,checkboxSelection:true,onlySelected:true,cellRenderer: function(params){ return `<a href="https://iitp-tpc-portal.netlify.app/admin/job/${params.data._id}" target="_blank" rel="noopener">`+ params.value+'</a>'}},
         {headerName: 'Company Name',field: 'companyName', sortable:true, filter:true},
         {headerName: 'Classification',field: 'jobCategory', sortable:true,filter:true},
-        {headerName: 'Jaf',field: 'jafFiles'},
+        {headerName: 'Jaf',field: 'jafFiles',cellRenderer: function(params){ if(params.value.length!==0){return `<a href="${params.value}" target="_blank" rel="noopener">`+"Open JAF"+'</a>'}else{return `<div>No JAF File</div>`}}},
         {headerName: 'Approve',field: 'approve',cellRenderer: function(params) {return `<div><button type="button" class="btn btn-block btn-success m-1">Approve</button></div>`}},
         {headerName: 'Delete',field: 'deleteApproval',cellRenderer: function(params) {return `<button type="button" class="btn btn-block btn-danger m-1">Delete</button>`}},
       ],
@@ -38,18 +38,21 @@ export class AdminRequests extends React.Component
       columnDefs4: [
         {headerName: 'Name',field: 'companyId.companyName', sortable:true, filter:true,checkboxSelection:true,onlySelected:true},
         {headerName: 'Subject',field: 'subject', sortable:true,filter:true},
-        {headerName: 'Content',field: 'content', sortable:true,filter:true},
+        {headerName: 'Content',field: 'content', sortable:true,filter:true,cellRenderer: function(params) {return `<p data-toggle="tooltip" data-placement="top" title="${params.value}">`+params.value+`</p>`}},
         {headerName: 'Mark Read',field: 'readCompany',cellRenderer: function(params) {return `<div><button type="button" class="btn btn-block btn-success m-1">Mark Read</button></div>`}},
       ],
       rowData4: [],
       columnDefs5: [
         {headerName: 'Name',field: 'studId.name', sortable:true, filter:true,checkboxSelection:true,onlySelected:true},
         {headerName: 'Roll No',field: 'studId.rollNo', sortable:true,filter:true},
-        {headerName: 'Subject',field: 'subject', sortable:true,filter:true},
-        {headerName: 'Content',field: 'content', sortable:true,filter:true},
+        {headerName: 'Subject',field: 'subject', sortable:true,filter:true,},
+        {headerName: 'Content',field: 'content', sortable:true,filter:true,cellRenderer: function(params) {return `<p data-toggle="tooltip" data-placement="top" title="${params.value}">`+params.value+`</p>`}},
         {headerName: 'Mark Read',field: 'readStudent',cellRenderer: function(params) {return `<div><button type="button" class="btn btn-block btn-success m-1">Mark Read</button></div>`}},
       ],
       rowData5: [],
+      defaultColDef:{
+        resizable: true,
+      },
       getRowHeight: function(params) {
        return 50;
      }
@@ -67,7 +70,6 @@ export class AdminRequests extends React.Component
         })
           .then((response) => {
             const data = response.data;
-            console.log('data',data);
             this.setState({
               rowData1:data.companyApprovals,
               rowData2:data.studentApprovals,
@@ -77,25 +79,21 @@ export class AdminRequests extends React.Component
             })
           })
           .catch((e)=>{
-            console.log('Error Retrieving data',e);
             this.setState({
               redirect:"/error"
             })
           });
       };
 
-      handleClick = (e) =>{
-        const selectedNodes = this.gridApi.getSelectedNodes();
-        const selectedData = selectedNodes.map(node => node.data);
-        const id = selectedData.map(node => '' + node._id).join('/');
-        var payload;
+      handleClick = async (e) =>{
+        this.setState({loading:true});
+        let payload;
         if(e.data.jobTitle){payload={approvalType:'J',deletionType:'J'}}
         else if(e.data.companyName){payload={approvalType:"C",deletionType:"C"}}
         else if(e.data.name){payload={approvalType:"S",deletionType:"S"}}
         if(e.column.colId==='approve')
         {
-          console.log(`/backend/admin/approve/request/${e.data._id}`);
-          axios({
+            axios({
             url: `/backend/admin/approve/request/${e.data._id}`,
             method: 'patch',
             data: payload,
@@ -105,21 +103,20 @@ export class AdminRequests extends React.Component
     				}
           })
           .then((s) =>{
-            console.log('data has been sent to server',e);
             alert(s.data.message);
+            this.setState({loading:false});
             this.getRequests();
           })
           .catch((e)=>{
-            console.log('data error',e,payload);
             alert("Could Not Approve");
+            this.setState({loading:false});
           });
         }
 
 
         else if(e.column.colId==='deleteApproval')
         {
-          console.log(`/backend/admin/delete/request/${e.data._id}`)
-          axios({
+           axios({
             url: `/backend/admin/delete/request/${e.data._id}`,
             method: 'delete',
             data: payload,
@@ -129,13 +126,13 @@ export class AdminRequests extends React.Component
     				}
           })
           .then((s) =>{
-            console.log('data has been sent to server');
             alert(s.data.message);
+            this.setState({loading:false});
             this.getRequests();
           })
           .catch((e)=>{
-            console.log('data error',e);
             alert("Could Not Delete");
+            this.setState({loading:false});
           });
         }
 
@@ -154,13 +151,13 @@ export class AdminRequests extends React.Component
     				}
           })
           .then((s) =>{
-            console.log('data has been sent to server');
             alert(s.data.message);
             this.getRequests();
+            this.setState({loading:false});
           })
           .catch((e)=>{
-            console.log('data error',e);
             alert("Request Error");
+            this.setState({loading:false});
           });
         }
 
@@ -169,7 +166,7 @@ export class AdminRequests extends React.Component
           payload= {
             studId:e.data.studId._id
           }
-          axios({
+         axios({
             url: `/backend/admin/studentRequest/markRead/${e.data._id}`,
             method: 'patch',
             data: payload,
@@ -179,22 +176,31 @@ export class AdminRequests extends React.Component
     				}
           })
           .then((s) =>{
-            console.log('data has been sent to server');
             alert(s.data.message);
+            this.setState({loading:false});
             this.getRequests();
           })
           .catch((e)=>{
-            console.log('data error',e);
-            alert("Request Error")
+            alert("Request Error");
+            this.setState({loading:false});
           });
         }
-        console.log(e);
       }
 
   render()
   {
     return(
       <div className="base-container border border-success m-3 rounded admin p-3">
+        {
+          this.state.loading===true ?
+          (
+            <div className="d-flex justify-content-center">
+            <div className="spinner-grow text-success"></div>
+            <div className="spinner-grow text-success"></div>
+            <div className="spinner-grow text-success"></div>
+            </div>
+          ):(
+      <div>
         <div className="row">
           <div className="col-md-6 mt-2 mb-2">
             <h4>Company Approval Requests -</h4>
@@ -211,6 +217,7 @@ export class AdminRequests extends React.Component
                 onGridReady = {params => this.gridApi = params.api}
                 onCellDoubleClicked={this.handleClick}
                 getRowHeight={this.state.getRowHeight}
+                defaultColDef={this.state.defaultColDef}
               />
             </div>
           </div>
@@ -229,6 +236,7 @@ export class AdminRequests extends React.Component
                 onGridReady = {params => this.gridApi = params.api}
                 onCellDoubleClicked={this.handleClick}
                 getRowHeight={this.state.getRowHeight}
+                defaultColDef={this.state.defaultColDef}
               />
             </div>
           </div>
@@ -249,6 +257,7 @@ export class AdminRequests extends React.Component
                 onGridReady = {params => this.gridApi = params.api}
                 onCellDoubleClicked={this.handleClick}
                 getRowHeight={this.state.getRowHeight}
+                defaultColDef={this.state.defaultColDef}
               />
             </div>
           </div>
@@ -270,6 +279,7 @@ export class AdminRequests extends React.Component
                 onGridReady = {params => this.gridApi = params.api}
                 onCellDoubleClicked={this.handleClick}
                 getRowHeight={this.state.getRowHeight}
+                defaultColDef={this.state.defaultColDef}
               />
             </div>
           </div>
@@ -288,11 +298,13 @@ export class AdminRequests extends React.Component
                 onGridReady = {params => this.gridApi = params.api}
                 onCellDoubleClicked={this.handleClick}
                 getRowHeight={this.state.getRowHeight}
+                defaultColDef={this.state.defaultColDef}
               />
             </div>
           </div>
         </div>
-      </div>
+      </div>)}
+    </div>
   );
   }
 }

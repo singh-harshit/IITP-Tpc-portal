@@ -44,17 +44,16 @@ export class CoordinatorCompany extends React.Component
         {headerName: 'Job Category',field: 'jobCategory', sortable:true, filter:true},
         {headerName: 'Job Type',field: 'jobType', sortable:true, filter:true},
         {headerName: 'Job Status',field: 'jobStatus', sortable:true, filter:true},
-        {headerName: 'Selected Students',field: 'selectedStudents', sortable:true, filter:true,cellRenderer: function(params) {return `<a href="https://www.google.com/search?q=${params.value}" target="_blank" rel="noopener">`+ params.value+'</a>'}},
-        {headerName: 'Job Remarks',field: 'publicRemarks', sortable:true, filter:true},
       ],
       jobs: [],
+      defaultColDef: { resizable: true },
       }
     };
     componentDidMount = () =>{
       this.getCompany();
     };
-    getCompany = () =>{
-        axios.get('/backend/coordinator/companies/'+this.state.id,{
+    getCompany = async () =>{
+        await axios.get('/backend/coordinator/companies/'+this.state.id,{
           headers: {
             'x-auth-token': this.state.authToken,
             'x-refresh-token': this.state.refreshToken,
@@ -62,12 +61,18 @@ export class CoordinatorCompany extends React.Component
         })
           .then((response) => {
             const data = response.data.companyDetails;
-            console.log('data',data);
             this.setState(data)
           })
           .catch((e)=>{
-            console.log('Error Retrieving data',e);
+            this.setState({
+              redirect:"/error"
+            })
           });
+          var allColumnIds = [];
+            this.gridColumnApi.getAllColumns().forEach(function(column) {
+              allColumnIds.push(column.colId);
+            });
+            this.gridColumnApi.autoSizeColumns(allColumnIds, true);
       };
 
       handleChange = (event) =>
@@ -78,7 +83,6 @@ export class CoordinatorCompany extends React.Component
         this.setState({
           [name]:value
         })
-        console.log(this.state);
       };
 
       handleSubmit = (event) =>
@@ -98,11 +102,10 @@ export class CoordinatorCompany extends React.Component
           }
         })
         .then((e) =>{
-          console.log('data has been sent to server',e);
           alert(`Updated Password for: `+e.data.updatedCompany.companyName);
         })
         .catch((e)=>{
-          console.log('data error',e);
+          alert("password update failed");
         });
       };
 
@@ -123,18 +126,15 @@ export class CoordinatorCompany extends React.Component
           }
         })
         .then((e) =>{
-          console.log('data has been sent to server');
-          console.log(e);
-          alert('Deactiveted: '+e.data.successFul+' Deactivate Failed for: '+e.data.unSuccessFul);
+          alert('Deactivated: '+e.data.successFul+'. Deactivate Failed for: '+e.data.unSuccessFul);
         })
         .catch(()=>{
-          console.log('data error');
+          alert("Deactivate failed");
         });
       }
 
       handleClick = (e) =>{
         var link = `/coordinator/job/${e.data._id}`;
-        console.log(e);
         this.setState({
           redirect:link
         })
@@ -317,7 +317,8 @@ export class CoordinatorCompany extends React.Component
               columnDefs = {this.state.columnDefs}
               rowData = {this.state.jobs  }
               rowSelection = "multiple"
-              onGridReady = {params => this.gridApi = params.api}
+              defaultColDef={this.state.defaultColDef}
+              onGridReady = {params => {this.gridApi = params.api;this.gridColumnApi = params.columnApi;}}
               onCellDoubleClicked = {this.handleClick}
             />
           </div>

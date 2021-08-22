@@ -39,7 +39,6 @@ export class AdminEditCompany extends React.Component
       this.setState({
         [name]:value
       })
-      console.log(this.state);
     };
 
     handleSubmit = (event) =>
@@ -65,14 +64,13 @@ export class AdminEditCompany extends React.Component
           };
           let payload = {
             companyName:this.state.companyName,
-            userName: this.state.userName,
+            userName: this.state.userName.toUpperCase(),
             password: this.state.password,
             companyAddress: this.state.companyAddress,
             contact1: contact1,
             contact2: contact2,
             contact3: contact3
           };
-          console.log(payload);
           axios({
             url: `/backend/admin/companies/${this.state.id}`,
             method: 'patch',
@@ -83,13 +81,11 @@ export class AdminEditCompany extends React.Component
     				}
           })
           .then(() =>{
-            console.log('data has been sent to server');
             this.setState({
               redirect:`/admin/company/${this.state.id}`
             })
           })
           .catch(()=>{
-            console.log('data error');
             alert("Request Unsuccessful");
           });
       };
@@ -105,7 +101,6 @@ export class AdminEditCompany extends React.Component
           })
             .then((response) => {
               const data = response.data.companyDetails;
-              console.log('data',data);
               this.setState(data)
               this.setState({
                 name1:data.contact1.name,

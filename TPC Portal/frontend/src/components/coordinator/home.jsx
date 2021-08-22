@@ -5,6 +5,7 @@ import  Dropdown  from '../../assets/dropDown';
 import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/dist/styles/ag-grid.css';
 import 'ag-grid-community/dist/styles/ag-theme-balham.css';
+import {Redirect} from 'react-router-dom';
 
 var CanvasJSChart = CanvasJSReact.CanvasJSChart;
 
@@ -62,6 +63,7 @@ export class CoordinatorHome extends Component {
 			programs:[],
 			columnDefs: [
 	      {headerName: 'Company',field: 'companyName', sortable:true, filter:true},
+				{headerName: 'Job Title',field: 'jobTitle', sortable:true, filter:true},
 	      {headerName: 'Process',field: 'stepName',sortable:true, filter:true},
 	      {headerName: 'Date',field: 'stepDate', sortable:true, filter:true},
 	     ],
@@ -85,7 +87,6 @@ export class CoordinatorHome extends Component {
 			})
       .then((response) => {
         const data = response.data;
-        console.log('data',data);
 				let program = [];
 				let internshipStats=[];
 				let fteStats=[];
@@ -185,8 +186,6 @@ export class CoordinatorHome extends Component {
 				this.handleGraph1();
       })
       .catch((error) => {
-        console.log("Receiving Student Data List Failed");
-        console.log(error);
         this.setState({
           redirect:"/error"
         })
@@ -196,13 +195,11 @@ export class CoordinatorHome extends Component {
 		const target = event.target;
 		const name = target.name;
 		const value = target.value;
-		console.log(name,value);
 		this.setState({program:value})
 		this.handleGraph2(value);
 	}
 	handleGraph2 =(value)=>{
 		let option=this.state.options2;
-		console.log(this.state.current);
 		if(value==='')option.data=[];
 		if(this.state.current===1)
 		{
@@ -225,17 +222,14 @@ export class CoordinatorHome extends Component {
 				});
 		}
 		this.renderChart();
-		console.log("graph2",this.state.options2);
 	}
 	renderChart(){
 		var chart = this.chart;
 		chart.render();
 		var chart1 = this.chart1;
 		chart1.render();
-		console.log(this.state.options1);
 	}
 	handleGraph1= ()=>{
-		console.log(this.state.current);
 		let newdata = [];
 		if(this.state.current===1)
 		{
@@ -251,7 +245,7 @@ export class CoordinatorHome extends Component {
 			dataPoints.push({label:"Unplaced",y:this.state.intern.unplacedStudents});
 			newdata.push({
 				type: "pie",
-				startAngle: 0,
+				startAngle: 90,
 				toolTipContent: "<b>{label}</b>: {y}",
 				showInLegend: "true",
 				legendText: "{label}",
@@ -261,7 +255,6 @@ export class CoordinatorHome extends Component {
 			});
 		}
 		else {
-			console.log(this.state.fte);
 
 			this.setState({
 				companiesRegistered:this.state.fte.companiesRegistered,
@@ -308,51 +301,17 @@ export class CoordinatorHome extends Component {
 		this.handleGraph1();
 		this.handleGraph2('');
 	}
-	handleCPIChange = ()=>{
-		let payload;
-		let status=this.state.onlyCpiUpdate;
-		if(this.state.onlyCpiUpdate===true)
-		 {
-				payload={status:false}
-		 }
-		 else
-		 {
-			 payload={status:true}
-		 }
-	 	axios({
-			url: '/backend/coordinator/students/setStatusCpiUpdate',
-      method: 'patch',
-      data: payload,
-      headers: {
-        'x-auth-token': this.state.authToken,
-        'x-refresh-token': this.state.refreshToken,
-      }
-		})
-		.then((e) =>{
-			console.log('data has been sent to server',e);
-			alert(`updated`);
-			this.setState({
-				onlyCpiUpdate:!status,
-			})
-		})
-		.catch((e)=>{
-			console.log('data error',e);
-		});
-	}
-	render() {
 
+	render() {
+		if (this.state.redirect)
+		{
+			return <Redirect to={this.state.redirect} />
+		}
 		return (
 		<div className=" p-3 m-3 admin">
-			<div className="row bg-dark rounded p-2 mb-2">
+			<div className="d-flex bg-dark rounded p-2 mb-2 justify-content-center">
 				<div className="col-md-6">
-					<button type="button" class="btn btn-block btn-primary m-1" onClick={this.handleCPIChange}>
-						{
-							this.state.onlyCpiUpdate ? "Close Edit CPI":"Open Edit CPI"
-						}
-					</button>
-				</div>
-				<div className="col-md-6">
-					<button type="button" class="btn btn-block btn-primary m-1" onClick={this.handleChange}>
+					<button type="button" className="btn btn-block btn-primary m-1" onClick={this.handleChange}>
 						{
 							this.state.current ? "INTERNSHIP":"FTE"
 						}

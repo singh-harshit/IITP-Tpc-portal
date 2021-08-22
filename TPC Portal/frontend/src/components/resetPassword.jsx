@@ -14,7 +14,6 @@ export class ResetPassword extends React.Component {
 }
   handleChange = async (event) =>
   {
-    console.log(this.state);
     const target = event.target;
     const name = target.name;
     const value = target.value;

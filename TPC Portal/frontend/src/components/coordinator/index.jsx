@@ -8,5 +8,6 @@ export {CoordinatorAddCompany} from "./addCompany";
 export {CoordinatorJob} from "./job";
 export {CoordinatorAddJob} from "./addJob";
 export {CoordinatorEditCompany} from "./editCompany";
+export {CoordinatorJobEligibility} from "./editEligibility";
 export {CoordinatorEditJob} from "./editJob";
 export {CoordinatorJobMarkProgress} from "./markProgress";

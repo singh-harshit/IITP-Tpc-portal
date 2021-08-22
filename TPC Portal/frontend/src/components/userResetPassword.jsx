@@ -21,20 +21,33 @@ export class UserResetPassword extends React.Component {
     this.setState({
       loading:true,
     })
+
     let payload = {
       userName:this.state.userName,
       role:this.state.role,
     }
+    if(this.state.role==="Student"||this.state.role==="Coordinator")
+    {
+      payload={
+        userName:this.state.userName.toUpperCase(),
+        role:this.state.role,
+      }
+    }
      await axios.post('/backend/forgotPassword',payload)
     .then((s)=>
     {
-      this.setState({
-        loading:false,
-        redirect:"/",
-      })
+      alert("Mail has been sent to your personal email");
+      setTimeout(() => {
+        this.setState({
+          loading:false,
+          redirect:"/",
+        })
+      }, 2000);
+
     })
     .catch((e)=>{
       alert(e);
+      this.setState({loading:false});
     })
   }
   render() {

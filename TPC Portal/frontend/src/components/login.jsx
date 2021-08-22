@@ -15,8 +15,10 @@ export class Login extends React.Component
       password:'',
       guideLines:[],
     };
-    localStorage.removeItem('jwt');
+    localStorage.removeItem('authToken');
     localStorage.removeItem('_id');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('role');
   }
   componentDidMount = () =>{
     this.getAllDetails();
@@ -25,13 +27,11 @@ export class Login extends React.Component
       axios.get('/backend/allDetails')
         .then((response) => {
           const data = response.data;
-          console.log('data',data);
           this.setState({
             guideLines:data.guideLines
           })
         })
         .catch((e)=>{
-          console.log('Error Retrieving data',e);
         });
     };
     handleChange = (event) =>
@@ -42,13 +42,27 @@ export class Login extends React.Component
       this.setState({
         [name]:value
       })
-      console.log(this.state);
     };
     handleSubmit = (event) =>
     {
       event.preventDefault();
+      if(this.state.accType==="student")
+      {
+
+        if(this.state.userName.match(/\b[0-9]{4}[A-Za-z]{2}[0-9]{2}\b/));
+        else {
+          this.setState({
+            alert:true,
+            alertMessage:"Enter Valid RollNo as username"
+          });
+          setTimeout(() => {
+            this.setState({alert:false});
+          }, 3000);
+          return;
+        }
+      }
       let payload={
-        userName:this.state.userName,
+        userName:this.state.accType==="admin"?this.state.userName:this.state.userName.toUpperCase(),
         password:this.state.password
       }
       axios({
@@ -57,8 +71,8 @@ export class Login extends React.Component
         data: payload
       })
       .then((s) =>{
-        console.log('data has been sent to server',s);
         if(s.data.approvalStatus)localStorage.setItem('approvalStatus',s.data.approvalStatus);
+        if(s.data.registrationFor)localStorage.setItem('registrationFor',s.data.registrationFor);
         localStorage.setItem('_id',s.data._id);
         localStorage.setItem('authToken',s.headers["x-auth-token"]);
         localStorage.setItem('refreshToken',s.headers["x-refresh-token"]);
@@ -66,12 +80,11 @@ export class Login extends React.Component
         this.props.history.push(`/${this.state.accType}`);
       })
       .catch((error)=>{
-        alert('data error',error);
+        alert("Entered Wrong Password or Username");
       });
     }
   render()
   {
-    console.log("props",this.props);
     return(
     <div className="base-container login">
       <div className="row">
@@ -87,8 +100,8 @@ export class Login extends React.Component
           <div className="shadow p-5 login-form mr-3 text-dark d-flex flex-column">
             <form onChange={this.handleChange} onSubmit={this.handleSubmit}>
               <div className="form-group">
-                <label for="accType">Account Type:</label>
-                  <select name="accType"className="form-control" id="accType" value={this.state.accType}>
+                <label htmlFor="accType">Account Type:</label>
+                  <select name="accType"className="form-control" id="accType" value={this.state.accType} required>
                     <option value=''>Select</option>
                     <option value="admin">Admin</option>
                     <option value="company">Company</option>
@@ -97,34 +110,34 @@ export class Login extends React.Component
                   </select>
               </div>
               <div className="form-group">
-                <label for="username">Username:</label>
-                <input type="text" name="userName" value={this.state.userName} className="form-control" placeholder="Enter Username/ Rollno." id="username"/>
+                <label htmlFor="username">Username:
+                </label>
+
+                <input type="text" name="userName" value={this.state.userName} className="form-control" placeholder="Enter Username(Roll No. for students)" id="username" required/>
+                  {
+                    this.state.alert===true?( <div>{this.state.alertMessage}</div>):(<div></div>)
+                  }
               </div>
               <div className="form-group">
-                <label for="pwd">Password:</label>
-                <input type="password" name="password" value={this.state.password} className="form-control" placeholder="Enter password" id="pwd"/>
-              </div>
-              <div className="form-group form-check">
-                <label className="form-check-label">
-                  <input className="form-check-input" type="checkbox"/> Remember me
-                </label>
+                <label htmlFor="pwd">Password:</label>
+                <input type="password" name="password" value={this.state.password} className="form-control" placeholder="Enter password" id="pwd" required/>
               </div>
               <button type="submit" className="btn btn-primary">Login</button>
             </form>
-            <nav class="navbar navbar-light align-self-end mt-auto p-2">
-              <ul class="navbar-nav">
-                <li class="nav-item">
+            <nav className="navbar navbar-light align-self-end mt-auto p-2">
+              <ul className="navbar-nav">
+                <li className="nav-item">
                   <Link className="nav-link" to="/user-reset-password">
                     forgot password
                   </Link>
                 </li>
-                <li class="nav-item">
+                <li className="nav-item">
                   <Link className="nav-link" to="/register/student">
                       New Student Register
                   </Link>
                 </li>
-                <li class="nav-item">
-                  <Link className="nav-link" to="/register/company">
+                <li className="nav-item">
+                  <Link className="nav-link disabled" to="/register/company">
                        New Company Register
                   </Link>
                 </li>

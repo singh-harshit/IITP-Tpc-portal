@@ -1,0 +1,2 @@
+/backend/*  https://iitp-tpc-portal-backend.herokuapp.com/backend/:splat  200
+/files/* https://iitp-tpc-portal-file-storage.s3.ap-south-1.amazonaws.com/:splat  200

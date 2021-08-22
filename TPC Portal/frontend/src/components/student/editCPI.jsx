@@ -30,10 +30,12 @@ export class StudentEditCPI extends React.Component
     this.setState({
       [name]:value
     })
-    console.log(this.state);
   }
-  getDetails = () => {
-    axios
+  getDetails = async() => {
+    this.setState({
+      loading:true
+    })
+    await axios
       .get("/backend/student/profile/" + this.state._id,{
           headers: {
             'x-auth-token': this.state.authToken,
@@ -41,7 +43,6 @@ export class StudentEditCPI extends React.Component
           }
         })
       .then((response) => {
-        console.log("res",response);
         const data = response.data.studentInfo;
         this.setState({
           currentSemester:data.currentSemester,
@@ -56,15 +57,19 @@ export class StudentEditCPI extends React.Component
         });
       })
       .catch(() => {
-        console.log("Error Retrieving data1");
+        this.setState({
+          redirect:"/error"
+        })
       });
+      this.setState({loading:false})
   };
   componentDidMount = () =>{
     this.getDetails();
   };
 
-  handleSubmit = (event) => {
+  handleSubmit = async (event) => {
         event.preventDefault();
+        this.setState({loading:true})
         let spi = {
           sem1:this.state.sem1,
           sem2:this.state.sem2,
@@ -79,19 +84,19 @@ export class StudentEditCPI extends React.Component
           spi:spi,
           cpi:this.state.cpi,
         });
-        axios.patch(`/backend/student/updateCpiOnly/${this.state._id}`,payload,{
+        await axios.patch(`/backend/student/updateCpiOnly/${this.state._id}`,payload,{
           headers: {
   					'x-auth-token': this.state.authToken,
   					'x-refresh-token': this.state.refreshToken,
   				}
         })
         .then(() =>{
-          console.log('data has been sent to server');
           this.setState({redirect:`/student`})
         })
         .catch((e)=>{
-          console.log('data error',e);
+          alert("Edit Cpi failed");
         });
+        this.setState({loading:false})
     };
 
   render()

@@ -6,6 +6,7 @@ import 'ag-grid-community/dist/styles/ag-theme-balham.css';
 import {Link} from 'react-router-dom';
 import Popup from "reactjs-popup";
 import {Redirect} from 'react-router-dom';
+import Dropdown from '../../assets/dropDown';
 export class AdminStudent extends React.Component
 {
   constructor(props){
@@ -36,26 +37,41 @@ export class AdminStudent extends React.Component
       approvalStatus: 'Nun',
       image:'',
       columnDefs1: [
-        {headerName: 'Company',field: 'jobId.companyName', sortable:true, filter:true,cellRenderer: function(params) {return `<a href="https://www.google.com/search?q=${params.value}" target="_blank" rel="noopener">`+ params.value+'</a>'}},
+        {headerName: 'Company',field: 'jobId.companyName', sortable:true, filter:true,cellRenderer: function(params){ return `<a href="https://iitp-tpc-portal.netlify.app/admin/job/${params.data._id}" target="_blank" rel="noopener">`+ params.value+'</a>'}},
         {headerName: 'Job Title',field: 'jobId.jobTitle', sortable:true, filter:true},
         {headerName: 'Classification',field: 'jobId.jobCategory', sortable:true, filter:true},
         {headerName: 'Application Status',field: 'studentStatus', sortable:true, filter:true},
       ],
       columnDefs2: [
-        {headerName: 'Company',field: 'companyName', sortable:true, filter:true,cellRenderer: function(params) {return `<a href="https://www.google.com/search?q=${params.value}" target="_blank" rel="noopener">`+ params.value+'</a>'}},
+        {headerName: 'Company',field: 'companyName', sortable:true, filter:true,cellRenderer: function(params){ return `<a href="https://iitp-tpc-portal.netlify.app/admin/job/${params.data._id}" target="_blank" rel="noopener">`+ params.value+'</a>'}},
         {headerName: 'Job Title',field: 'jobTitle', sortable:true, filter:true},
         {headerName: 'Classification',field: 'jobCategory', sortable:true, filter:true},
         {headerName: 'Job Status',field: 'jobStatus', sortable:true, filter:true},
       ],
       rowData1: [],
       rowData2: [],
-      newPassword:''
+      newPassword:'',
+      classifications:[],
   };
 }
 componentDidMount = () =>{
   this.getStudent();
+  this.getAllDetails();
 };
-
+getAllDetails = () =>{
+    axios.get('/backend/allDetails')
+      .then((response) => {
+        const data = response.data;
+        this.setState({
+          classifications:data.classifications,
+        })
+      })
+      .catch((e)=>{
+        this.setState({
+          redirect:"/error"
+        })
+      });
+  };
 getStudent = () =>{
     axios.get('/backend/admin/student/'+this.state.id,{
       headers: {
@@ -66,8 +82,8 @@ getStudent = () =>{
       .then((response) => {
         const data = response.data.studentInfo;
         const job = response.data;
-        console.log('data',job);
         this.setState({
+          registrationFor:data.registrationFor,
           name:data.name,
           rollNo:data.rollNo,
           gender:data.gender,
@@ -84,19 +100,22 @@ getStudent = () =>{
           bachelorsMarks: data.bachelorsMarks,
           mastersMarks: data.mastersMarks,
           approvalStatus: data.approvalStatus,
+          resumeFile: data.resumeFile,
+          resumeLink:data.resumeLink,
           image:data.image,
+          placementCategory:data.placement.category,
+          placementStatus:data.placement.status,
         });
-        if(job.studentAppliedJobs.appliedJobs)
+        if(job.studentAppliedJobs)
         {
           this.setState({rowData1:job.studentAppliedJobs.appliedJobs,})
         }
-        if(job.studentEligibleJobs.eligibleJobs)
+        if(job.studentEligibleJobs)
         {
           this.setState({rowData2:job.studentEligibleJobs.eligibleJobs,})
         }
       })
       .catch((e)=>{
-        console.log('Error Retrieving data',e);
         this.setState({
           redirect:"/error"
         })
@@ -112,7 +131,6 @@ getStudent = () =>{
     this.setState({
       [name]:value
     })
-    console.log(this.state);
   };
 
   handleSubmit = (event) =>
@@ -131,11 +149,9 @@ getStudent = () =>{
       }
     })
     .then((e) =>{
-      console.log('data has been sent to server');
       alert(e.data.message);
     })
     .catch(()=>{
-      console.log('data error');
       alert("Reset Password Failed");
     });
   };
@@ -159,13 +175,34 @@ getStudent = () =>{
       }
     })
     .then((e) =>{
-      console.log('data has been sent to server');
       this.getStudent();
       alert(e.data.message);
     })
     .catch(()=>{
-      console.log('data error');
-      alert("Reset password failed");
+      alert("Change status failed");
+    });
+  }
+  handlePlacement = (event)=>{
+    event.preventDefault();
+    let payload={
+      status:this.state.placementStatus,
+      category:this.state.placementCategory,
+    }
+    axios({
+      url: '/backend/admin/student/placementStatus/'+this.state.id,
+      method: 'patch',
+      data: payload,
+      headers: {
+        'x-auth-token': this.state.authToken,
+        'x-refresh-token': this.state.refreshToken,
+      }
+    })
+    .then((e) =>{
+      this.getStudent();
+      alert(e.data);
+    })
+    .catch(()=>{
+      alert("Change Placement status failed");
     });
   }
   render()
@@ -211,6 +248,14 @@ getStudent = () =>{
               </div>
               <div className="row">
                 <div className="col-md-4">
+                  Registered For
+                </div>
+                <div className="col-md-8">
+                  : {this.state.registrationFor}
+                </div>
+              </div>
+              <div className="row">
+                <div className="col-md-4">
                   Program
                 </div>
                 <div className="col-md-8">
@@ -219,7 +264,7 @@ getStudent = () =>{
               </div>
               <div className="row">
                 <div className="col-md-4">
-                  course
+                  Course
                 </div>
                 <div className="col-md-8">
                   : {this.state.course}
@@ -307,10 +352,55 @@ getStudent = () =>{
                   : {this.state.mastersMarks}
                 </div>
               </div>
+              <div className="row">
+                <div className="col-md-4">
+                  Resume
+                </div>
+                <div className="col-md-8">
+                  : {this.state.resumeFile?(<a href={this.state.resumeFile} target="_blank" rel="noopener noreferrer"><button className="btn btn-primary btn-sm">Open</button></a>):"Not uploaded"}
+                </div>
+              </div>
+              <div className="row mt-1">
+                <div className="col-md-4">
+                  Resume Link:
+                </div>
+                <div className="col-md-8">
+                  : {this.state.resumeFile?(<a href={this.state.resumeLink} target="_blank" rel="noopener noreferrer"><button className="btn btn-primary btn-sm">Open</button></a>):"Not uploaded"}
+                </div>
+              </div>
             </div>
           </div>
 
         </p>
+        <div className="border rounded border-success m-5 p-5">
+          <form className="form" onChange={this.handleChange} onSubmit={this.handlePlacement}>
+          <div className="row">
+            <div className="col-md-3 mt-1">
+              Placement Status: {this.state.placement}
+            </div>
+            <div className="col-md-3 mt-1">
+              <select className="form-control" name="placementStatus" value={this.state.placementStatus}>
+                <option value="">Select</option>
+                <option value="Placed">Placed</option>
+                <option value="Unplaced">Unplaced</option>
+              </select>
+            </div>
+            <div className="col-md-3 mt-1">
+              <select className="form-control" name="placementCategory" value={this.state.placementCategory}>
+                <option value="">Select</option>
+                {
+                  this.state.classifications.map((element) =>{
+                    return(<Dropdown value={element} name={element}/>)
+                  })
+                }
+              </select>
+            </div>
+            <div className="col-md-3 mt-1">
+              <button type="submit" className="btn btn-primary btn-block">Change</button>
+            </div>
+          </div>
+          </form>
+        </div>
         <div className="container-fluid">
           <hr className="bg-dark"/>
           <h4>Application Details</h4>
@@ -349,7 +439,7 @@ getStudent = () =>{
         </div>
         <div className="container-fluid row mt-2">
           <div className="col-md-3">
-            <Link style={{ textDecoration: 'none', color: 'white' }} to={`/admin/editStudent/${this.state.id}`}><button type="button" class="btn btn-success btn-block m-1">Edit Profile</button></Link>
+            <Link style={{ textDecoration: 'none', color: 'white' }} to={`/admin/editStudent/${this.state.id}`}><button type="button" className="btn btn-success btn-block m-1">Edit Profile</button></Link>
           </div>
           <div className="col-md-3">
             <Popup trigger={
@@ -379,7 +469,7 @@ getStudent = () =>{
             </button>
           </div>
           <div className="col-md-3">
-            <Link style={{ textDecoration: 'none', color: 'white' }} to="/admin/students/"><button type="button" class="btn btn-outline-dark btn-block m-1">Back</button></Link>
+            <Link style={{ textDecoration: 'none', color: 'white' }} to="/admin/students/"><button type="button" className="btn btn-outline-dark btn-block m-1">Back</button></Link>
           </div>
         </div>
       </div>

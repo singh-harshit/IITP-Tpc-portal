@@ -1,8 +1,7 @@
 import React from 'react';
 import './App.css';
 import {BrowserRouter as Router, Switch,Route} from 'react-router-dom';
-import RouterBlock from "./routes/router"
-import StackedColumnChart from"./views/column charts/Stacked Column Chart";
+import RouterBlock from "./routes/router";
 function App() {
   return (
     <Router>

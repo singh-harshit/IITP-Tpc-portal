@@ -1,6 +1,8 @@
 import React from "react";
 import axios from 'axios';
-import Dropdown from "../../assets/dropDown"
+import Dropdown from "../../assets/dropDown";
+import {Redirect} from 'react-router-dom';
+
 export class StudentEditProfile extends React.Component
 {
     constructor(props){
@@ -43,7 +45,7 @@ export class StudentEditProfile extends React.Component
     				}
     			})
         .then((response) => {
-          console.log("res",response);
+
           const data = response.data.studentInfo;
           this.setState({
             registrationFor:data.registrationFor,
@@ -75,7 +77,9 @@ export class StudentEditProfile extends React.Component
           });
         })
         .catch(() => {
-          console.log("Error Retrieving data1");
+          this.setState({
+            redirect:"/error"
+          })
         });
     };
     componentDidMount = () =>{
@@ -87,7 +91,7 @@ export class StudentEditProfile extends React.Component
          axios.get('/backend/allDetails')
           .then((response) => {
             const data = response.data;
-            console.log('data',data);
+
             this.setState({
               programs:data.programs,
               courses:data.programAndCourses,
@@ -95,7 +99,9 @@ export class StudentEditProfile extends React.Component
             })
           })
           .catch((e)=>{
-            console.log('Error Retrieving data',e);
+            this.setState({
+              redirect:"/error"
+            })
           });
       };
   handleChange = (event) =>
@@ -106,18 +112,12 @@ export class StudentEditProfile extends React.Component
     this.setState({
       [name]:value
     })
-    console.log(this.state);
-  }
 
-  handleFile = (event) =>
-  {
-    let file = event.target.files[0];
-    console.log('uploaded:',file);
-    this.setState({
-      file: file,
-    });
   }
-  handleSubmit = (event) => {
+  handleSubmit = async(event) => {
+    this.setState({loading:true})
+    let rollNo=this.state.rollNo;
+
     event.preventDefault();
     let spi = {
       sem1:this.state.sem1,
@@ -132,7 +132,7 @@ export class StudentEditProfile extends React.Component
     if(!this.state.mastersMarks)this.state.mastersMarks=0;
     let payload=({
       name:this.state.name,
-      rollNo:this.state.rollNo,
+      rollNo:rollNo.toUpperCase(),
       gender:this.state.gender,
       instituteEmail:this.state.instituteEmail,
       personalEmail:this.state.personalEmail,
@@ -148,23 +148,31 @@ export class StudentEditProfile extends React.Component
       bachelorsMarks:this.state.bachelorsMarks,
       mastersMarks:this.state.mastersMarks,
     });
-        axios.patch(`/backend/student/profile/${this.state._id}`,payload,{
+    await axios.patch(`/backend/student/profile/${this.state._id}`,payload,{
           headers: {
             'x-auth-token': this.state.authToken,
   					'x-refresh-token': this.state.refreshToken,
           }
         })
         .then(() =>{
-          console.log('data has been sent to server');
 
+          this.setState({
+            redirect:"/student"
+          })
         })
         .catch((e)=>{
-          console.log('data error',e);
+          alert("Edit Profile failed");
         });
+        this.setState({loading:false})
     };
 
   render()
   {
+
+    if (this.state.redirect)
+    {
+      return <Redirect to={this.state.redirect} />
+    }
     return(
       <div className="base-container border rounded border-success admin">
           {
@@ -210,6 +218,7 @@ export class StudentEditProfile extends React.Component
                     placeholder="Enter Roll No"
                     maxLength="10"
                     value={this.state.rollNo}
+                    pattern="[0-9]{4}[A-Za-z]{2}[0-9]{2}"
                     required
                     />
                   </div>
@@ -277,7 +286,7 @@ export class StudentEditProfile extends React.Component
                   </div>
                   <div className="col-md-8 p-1">
                   <input
-                    type="number"
+                    type="number" step="any"
                     name="cpi"
                     className="form-control"
                     placeholder="Enter CPI"
@@ -294,7 +303,7 @@ export class StudentEditProfile extends React.Component
                   </div>
                   <div className="col-md-8 p-1">
                   <input
-                    type="number"
+                    type="number" step="any"
                     name="tenthMarks"
                     className="form-control"
                     placeholder="Enter Percentage"
@@ -311,7 +320,7 @@ export class StudentEditProfile extends React.Component
                   </div>
                   <div className="col-md-8 p-1">
                   <input
-                    type="number"
+                    type="number" step="any"
                     name="twelthMarks"
                     className="form-control"
                     placeholder="Enter percentage"
@@ -328,7 +337,7 @@ export class StudentEditProfile extends React.Component
                   </div>
                   <div className="col-md-8 p-1">
                   <input
-                    type="number"
+                    type="number" step="any"
                     name="bachelorsMarks"
                     className="form-control"
                     placeholder="Enter CGPA"
@@ -344,7 +353,7 @@ export class StudentEditProfile extends React.Component
                   </div>
                   <div className="col-md-8 p-1">
                   <input
-                    type="number"
+                    type="number" step="any"
                     name="mastersMarks"
                     className="form-control"
                     placeholder="Enter CGPA"
@@ -474,7 +483,7 @@ export class StudentEditProfile extends React.Component
                   </div>
                   <div className="col-md-5 p-1" width = '10vw'>
                     <input
-                      type="number"
+                      type="number" step="any"
                       name="sem2"
                       className="form-control"
                       placeholder="Enter SPI"
@@ -488,7 +497,7 @@ export class StudentEditProfile extends React.Component
                   </div>
                   <div className="col-md-5 p-1" width= '10vw'>
                     <input
-                      type="number"
+                      type="number" step="any"
                       name="sem3"
                       className="form-control"
                       placeholder="Enter SPI"
@@ -500,7 +509,7 @@ export class StudentEditProfile extends React.Component
                   </div>
                   <div className="col-md-5 p-1" width = '10vw'>
                     <input
-                      type="number"
+                      type="number" step="any"
                       name="sem4"
                       className="form-control"
                       placeholder="Enter SPI"
@@ -514,7 +523,7 @@ export class StudentEditProfile extends React.Component
                   </div>
                   <div className="col-md-5 p-1" width= '10vw'>
                     <input
-                      type="number"
+                      type="number" step="any"
                       name="sem5"
                       className="form-control"
                       placeholder="Enter SPI"
@@ -526,7 +535,7 @@ export class StudentEditProfile extends React.Component
                   </div>
                   <div className="col-md-5 p-1" width = '10vw'>
                     <input
-                      type="number"
+                      type="number" step="any"
                       name="sem6"
                       className="form-control"
                       placeholder="Enter SPI"
@@ -540,7 +549,7 @@ export class StudentEditProfile extends React.Component
                   </div>
                   <div className="col-md-5 p-1" width= '10vw'>
                     <input
-                      type="number"
+                      type="number" step="any"
                       name="sem7"
                       className="form-control"
                       placeholder="Enter SPI"
@@ -548,18 +557,6 @@ export class StudentEditProfile extends React.Component
                       />
                   </div>
 
-                </div>
-                <div className="form-group row">
-                  <div className="col-md-4 p-1">
-                    <label htmlFor="" className='text-nowrap'>Enter Profile Pic:</label>
-                  </div>
-                  <div className="col-md-8 p-1">
-                    <input
-                      type="file"
-                      className="form-control-file border"
-                      onChange={this.handleFile}
-                      />
-                  </div>
                 </div>
               </div>
               <hr/>

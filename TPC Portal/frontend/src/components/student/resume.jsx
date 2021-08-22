@@ -1,5 +1,6 @@
 import React from "react";
 import axios from 'axios';
+import {Redirect} from 'react-router-dom';
 
 export class StudentResume extends React.Component
 {
@@ -27,14 +28,19 @@ export class StudentResume extends React.Component
       resumeLink: event.target.value
     });
   }
-  handleSubmit = (event) => {
+  handleSubmit = async(event) => {
         event.preventDefault();
-        console.log(this.state);
+        if(this.state.resumeFile.size>524288){
+          alert("Enter A file size less than 512 KB");
+        }
+        else{
+          this.setState({loading:true})
         const formData = new FormData();
-        formData.append('resumeFile',this.state.resumeFile);
+        let resume=this.state.resumeFile;
+        var newname=localStorage.getItem("rollNo")+".pdf";
+        formData.append('resumeFile',this.state.resumeFile,newname);
         formData.append('resumeLink',this.state.resumeLink);
-        console.log(formData);
-        axios.post('/backend/student/resume/'+this.state._id,formData,{
+        await axios.post('/backend/student/resume/'+this.state._id,formData,{
           headers: {
             'Content-Type': 'multipart/form-data',
     				'x-auth-token': this.state.authToken,
@@ -42,23 +48,32 @@ export class StudentResume extends React.Component
           }
         })
         .then(() =>{
-          console.log('data has been sent to server');
+          this.setState({
+            loading:false,
+            redirect:"/student"
+          })
         })
         .catch((error)=>{
-          console.log('data error',error);
+          alert("Could not upload resume")
         });
+      }
     };
 
   render()
   {
+
+    if (this.state.redirect)
+    {
+      return <Redirect to={this.state.redirect} />
+    }
     return(
       <div className="base-container border rounded border-success admin m-3 p-3">
         <form onSubmit={this.handleSubmit}>
           <div className="form-group">
-            <label for="resumeFile">Resume File</label>
+            <label htmFor="resumeFile">Resume File</label>
             <input type="file" className="form-control-file border" id='resumeFile' required onChange={this.handleFile}/>
-            <label for="resumeLink">Resume Link</label>
-            <input type="text" className="form-control-file border" id='resumeLink' onChange={this.handleLink}/>
+            <label htmFor="resumeLink">Resume Link</label>
+            <input type="url" className="form-control-file border" id='resumeLink' required onChange={this.handleLink}/>
           </div>
           <button type="submit" class="btn btn-primary">Submit</button>
         </form>

@@ -28,7 +28,6 @@ export class AdminJobEligibility extends React.Component
         await axios.get('/backend/allDetails')
           .then((response) => {
             const data = response.data;
-            console.log('data',data);
             let programs = [];
             data.programAndCourses.forEach((item, i) => {
               let program = item.program;
@@ -45,7 +44,6 @@ export class AdminJobEligibility extends React.Component
             })
           })
           .catch((e)=>{
-            console.log('Error Retrieving data',e);
             this.setState({
               redirect:"/error"
             })
@@ -60,7 +58,6 @@ export class AdminJobEligibility extends React.Component
         })
           .then((response) => {
             const data = response.data.jobDetails;
-            console.log('job',data);
             let programs=this.state.programs;
             let index=0;
             programs.forEach((program, i) => {
@@ -90,7 +87,6 @@ export class AdminJobEligibility extends React.Component
             })
           })
           .catch((e)=>{
-            console.log('Error Retrieving data',e);
             this.setState({
               redirect:"/error"
             })
@@ -106,7 +102,6 @@ export class AdminJobEligibility extends React.Component
         .then((response) => {
           const data = response.data.stepsWithStatus;
           this.setState({currentSteps:data});
-          console.log("cStep",this.state.currentSteps);
           let steps = [];
           data.forEach((item, i) => {
             let status=false
@@ -116,7 +111,9 @@ export class AdminJobEligibility extends React.Component
           this.setState({steps:steps})
         })
         .catch((e)=>{
-          console.log('Error Retrieving data',e);
+          this.setState({
+            redirect:"/error"
+          })
         });
     }
     handleAllProgramsChecked = (event) => {
@@ -138,7 +135,6 @@ export class AdminJobEligibility extends React.Component
       let programs=this.state.programs  ;
       let checkprogram=event.target.name;
       let checkcourse=event.target.value;
-    //  console.log(checkprogram,checkcourse);
       programs.forEach((program, i) => {
         if(program.value===checkprogram)
         {
@@ -151,7 +147,6 @@ export class AdminJobEligibility extends React.Component
     }
     handleProgramChange = (event)=>{
       let target=event.target;
-      console.log(target.value);
       let upprogram=target.name.split(',');
       let upfield=upprogram[1];
       upprogram=upprogram[0];
@@ -211,11 +206,9 @@ export class AdminJobEligibility extends React.Component
       const target = event.target;
       const name = target.name;
       const value = target.value;
-      console.log(event.value);
         this.setState({
           [name]:value
         })
-      console.log(this.state);
     }
   render()
   {

@@ -44,8 +44,6 @@ export class AdminCompany extends React.Component
         {headerName: 'Job Category',field: 'jobCategory', sortable:true, filter:true},
         {headerName: 'Job Type',field: 'jobType', sortable:true, filter:true},
         {headerName: 'Job Status',field: 'jobStatus', sortable:true, filter:true},
-        {headerName: 'Selected Students',field: 'selectedStudents', sortable:true, filter:true,cellRenderer: function(params) {return `<a href="https://www.google.com/search?q=${params.value}" target="_blank" rel="noopener">`+ params.value+'</a>'}},
-        {headerName: 'Job Remarks',field: 'publicRemarks', sortable:true, filter:true},
       ],
       jobs: [],
       }
@@ -62,7 +60,6 @@ export class AdminCompany extends React.Component
         })
           .then((response) => {
             const data = response.data.companyDetails;
-            console.log('data',data);
             this.setState(data)
           })
           .catch((e)=>{
@@ -80,7 +77,6 @@ export class AdminCompany extends React.Component
         this.setState({
           [name]:value
         })
-        console.log(this.state);
       };
 
       handleSubmit = (event) =>
@@ -100,7 +96,6 @@ export class AdminCompany extends React.Component
           }
         })
         .then((e) =>{
-          console.log('data has been sent to server',e);
           alert(`Updated Password for: `+e.data.updatedCompany.companyName);
         })
         .catch((e)=>{
@@ -125,19 +120,15 @@ export class AdminCompany extends React.Component
           }
         })
         .then((e) =>{
-          console.log('data has been sent to server');
-          console.log(e);
           alert('Deactiveted: '+e.data.successFul+' Deactivate Failed for: '+e.data.unSuccessFul);
         })
         .catch(()=>{
-          console.log('data error');
           alert("Deactivate unsuccessful");
         });
       }
 
       handleClick = (e) =>{
         var link = `/admin/job/${e.data._id}`;
-        console.log(e);
         this.setState({
           redirect:link
         })

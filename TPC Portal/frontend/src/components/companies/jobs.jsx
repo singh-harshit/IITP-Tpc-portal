@@ -3,6 +3,7 @@ import axios from 'axios';
 import { AgGridReact } from 'ag-grid-react';
 import 'ag-grid-community/dist/styles/ag-grid.css';
 import 'ag-grid-community/dist/styles/ag-theme-balham.css';
+import {Redirect} from 'react-router-dom';
 
 
 export class CompanyJobs extends React.Component{
@@ -51,11 +52,12 @@ export class CompanyJobs extends React.Component{
     })
       .then((response) => {
         const data = response.data.allJobs.jobs;
-        console.log('data',data);
         this.fillTableData(data);
       })
       .catch((e)=>{
-        console.log('Error Retrieving data',e);
+        this.setState({
+          redirect:"/error"
+        })
       });
   }
 

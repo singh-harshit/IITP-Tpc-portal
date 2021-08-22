@@ -46,7 +46,6 @@ export class AdminEditStudent extends React.Component
     				}
     			})
         .then((response) => {
-          console.log("res",response);
           const data = response.data.studentInfo;
           this.setState({
             registrationFor:data.registrationFor,
@@ -78,7 +77,6 @@ export class AdminEditStudent extends React.Component
           });
         })
         .catch(() => {
-          console.log("Error Retrieving data1");
           this.setState({
             redirect:"/error"
           })
@@ -94,7 +92,6 @@ export class AdminEditStudent extends React.Component
          axios.get('/backend/allDetails')
           .then((response) => {
             const data = response.data;
-            console.log('data',data);
             this.setState({
               programs:data.programs,
               courses:data.programAndCourses,
@@ -102,7 +99,6 @@ export class AdminEditStudent extends React.Component
             })
           })
           .catch((e)=>{
-            console.log('Error Retrieving data',e);
             this.setState({
               redirect:"/error"
             })
@@ -116,7 +112,6 @@ export class AdminEditStudent extends React.Component
     this.setState({
       [name]:value
     })
-    console.log(this.state);
   }
   handleSubmit = (event) => {
         event.preventDefault();
@@ -134,7 +129,7 @@ export class AdminEditStudent extends React.Component
         let payload=({
           name:this.state.name,
           password:this.state.password,
-          rollNo:this.state.rollNo,
+          rollNo:this.state.rollNo.toUpperCase(),
           gender:this.state.gender,
           instituteEmail:this.state.instituteEmail,
           personalEmail:this.state.personalEmail,
@@ -146,9 +141,10 @@ export class AdminEditStudent extends React.Component
           spi:spi,
           cpi:this.state.cpi,
           tenthMarks:this.state.tenthMarks,
-          twelthMarks:this.state.tenthMarks,
+          twelthMarks:this.state.twelthMarks,
           bachelorsMarks:this.state.bachelorsMarks,
           mastersMarks:this.state.mastersMarks,
+          registrationFor:this.state.registrationFor,
         });
         axios.patch(`/backend/admin/student/${this.state.id}`,payload,{
           headers: {
@@ -157,11 +153,9 @@ export class AdminEditStudent extends React.Component
           }
         })
         .then(() =>{
-          console.log('data has been sent to server');
           this.setState({redirect:`/admin/student/${this.state.id}`})
         })
         .catch((e)=>{
-          console.log('Student Update Unsuccessful',e);
         });
     };
   render()
@@ -214,6 +208,7 @@ export class AdminEditStudent extends React.Component
                     placeholder="Enter Roll No"
                     maxLength="10"
                     value={this.state.rollNo}
+                    pattern="[0-9]{4}[A-Za-z]{2}[0-9]{2}"
                     required
                     />
                   </div>
@@ -226,7 +221,7 @@ export class AdminEditStudent extends React.Component
                   </div>
                   <div className="col-md-8 p-1">
                   <input
-                    type="number"
+                    type="number" step="any"
                     name="mobileNumber"
                     className="form-control"
                     placeholder="Enter Phone No"
@@ -281,7 +276,7 @@ export class AdminEditStudent extends React.Component
                   </div>
                   <div className="col-md-8 p-1">
                   <input
-                    type="number"
+                    type="number" step="any"
                     name="cpi"
                     className="form-control"
                     placeholder="Enter CPI"
@@ -298,7 +293,7 @@ export class AdminEditStudent extends React.Component
                   </div>
                   <div className="col-md-8 p-1">
                   <input
-                    type="number"
+                    type="number" step="any"
                     name="tenthMarks"
                     className="form-control"
                     placeholder="Enter Percentage/CGPA"
@@ -315,7 +310,7 @@ export class AdminEditStudent extends React.Component
                   </div>
                   <div className="col-md-8 p-1">
                   <input
-                    type="number"
+                    type="number" step="any"
                     name="twelthMarks"
                     className="form-control"
                     placeholder="Enter percentage"
@@ -332,7 +327,7 @@ export class AdminEditStudent extends React.Component
                   </div>
                   <div className="col-md-8 p-1">
                   <input
-                    type="number"
+                    type="number" step="any"
                     name="bachelorsMarks"
                     className="form-control"
                     placeholder="Enter Percentage/CGPA"
@@ -348,7 +343,7 @@ export class AdminEditStudent extends React.Component
                   </div>
                   <div className="col-md-8 p-1">
                   <input
-                    type="number"
+                    type="number" step="any"
                     name="mastersMarks"
                     className="form-control"
                     placeholder="Enter Percentage/CGPA"
@@ -407,7 +402,7 @@ export class AdminEditStudent extends React.Component
                       required>
                       <option value="">Select</option>
                       <option value="FTE">FTE</option>
-                      <option value="Internship">Internship</option>
+                      <option value="INTERNSHIP">Internship</option>
                     </select>
                   </div>
                 </div>
@@ -478,7 +473,7 @@ export class AdminEditStudent extends React.Component
                   </div>
                   <div className="col-md-5 p-1" width = '10vw'>
                     <input
-                      type="number"
+                      type="number" step="any"
                       name="sem2"
                       className="form-control"
                       placeholder="Enter SPI"
@@ -492,7 +487,7 @@ export class AdminEditStudent extends React.Component
                   </div>
                   <div className="col-md-5 p-1" width= '10vw'>
                     <input
-                      type="number"
+                      type="number" step="any"
                       name="sem3"
                       className="form-control"
                       placeholder="Enter SPI"
@@ -504,7 +499,7 @@ export class AdminEditStudent extends React.Component
                   </div>
                   <div className="col-md-5 p-1" width = '10vw'>
                     <input
-                      type="number"
+                      type="number" step="any"
                       name="sem4"
                       className="form-control"
                       placeholder="Enter SPI"
@@ -518,7 +513,7 @@ export class AdminEditStudent extends React.Component
                   </div>
                   <div className="col-md-5 p-1" width= '10vw'>
                     <input
-                      type="number"
+                      type="number" step="any"
                       name="sem5"
                       className="form-control"
                       placeholder="Enter SPI"
@@ -530,7 +525,7 @@ export class AdminEditStudent extends React.Component
                   </div>
                   <div className="col-md-5 p-1" width = '10vw'>
                     <input
-                      type="number"
+                      type="number" step="any"
                       name="sem6"
                       className="form-control"
                       placeholder="Enter SPI"
@@ -544,7 +539,7 @@ export class AdminEditStudent extends React.Component
                   </div>
                   <div className="col-md-5 p-1" width= '10vw'>
                     <input
-                      type="number"
+                      type="number" step="any"
                       name="sem7"
                       className="form-control"
                       placeholder="Enter SPI"
@@ -561,7 +556,7 @@ export class AdminEditStudent extends React.Component
                 <div className="col-md-3"></div>
                 <div className="col-md-3"></div>
                 <div className="col-md-3">
-                  <Link style={{ textDecoration: 'none', color: 'white' }} to="/admin/students/"><button type="button" class="btn btn-outline-dark btn-block m-1">Back</button></Link>
+                  <Link style={{ textDecoration: 'none', color: 'white' }} to={"/admin/student/"+this.state.id}><button type="button" class="btn btn-outline-dark btn-block m-1">Back</button></Link>
                 </div>
               </div>
             </form>

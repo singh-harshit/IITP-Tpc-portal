@@ -17,13 +17,13 @@ export class StudentRegister extends React.Component
       program:'',
       course:'',
       currentSemester:null,
-      sem1: null,
-      sem2: null,
-      sem3: null,
-      sem4: null,
-      sem5: null,
-      sem6: null,
-      sem7: null,
+      sem1: "",
+      sem2: "",
+      sem3: "",
+      sem4: "",
+      sem5: "",
+      sem6: "",
+      sem7: "",
       cpi:null,
       tenthMarks:null,
       twelthMarks:null,
@@ -43,7 +43,6 @@ export class StudentRegister extends React.Component
         await axios.get('/backend/allDetails')
           .then((response) => {
             const data = response.data;
-            console.log('data',data);
             this.setState({
               programs:data.programs,
               courses:data.programAndCourses,
@@ -51,7 +50,9 @@ export class StudentRegister extends React.Component
             })
           })
           .catch((e)=>{
-            console.log('Error Retrieving data',e);
+            this.setState({
+              redirect:"/error"
+            })
           });
       };
   handleChange = (event) =>
@@ -62,12 +63,13 @@ export class StudentRegister extends React.Component
     this.setState({
       [name]:value
     })
-    console.log(this.state);
   }
 
 
   handleSubmit = (event) => {
         event.preventDefault();
+        this.setState({loading:true});
+        let rollNo=this.state.rollNo;
         let spi = {
           sem1:this.state.sem1,
           sem2:this.state.sem2,
@@ -77,12 +79,12 @@ export class StudentRegister extends React.Component
           sem6:this.state.sem6,
           sem7:this.state.sem7
         };
-        if(!this.state.bachelorsMarks)this.state.bachelorsMarks=0;
-        if(!this.state.mastersMarks)this.state.mastersMarks=0;
+        if(!this.state.bachelorsMarks)this.setState({bachelorsMarks:0});
+        if(!this.state.mastersMarks)this.setState({mastersMarks:0});
         let payload=({
           name:this.state.name,
           password:this.state.password,
-          rollNo:this.state.rollNo,
+          rollNo:this.state.rollNo.toUpperCase(),
           gender:this.state.gender,
           instituteEmail:this.state.instituteEmail,
           personalEmail:this.state.personalEmail,
@@ -101,11 +103,32 @@ export class StudentRegister extends React.Component
         axios.post('/backend/student/registration/',payload,{
         })
         .then(() =>{
-          console.log('data has been sent to server');
-          this.setState({redirect:"/"})
+          let payload={
+            userName:this.state.rollNo.toUpperCase(),
+            password:this.state.password
+          }
+          axios({
+            url: `/backend/student/login`,
+            method: 'post',
+            data: payload
+          })
+          .then((s) =>{
+            if(s.data.approvalStatus)localStorage.setItem('approvalStatus',s.data.approvalStatus);
+            localStorage.setItem('_id',s.data._id);
+            localStorage.setItem('authToken',s.headers["x-auth-token"]);
+            localStorage.setItem('refreshToken',s.headers["x-refresh-token"]);
+            localStorage.setItem('role',"student");
+            this.setState({
+              redirect:'/student'
+            })
+          })
+          .catch((error)=>{
+            this.setState({redirect:"/"})
+          });
         })
         .catch((e)=>{
-          console.log('data error',e);
+          this.setState({loading:false});
+          alert("Registration Failed. Note: Roll No and Institute Email should be unique.");
         });
     };
   getRegStatus = ()=>{
@@ -118,7 +141,9 @@ export class StudentRegister extends React.Component
         }
       })
       .catch((e)=>{
-        console.log('Error Retrieving data',e);
+        this.setState({
+          redirect:"/error"
+        })
       });
   }
   render()
@@ -172,6 +197,7 @@ export class StudentRegister extends React.Component
                     placeholder="Enter Roll No"
                     maxLength="10"
                     value={this.state.rollNo}
+                    pattern="[0-9]{4}[A-Za-z]{2}[0-9]{2}"
                     required
                     />
                   </div>
@@ -188,6 +214,7 @@ export class StudentRegister extends React.Component
                       className="form-control"
                       value={this.state.password}
                       placeholder="Enter Password"
+                      minLength="8"
                       required
                       />
                   </div>
@@ -203,6 +230,8 @@ export class StudentRegister extends React.Component
                     name="mobileNumber"
                     className="form-control"
                     placeholder="Enter Phone No"
+                    min="999999999"
+                    max="9999999999"
                     value={this.state.mobileNumber}
                     required
                   />
@@ -222,7 +251,6 @@ export class StudentRegister extends React.Component
                       <option value="">Select</option>
                       <option value="male">Male</option>
                       <option value="female">Female</option>
-                      <option value="other">Other</option>
                     </select>
                   </div>
                 </div>
@@ -253,7 +281,7 @@ export class StudentRegister extends React.Component
                   </div>
                   <div className="col-md-8 p-1">
                   <input
-                    type="number"
+                    type="number" step="any"
                     name="cpi"
                     className="form-control"
                     placeholder="Enter CPI"
@@ -270,12 +298,12 @@ export class StudentRegister extends React.Component
                   </div>
                   <div className="col-md-8 p-1">
                   <input
-                    type="number"
+                    type="number" step="any"
                     name="tenthMarks"
                     className="form-control"
                     placeholder="Enter Percentage"
                     value={this.state.tenthMarks}
-                    min="0" max="100"
+                    min="30" max="100"
                     required
                   />
                   </div>
@@ -287,12 +315,12 @@ export class StudentRegister extends React.Component
                   </div>
                   <div className="col-md-8 p-1">
                   <input
-                    type="number"
+                    type="number" step="any"
                     name="twelthMarks"
                     className="form-control"
                     placeholder="Enter percentage"
                     value={this.state.twelthMarks}
-                    min="0" max="100"
+                    min="30" max="100"
                     required
                   />
                   </div>
@@ -304,7 +332,7 @@ export class StudentRegister extends React.Component
                   </div>
                   <div className="col-md-8 p-1">
                   <input
-                    type="number"
+                    type="number" step="any"
                     name="bachelorsMarks"
                     className="form-control"
                     placeholder="Enter CGPA"
@@ -320,7 +348,7 @@ export class StudentRegister extends React.Component
                   </div>
                   <div className="col-md-8 p-1">
                   <input
-                    type="number"
+                    type="number" step="any"
                     name="mastersMarks"
                     className="form-control"
                     placeholder="Enter CGPA"
@@ -345,7 +373,8 @@ export class StudentRegister extends React.Component
                       className="form-control"
                       placeholder="Enter Webmail"
                       value={this.state.instituteEmail}
-
+                      pattern=".+@iitp.ac.in"
+                      title="Please provide only IITP e-mail address"
                       required
                       />
                   </div>

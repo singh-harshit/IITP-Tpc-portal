@@ -16,6 +16,7 @@ export class AdminAssignCoordinators extends React.Component
       _id:localStorage.getItem('_id'),
       columnDefs: [
         {headerName: 'Name',field: 'name', sortable:true, filter:true,checkboxSelection:true,onlySelected:true},
+        {headerName: 'RollNo',field: 'rollNo', sortable:true, filter:true},
         {headerName: 'Email',field: 'emailId', sortable:true, filter:true},
         {headerName: 'Mobile Number 1',field: 'mobileNumber1', sortable:true, filter:true},
         {headerName: 'Mobile Number 2',field: 'mobileNumber2', sortable:true, filter:true},
@@ -36,7 +37,6 @@ export class AdminAssignCoordinators extends React.Component
         })
           .then((response) => {
             const data = response.data.allCoordinators;
-            console.log('data',data);
             this.setState({
               rowData:data
             })
@@ -55,13 +55,11 @@ export class AdminAssignCoordinators extends React.Component
         this.setState({
           [name]:value
         })
-        console.log(this.state);
       };
      handleDeleteCoordinator = (e) =>{
         const selectedNodes = this.gridApi.getSelectedNodes();
         const selectedData = selectedNodes.map(node => node.data);
         const del = selectedData.map(data=>data._id);
-        console.log("helloo",del);
         let payload={
           coordinatorsId:del
         }
@@ -75,7 +73,6 @@ export class AdminAssignCoordinators extends React.Component
           }
         })
         .then(() =>{
-          console.log('data has been sent to server');
           this.getAllCoordinators();
         })
         .catch((error)=>{
@@ -87,7 +84,6 @@ export class AdminAssignCoordinators extends React.Component
          const selectedNodes = this.gridApi.getSelectedNodes();
          const selectedData = selectedNodes.map(node => node.data);
          const del = selectedData.map(data=>data._id);
-         console.log("helloo",del,del.length);
          if(del.length!==1)alert('Select one student')
          else
          {
@@ -118,7 +114,7 @@ export class AdminAssignCoordinators extends React.Component
         event.preventDefault();
         let payload={
           name:this.state.name,
-          rollNo:this.state.rollNo,
+          rollNo:this.state.rollNo.toUpperCase(),
           emailId:this.state.email,
           password:this.state.password,
           mobileNumber1:this.state.mobileNumber1,
@@ -134,7 +130,6 @@ export class AdminAssignCoordinators extends React.Component
           }
         })
         .then(() =>{
-          console.log('data has been sent to server');
           this.resetState();
           this.getAllCoordinators();
         })

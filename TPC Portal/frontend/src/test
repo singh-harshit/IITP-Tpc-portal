@@ -1,0 +1,10 @@
+defaultColDef: { resizable: true },
+
+var allColumnIds = [];
+  this.gridColumnApi.getAllColumns().forEach(function(column) {
+    allColumnIds.push(column.colId);
+  });
+  this.gridColumnApi.autoSizeColumns(allColumnIds, true);
+
+  onGridReady = {params => {this.gridApi = params.api;this.gridColumnApi = params.columnApi;}}
+  defaultColDef={this.state.defaultColDef}

@@ -63,7 +63,6 @@ export class AdminJobMarkProgress extends React.Component
         .then((response) => {
           const data = response.data.stepsWithStatus;
           this.setState({currentSteps:data});
-          console.log("cStep",this.state.currentSteps);
           let steps = [];
           data.forEach((item, i) => {
             let status=false
@@ -73,7 +72,6 @@ export class AdminJobMarkProgress extends React.Component
           this.setState({steps:steps})
         })
         .catch((e)=>{
-          console.log('Error Retrieving data',e);
           this.setState({
             redirect:"/error"
           })
@@ -83,14 +81,12 @@ export class AdminJobMarkProgress extends React.Component
         axios.get('/backend/allDetails')
           .then((response) => {
             const data = response.data;
-            console.log('data',data);
             this.setState({
               oldsteps:data.steps,
               status:data.status
             })
           })
           .catch((e)=>{
-            console.log('Error Retrieving data',e);
             this.setState({
               redirect:"/error"
             })
@@ -105,7 +101,6 @@ export class AdminJobMarkProgress extends React.Component
         })
           .then((response) => {
             const data = response.data.jobStepsInfo.progressSteps;
-            console.log('data',data);
             let studentData=[];
             data.forEach((item, i) => {
               var students=[];
@@ -170,10 +165,8 @@ export class AdminJobMarkProgress extends React.Component
               }
             });
             this.setState({studentData:studentData})
-            console.log('Applicants',studentData);
           })
           .catch((e)=>{
-            console.log('Error Retrieving data',e);
 
             this.setState({
               redirect:"/error"
@@ -189,7 +182,6 @@ export class AdminJobMarkProgress extends React.Component
 
       handleCheckChildElement = (event) => {
         let steps = this.state.steps;
-        console.log(event.target.checked);
         steps.forEach(step => {
            if (step.value === event.target.value)
               step.isChecked =  event.target.checked
@@ -200,7 +192,7 @@ export class AdminJobMarkProgress extends React.Component
         event.preventDefault();
         let stepsWithStatus=[]
         this.state.steps.forEach((item, i) => {
-          let status= item.isChecked ? "Completed":"Open"
+          let status= item.isChecked ? "Completed":"Not Completed"
           stepsWithStatus.push({name:item.value,status:status})
         });
         let payload = {
@@ -216,18 +208,15 @@ export class AdminJobMarkProgress extends React.Component
           }
         })
         .then((s) =>{
-          console.log('data has been sent to server',s);
           alert("Marked");
           this.getProgress();
           this.getSteps();
         })
         .catch((e)=>{
-          console.log(' error',e);
           alert('Request Error');
         });
       }
       handleClick = (e) =>{
-        console.log("E",e);
         if(e.colDef.field === 'attendance')
         {
           if(e.value===false){
@@ -266,7 +255,6 @@ export class AdminJobMarkProgress extends React.Component
 
 
   handleStepChange = (e) =>{
-    console.log(this.state);
     let studentData = this.state.studentData;
     this.setState({
       currentStep:e.target.value,
@@ -283,7 +271,6 @@ export class AdminJobMarkProgress extends React.Component
     });
   }
   handleChange = (e)=>{
-    console.log(this.state);
     let target=e.target;
     let name = target.name;
     let value = target.value;
@@ -307,7 +294,6 @@ export class AdminJobMarkProgress extends React.Component
       }
     })
     .then((s) =>{
-      console.log('data has been sent to server',s);
       this.setState({
         stepDate:'',
         stepTime:'',
@@ -319,7 +305,6 @@ export class AdminJobMarkProgress extends React.Component
       this.getSteps();
     })
     .catch((e)=>{
-      console.log('data error',e);
       alert("Step Not Added");
     });
   }
@@ -347,19 +332,17 @@ export class AdminJobMarkProgress extends React.Component
       }
     })
     .then((s) =>{
-      console.log('data has been sent to server',s);
       this.getProgress();
       alert("Saved Progress",s.data.message);
+      this.setState({
+        currentStep:'',
+        rowData:[]
+      })
     })
     .catch((e)=>{
-      console.log('data error',e);
       alert("Request Failed")
     });
   }
-  this.setState({
-    currentStep:'',
-    rowData:[]
-  })
   }
   handleSaveStatus = ()=>{
     let payload={
@@ -375,13 +358,11 @@ export class AdminJobMarkProgress extends React.Component
       }
     })
     .then((s) =>{
-      console.log('data has been sent to server',s);
       this.getProgress();
       alert("Saved Status",s.data.message);
       this.setState({jobStatus:''});
     })
     .catch((e)=>{
-      console.log(' error',e);
       alert("Request Failed");
     });
   }
@@ -400,7 +381,6 @@ export class AdminJobMarkProgress extends React.Component
       }
     })
     .then((s) =>{
-      console.log('data has been sent to server',s);
       this.setState({
         delstepName:'',
       })
@@ -410,9 +390,16 @@ export class AdminJobMarkProgress extends React.Component
       this.getSteps();
     })
     .catch((e)=>{
-      console.log('data error',e);
       alert("Could Not Remove step");
     });
+  }
+  onBtnExport = () => {this.gridApi.exportDataAsCsv();};
+  onShortlistAll = ()=>{
+    this.setState(prevState => ({
+      rowData: prevState.rowData.map(
+        el => el?{ ...el, attendance:true,selection: true }:null
+      )
+    }))
   }
   render()
   {
@@ -506,6 +493,8 @@ export class AdminJobMarkProgress extends React.Component
             </select>
         </div>
       </div>
+      <button onClick={() => this.onBtnExport()}>Export</button>
+      <button onClick={() => this.onShortlistAll()}>Shortlist All</button>
       <div
         className="ag-theme-balham"
         style={{

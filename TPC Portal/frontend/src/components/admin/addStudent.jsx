@@ -34,7 +34,6 @@ export class AdminJobAddStudent extends React.Component
         })
           .then((response) => {
             const data = response.data.studentsInfo;
-            console.log('data',data);
             this.setState({
               rowData:data
             })
@@ -62,7 +61,6 @@ export class AdminJobAddStudent extends React.Component
     				}
           })
           .then(() =>{
-            console.log('data has been sent to server');
             alert('Added Students')
           })
           .catch((error)=>{
@@ -73,6 +71,7 @@ export class AdminJobAddStudent extends React.Component
           redirect:`/admin/job/${this.state.id}`
         })*/
       }
+      onBtnExport = () => {this.gridApi.exportDataAsCsv();}
   render()
   {
     if (this.state.redirect)
@@ -88,6 +87,7 @@ export class AdminJobAddStudent extends React.Component
             height:500,
           }}
           >
+          <button onClick={() => this.onBtnExport()}>Export</button>
           <AgGridReact
             columnDefs = {this.state.columnDefs}
             rowData = {this.state.rowData}

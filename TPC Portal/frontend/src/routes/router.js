@@ -15,6 +15,7 @@ import {StudentResume} from "../components/student/index.jsx";
 import {StudentProfile} from "../components/student";
 import {StudentEditProfile} from "../components/student";
 import {StudentEditCPI} from "../components/student";
+import {StudentAllJobs} from "../components/student";
 // Company imports
 import {CompanyNavbar} from "../components/companies/index.jsx";
 import {CompanyProfile} from "../components/companies";
@@ -54,6 +55,7 @@ import {CoordinatorEditCompany} from "../components/coordinator";
 import {CoordinatorJob} from "../components/coordinator";
 import {CoordinatorAddJob} from "../components/coordinator";
 import {CoordinatorEditJob} from "../components/coordinator";
+import {CoordinatorJobEligibility} from "../components/coordinator";
 import {CoordinatorJobMarkProgress} from "../components/coordinator";
 
 const ProtectedAdminRoute = ({component:Component, ...rest}) =>{
@@ -96,6 +98,7 @@ export default class RouterBlock extends React.Component{
         <Route path="/student/editCPI" component = {StudentEditCPI} />
         <Route path="/student/appliedjobs" component = {StudentAppliedJobs} />
         <Route path="/student/eligiblejobs" component = {StudentEligibleJobs} />
+        <Route path="/student/allJobs" component = {StudentAllJobs} />
         <Route path="/student/requests" component = {StudentRequests} />
         <Route path="/student/resume" component = {StudentResume} />
         {/* Company Routes**/}
@@ -136,6 +139,7 @@ export default class RouterBlock extends React.Component{
           <Route path="/coordinator/job/:jid" exact component = {CoordinatorJob} />
           <Route path="/coordinator/addJob/" component = {CoordinatorAddJob}/>
           <Route path="/coordinator/editJob/:jid" component = {CoordinatorEditJob}/>
+          <Route path="/coordinator/job/eligibilityCriteria/:jid" exact component = {CoordinatorJobEligibility} />
           <Route path="/coordinator/job/markProgress/:jid" component = {CoordinatorJobMarkProgress}/>
       </React.Fragment>
     </Router>

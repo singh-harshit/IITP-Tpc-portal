@@ -36,7 +36,6 @@ export class CompanyRegister extends React.Component
       this.setState({
         [name]:value
       })
-      console.log(this.state);
     };
     handleSubmit = (event) =>
     {
@@ -68,7 +67,6 @@ export class CompanyRegister extends React.Component
             contact2: contact2,
             contact3: contact3
           };
-          console.log(payload);
           axios({
             url: '/backend/company/registration',
             method: 'post',
@@ -79,11 +77,10 @@ export class CompanyRegister extends React.Component
             }
           })
           .then(() =>{
-            console.log('data has been sent to server');
             this.resetUserInputs();
           })
           .catch(()=>{
-            console.log('data error');
+            alert("Could Not Register");
           });
       };
 
@@ -110,8 +107,8 @@ export class CompanyRegister extends React.Component
   render()
   {
     return(
-      <div className="base-container p-1">
-        <section className="container-fluid border p-1 rounded border-success admin m-3">
+      <div className="base-container register p-1">
+        <section className="container-fluid border p-1 rounded border-success m-3">
           <form className="form" onSubmit = {this.handleSubmit} onChange={this.handleChange}>
             <div className="form-group row">
               <div className="col-md-3">

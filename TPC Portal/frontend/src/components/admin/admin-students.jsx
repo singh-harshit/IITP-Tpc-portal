@@ -13,15 +13,23 @@ export class AdminStudents extends Component {
       authToken:localStorage.getItem('authToken'),
       _id:localStorage.getItem('_id'),
     redirect:null,
+    defaultColDef:{
+      resizable: true,
+    },
     columnDefs: [
-      {headerName: 'Rollno',field: 'rollNo', sortable:true, filter:true,checkboxSelection:true},
+      {headerName: 'Rollno',field: 'rollNo', sortable:true, filter:true},
       {headerName: 'Name',field: 'name', sortable:true, filter:true},
       {headerName: 'CPI',field: 'cpi', sortable:true, filter:"agNumberColumnFilter"},
+      {headerName: '10th Score',field: 'tenthMarks', sortable:true, filter:"agNumberColumnFilter"},
+      {headerName: '12th Score',field: 'twelthMarks', sortable:true, filter:"agNumberColumnFilter"},
       {headerName: 'Program',field: 'program', sortable:true, filter:true},
+      {headerName: 'Course',field: 'course', sortable:true, filter:true},
       {headerName: 'Mail',field: 'instituteEmail', sortable:true, filter:true},
       {headerName: 'Mob',field: 'mobileNumber', sortable:true, filter:true},
       {headerName: 'Status',field: 'status', sortable:true, filter:true},
-      {headerName: 'Resume',field: 'resumeFile', sortable:true, filter:true,cellRenderer: function(params) {return `<a href="${params.value}" target="_blank" rel="noopener">`+ params.value+'</a>'}},
+      {headerName: 'Registred For',field: 'registrationFor', sortable:true, filter:true},
+      {headerName: 'Resume File',field: 'resumeFile', sortable:true, filter:true,cellRenderer: function(params) {return `<a href="${params.value}" target="_blank" rel="noopener">`+ params.value+'</a>'}},
+      {headerName: 'Resume Link',field: 'resumeLink', sortable:true, filter:true,cellRenderer: function(params) {return `<a href="${params.value}" target="_blank" rel="noopener">`+ params.value+'</a>'}},
     ],
     rowData: [],
     autoGroupColumnDef:{
@@ -31,14 +39,6 @@ export class AdminStudents extends Component {
     }
   };
 }
-/*
-  componentDidMount(){
-    fetch('url')
-      .then(res => res.json())
-      .then(rowData => this.setState({rowData}))
-      .catch(err => console.log(err));
-  }
-*/
   handleClick = () =>{
     const selectedNodes = this.gridApi.getSelectedNodes();
     const selectedData = selectedNodes.map(node => node.data);
@@ -51,8 +51,8 @@ export class AdminStudents extends Component {
   componentDidMount = () =>{
     this.getStudents();
   };
-  getStudents = () =>{
-    axios.get('/backend/admin/students/',{
+  getStudents = async() =>{
+    await axios.get('/backend/admin/students/',{
       headers: {
         'x-auth-token': this.state.authToken,
         'x-refresh-token': this.state.refreshToken,
@@ -60,7 +60,6 @@ export class AdminStudents extends Component {
     })
       .then((response) => {
         const data = response.data.studentsInfo;
-        console.log('data',data);
         this.setState({
           rowData:data
         })
@@ -70,7 +69,13 @@ export class AdminStudents extends Component {
           redirect:"/error"
         })
       });
+      var allColumnIds = [];
+        this.gridColumnApi.getAllColumns().forEach(function(column) {
+          allColumnIds.push(column.colId);
+        });
+        this.gridColumnApi.autoSizeColumns(allColumnIds, false);
   }
+  onBtnExport = () => {this.gridApi.exportDataAsCsv();};
   render()
   {
     if (this.state.redirect)
@@ -85,12 +90,14 @@ export class AdminStudents extends Component {
           height:430
         }}
       >
+      <button onClick={() => this.onBtnExport()}>Export</button>
       <AgGridReact
         columnDefs = {this.state.columnDefs}
         rowData = {this.state.rowData}
         rowSelection = "multiple"
-        onGridReady = {params => this.gridApi = params.api}
         onCellDoubleClicked={this.handleClick}
+        onGridReady = {params => {this.gridApi = params.api;this.gridColumnApi = params.columnApi;}}
+        defaultColDef={this.state.defaultColDef}
       />
       </div>
     </div>

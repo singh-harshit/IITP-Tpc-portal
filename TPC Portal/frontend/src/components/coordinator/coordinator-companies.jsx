@@ -14,13 +14,14 @@ export class CoordinatorCompanies extends Component {
       authToken:localStorage.getItem('authToken'),
       _id:localStorage.getItem('_id'),
     columnDefs: [
-      {headerName: 'Company',field: 'companyName', sortable:true, filter:true,checkboxSelection:true,onlySelected:true,cellRenderer: function(params) {return `<a href="https://www.google.com/search?q=${params.value}" target="_blank" rel="noopener">`+ params.value+'</a>'}},
-      {headerName: 'status',field: 'companyStatus', sortable:true, filter:true},
+      {headerName: 'Company',field: 'companyName', sortable:true, filter:true,checkboxSelection:true,onlySelected:true},
+      {headerName: 'status',field: 'companyStatus', sortable:true, filter:true,resizable:true},
       {headerName: 'Job Title',field: 'jobTitle', sortable:true, filter:true},
       {headerName: 'Classification',field: 'jobCategory', sortable:true, filter:true},
       {headerName: 'Job Status',field: 'jobStatus', sortable:true, filter:true},
     ],
     rowData: [],
+    defaultColDef: { resizable: true },
     redirect:''
   };
 }
@@ -36,11 +37,12 @@ export class CoordinatorCompanies extends Component {
     })
       .then((response) => {
         const data = response.data.companyList;
-        console.log('data',data);
         this.fillTableData(data);
       })
       .catch((e)=>{
-        console.log('Error Retrieving data',e);
+        this.setState({
+          redirect:"/error"
+        })
       });
   }
 
@@ -72,11 +74,15 @@ export class CoordinatorCompanies extends Component {
   this.setState({
     rowData:rowData
   });
+  var allColumnIds = [];
+    this.gridColumnApi.getAllColumns().forEach(function(column) {
+      allColumnIds.push(column.colId);
+    });
+    this.gridColumnApi.autoSizeColumns(allColumnIds, true);
 }
   handleSelect = (e) =>{
     const selectedNodes = this.gridApi.getSelectedNodes();
     const selectedData = selectedNodes.map(node => node.data);
-    console.log("helloo",selectedNodes);
     const selectedDataStringPresentation = selectedData.map(node => '/coordinator/company/' + node._id).join('/');
     var link = `/coordinator/company/${e.data._id}`;
     this.setState({
@@ -101,13 +107,12 @@ export class CoordinatorCompanies extends Component {
       }
     })
     .then((e) =>{
-      console.log('data has been sent to server');
       this.getCompanies();
-      console.log(e);
       alert('Deactiveted: '+e.data.successFul+' Deactivate Failed for: '+e.data.unSuccessFul);
     })
     .catch(()=>{
-      console.log('data error');
+      alert("Could not Deactivate")
+
     });
   }
 
@@ -128,16 +133,38 @@ export class CoordinatorCompanies extends Component {
       }
     })
     .then((e) =>{
-      console.log('data has been sent to server');
       this.getCompanies();
-      console.log(e);
       alert('Deleted: '+e.data.successFul+' Delete Failed for: '+e.data.unSuccessFul);
     })
     .catch(()=>{
-      console.log('data error');
+      alert("Could not delete Company")
+    });
+  }
+  handleBulkFile = (event) =>
+  {
+    this.setState({
+      bulkFile: event.target.files[0]
     });
   }
 
+  handleBulkFileSubmit = (event) => {
+        event.preventDefault();
+        const formData = new FormData();
+        formData.append('companyDetails',this.state.bulkFile);
+        axios.post('/backend/coordinator/companies/addBulkCompany',formData,{
+          headers: {
+    				'x-auth-token': this.state.authToken,
+    				'x-refresh-token': this.state.refreshToken,
+          }
+        })
+        .then(() =>{
+          alert("Uploaded Bulk file");
+        })
+        .catch((error)=>{
+          alert("Could not upload")
+        });
+    };
+    onBtnExport = () => {this.gridApi.exportDataAsCsv();}
   render()
   {
     if (this.state.redirect)
@@ -146,6 +173,7 @@ export class CoordinatorCompanies extends Component {
     }
     return(
       <div className="container border rounded p-3 m-2 border-success admin">
+      <button onClick={() => this.onBtnExport()}>Export</button>
       <div
         className="ag-theme-balham"
         style={{
@@ -157,26 +185,28 @@ export class CoordinatorCompanies extends Component {
         columnDefs = {this.state.columnDefs}
         rowData = {this.state.rowData}
         rowSelection = "multiple"
-        onGridReady = {params => this.gridApi = params.api}
+        onGridReady = {params => {this.gridApi = params.api;this.gridColumnApi = params.columnApi;}}
         onCellDoubleClicked = {this.handleSelect}
-
+        defaultColDef={this.state.defaultColDef}
       />
       </div>
       <div className="container-fluid row mt-2">
-        <div className="col-md-2">
+        <div className="col-md-3">
           <Link style={{ textDecoration: 'none', color: 'white' }} to="/coordinator/addCompany"><button type="button" className="btn btn-block btn-success m-1">Add Company</button></Link>
         </div>
-        <div className="col-md-2">
-          <button type="button" className="btn btn-block btn-success m-1" onClick={this.handleDelete}>Delete Company</button>
-        </div>
-        <div className="col-md-2">
-          <button type="button" className="btn btn-block btn-success m-1" onClick={this.handleDeactivate}>Deactivate</button>
-        </div>
         <div className="col-md-3">
-          <button type="button" className="btn btn-block btn-success m-1">Add Bulk Company</button>
-        </div>
-        <div className="col-md-2">
           <Link style={{ textDecoration: 'none', color: 'white' }} to="/coordinator/addJob"><button type="button" className="btn btn-block btn-success m-1">Add Job</button></Link>
+        </div>
+        <div className="col-md-6">
+          <form className="row" onSubmit={this.handleBulkFileSubmit}>
+            <div className="col-md-6 custom-file bg-primary rounded text light">
+              <input type="file" className="custom-file-input" id='resumeFile' required onChange={this.handleBulkFile}/>
+              <label className="custom-file-label" htmlFor="customFile">Choose file</label>
+            </div>
+            <div className="col-md-6">
+              <button type="submit" className="btn btn-block btn-primary">Add Bulk Company</button>
+            </div>
+          </form>
         </div>
       </div>
     </div>

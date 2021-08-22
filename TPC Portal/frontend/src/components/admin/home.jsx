@@ -62,6 +62,7 @@ export class AdminHome extends Component {
 			programs:[],
 			columnDefs: [
 	      {headerName: 'Company',field: 'companyName', sortable:true, filter:true},
+				{headerName: 'Job Title',field: 'jobTitle', sortable:true, filter:true},
 	      {headerName: 'Process',field: 'stepName',sortable:true, filter:true},
 	      {headerName: 'Date',field: 'stepDate', sortable:true, filter:true},
 	     ],
@@ -85,7 +86,6 @@ export class AdminHome extends Component {
 			})
       .then((response) => {
         const data = response.data;
-        console.log('data',data);
 				let program = [];
 				let internshipStats=[];
 				let fteStats=[];
@@ -185,8 +185,6 @@ export class AdminHome extends Component {
 				this.handleGraph1();
       })
       .catch((error) => {
-        console.log("Receiving Student Data List Failed");
-        console.log(error);
         this.setState({
           redirect:"/error"
         })
@@ -196,13 +194,11 @@ export class AdminHome extends Component {
 		const target = event.target;
 		const name = target.name;
 		const value = target.value;
-		console.log(name,value);
 		this.setState({program:value})
 		this.handleGraph2(value);
 	}
 	handleGraph2 =(value)=>{
 		let option=this.state.options2;
-		console.log(this.state.current);
 		if(value==='')option.data=[];
 		if(this.state.current===1)
 		{
@@ -225,17 +221,14 @@ export class AdminHome extends Component {
 				});
 		}
 		this.renderChart();
-		console.log("graph2",this.state.options2);
 	}
 	renderChart(){
 		var chart = this.chart;
 		chart.render();
 		var chart1 = this.chart1;
 		chart1.render();
-		console.log(this.state.options1);
 	}
 	handleGraph1= ()=>{
-		console.log(this.state.current);
 		let newdata = [];
 		if(this.state.current===1)
 		{
@@ -261,7 +254,6 @@ export class AdminHome extends Component {
 			});
 		}
 		else {
-			console.log(this.state.fte);
 
 			this.setState({
 				companiesRegistered:this.state.fte.companiesRegistered,
@@ -329,30 +321,30 @@ export class AdminHome extends Component {
       }
 		})
 		.then((e) =>{
-			console.log('data has been sent to server',e);
 			alert(`updated`);
 			this.setState({
 				onlyCpiUpdate:!status,
 			})
 		})
 		.catch((e)=>{
-			console.log('data error',e);
 		});
 	}
+	onBtnExport1 = () => {this.gridApi1.exportDataAsCsv();}
+	onBtnExport2 = () => {this.gridApi2.exportDataAsCsv();}
 	render() {
 
 		return (
 		<div className=" p-3 m-3 admin">
 			<div className="row bg-dark rounded p-2 mb-2">
 				<div className="col-md-6">
-					<button type="button" class="btn btn-block btn-primary m-1" onClick={this.handleCPIChange}>
+					<button type="button" className="btn btn-block btn-primary m-1" onClick={this.handleCPIChange}>
 						{
 							this.state.onlyCpiUpdate ? "Close Edit CPI":"Open Edit CPI"
 						}
 					</button>
 				</div>
 				<div className="col-md-6">
-					<button type="button" class="btn btn-block btn-primary m-1" onClick={this.handleChange}>
+					<button type="button" className="btn btn-block btn-primary m-1" onClick={this.handleChange}>
 						{
 							this.state.current ? "INTERNSHIP":"FTE"
 						}
@@ -407,7 +399,7 @@ export class AdminHome extends Component {
 				</div>
 			</div>
 			<div className="row mt-3">
-				<div className="col-md-6 border rounded border-success p-3">
+				<div className="col-md-6 border rounded border-success p-3 pb-5">
 					<p>FTE Upcoming Schedule</p>
 					<div
 	          className="ag-theme-balham"
@@ -415,17 +407,18 @@ export class AdminHome extends Component {
 	            height:500,
 	          }}
 	          >
+			      <button onClick={() => this.onBtnExport1()}>Export</button>
 	          <AgGridReact
 	            columnDefs = {this.state.columnDefs}
 	            rowData = {this.state.rowData1}
 	            rowSelection = "multiple"
-	            onGridReady = {params => this.gridApi = params.api}
+	            onGridReady = {params => this.gridApi1 = params.api}
 	            onCellDoubleClicked={this.handleClick}
 	            getRowHeight={this.state.getRowHeight}
 	          />
 	        </div>
 				</div>
-				<div className="col-md-6 border rounded border-success p-3">
+				<div className="col-md-6 border rounded border-success p-3 pb-5">
 					<p>Intern Upcoming Schedule</p>
 					<div
 	          className="ag-theme-balham"
@@ -433,11 +426,12 @@ export class AdminHome extends Component {
 	            height:500,
 	          }}
 	          >
+			      <button onClick={() => this.onBtnExport2()}>Export</button>
 	          <AgGridReact
 	            columnDefs = {this.state.columnDefs}
 	            rowData = {this.state.rowData2}
 	            rowSelection = "multiple"
-	            onGridReady = {params => this.gridApi = params.api}
+	            onGridReady = {params => this.gridApi2 = params.api}
 	            onCellDoubleClicked={this.handleClick}
 	            getRowHeight={this.state.getRowHeight}
 	          />

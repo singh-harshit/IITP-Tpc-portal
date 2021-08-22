@@ -33,6 +33,11 @@ export class StudentNavbar extends React.Component
                   Eligible Jobs
                 </li>
               </Link>
+              <Link  className="nav-link" to="/student/allJobs">
+                <li className="nav-item">
+                  All Jobs
+                </li>
+              </Link>
               <Link  className="nav-link" to="/student/requests">
                 <li className="nav-item">
                   Requests
@@ -46,7 +51,7 @@ export class StudentNavbar extends React.Component
 
               <Link  className="nav-link" to="/">
                 <li className="nav-item">
-                  <i class='fas fa-sign-out-alt'></i>Sign Out
+                  <i className='fas fa-sign-out-alt'></i>Sign Out
                 </li>
               </Link>
             </ul>

@@ -39,7 +39,6 @@ export class AdminAddCompany extends React.Component
       this.setState({
         [name]:value
       })
-      console.log(this.state);
     };
 
     handleSubmit = (event) =>
@@ -65,14 +64,13 @@ export class AdminAddCompany extends React.Component
           };
           let payload = {
             companyName:this.state.companyName,
-            userName: this.state.userName,
+            userName: this.state.userName.toUpperCase(),
             password: this.state.password,
             companyAddress: this.state.companyAddress,
             contact1: contact1,
             contact2: contact2,
             contact3: contact3
           };
-          console.log(payload);
           axios({
             url: '/backend/admin/companies/addCompany',
             method: 'post',
@@ -83,14 +81,13 @@ export class AdminAddCompany extends React.Component
     				}
           })
           .then(() =>{
-            console.log('data has been sent to server');
             this.setState({
               redirect:'/admin/companies'
             })
             this.resetUserInputs();
           })
-          .catch(()=>{
-            console.log('Could Not Add Company');
+          .catch((error)=>{
+            alert("Could Not Add Company");
           });
       };
 
@@ -171,7 +168,7 @@ export class AdminAddCompany extends React.Component
                       name="password"
                       className="form-control"
                       placeholder="Enter Password"
-                      maxLength="300"
+                      minLength="8"
                       value={this.state.password}
                       required
                       />

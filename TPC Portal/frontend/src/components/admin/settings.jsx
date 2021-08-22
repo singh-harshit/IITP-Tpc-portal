@@ -47,7 +47,6 @@ export class AdminSettings extends React.Component
       axios.get('/backend/allDetails')
         .then((response) => {
           const data = response.data;
-          console.log('data',data);
           this.setState({
             oldclassifications:data.classifications,
             oldjobStatus:data.status,
@@ -58,7 +57,6 @@ export class AdminSettings extends React.Component
           })
         })
         .catch((e)=>{
-          console.log('Error Retrieving data',e);
           this.setState({
             redirect:"/error"
           })
@@ -74,7 +72,6 @@ export class AdminSettings extends React.Component
             })
           })
           .catch((e)=>{
-            console.log('Error Retrieving data',e);
             this.setState({
               redirect:"/error"
             })
@@ -100,7 +97,6 @@ export class AdminSettings extends React.Component
             passwordMatch:false
           })
         }
-        console.log(this.state);
       };
       handleClassification = (event) =>{
         event.preventDefault();
@@ -236,7 +232,6 @@ export class AdminSettings extends React.Component
           }
           courses.push(newProgram);
         }
-        console.log("courses",courses);
         let payload={
           programsWithCourses:courses
         }
@@ -277,14 +272,12 @@ export class AdminSettings extends React.Component
           }
         })
         .then((s) =>{
-          console.log('data has been sent to server',s);
           this.setState({
             [variable]:''
           })
           this.getAllDetails();
         })
         .catch((e)=>{
-          console.log('data error',e,payload);
           alert("Error Occured");
         });
       }
@@ -298,12 +291,10 @@ export class AdminSettings extends React.Component
       }
     })
     .then((s) =>{
-      console.log('data has been sent to server',s);
       alert(s.data.message);
       this.getStatus();
     })
     .catch((e)=>{
-      console.log('data error',e);
       alert("Request Error");
     });
   }
@@ -325,7 +316,6 @@ export class AdminSettings extends React.Component
         }
       })
       .then((s) =>{
-        console.log('data has been sent to server',s);
         alert(s.data.message);
         this.setState({
           newPassword1:'',
@@ -335,7 +325,6 @@ export class AdminSettings extends React.Component
         })
       })
       .catch((e)=>{
-        console.log('data error',e);
         alert("Password Not Reset");
       });
     }

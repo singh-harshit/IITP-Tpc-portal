@@ -32,7 +32,6 @@ export class AdminEditJob extends React.Component
       await axios.get('/backend/allDetails')
         .then((response) => {
           const data = response.data;
-          console.log('data',data);
           let programs = [];
           data.programAndCourses.forEach((item, i) => {
             let program = item.program;
@@ -49,7 +48,6 @@ export class AdminEditJob extends React.Component
           })
         })
         .catch((e)=>{
-          console.log('Error Retrieving data',e);
           this.setState({
             redirect:"/error"
           })
@@ -64,7 +62,6 @@ export class AdminEditJob extends React.Component
         })
           .then((response) => {
             const data = response.data.jobDetails;
-            console.log('job',data);
             data.schedule.forEach((item, i) => {
               item.date=item.stepDate.split(",")[0];
               item.time=item.stepDate.split(",")[1];
@@ -76,7 +73,6 @@ export class AdminEditJob extends React.Component
             })
           })
           .catch((e)=>{
-            console.log('Error Retrieving data',e);
             this.setState({
               redirect:"/error"
             })
@@ -94,7 +90,6 @@ export class AdminEditJob extends React.Component
         this.handleCompanyList(data);
       })
       .catch((error)=>{
-        console.log('Error Retrieving data',error);
 
         this.setState({
           redirect:"/error"
@@ -106,7 +101,6 @@ export class AdminEditJob extends React.Component
     const target = event.target;
     const name = target.name;
     const value = target.value;
-    console.log(event.value);
     if(name==="companyName")
     {
       var list = value.split(',');
@@ -121,10 +115,8 @@ export class AdminEditJob extends React.Component
         [name]:value
       })
     }
-    console.log(this.state);
   }
   handleCompanyList = (data) =>{
-    console.log(data);
   const companyList = data.map((company,index) =>
     <option key={company._id} label={company.companyName} value={[company._id,company.companyName]}>{company.companyName}</option>
     )
@@ -178,7 +170,6 @@ export class AdminEditJob extends React.Component
         }
       })
       .then( async(s)=>{
-        console.log('data has been sent to server');
         const formData = new FormData();
         formData.append('resumeFiles',this.state.file);
         await this.setState({
@@ -211,7 +202,6 @@ export class AdminEditJob extends React.Component
   handleFile = (event) =>
   {
     let file = event.target.files[0];
-    console.log('uploaded:',file);
     this.setState({
       file: file,
     });
